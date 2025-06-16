@@ -1,6 +1,8 @@
 package com.idukbaduk.itseats.store.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
+import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
+import com.idukbaduk.itseats.store.entity.enums.StoreStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.springframework.data.geo.Point;
