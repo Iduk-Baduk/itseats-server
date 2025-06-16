@@ -37,26 +37,26 @@ public class Review extends BaseEntity {
     private Long reviewId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id")
+    @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rider_id")
+    @JoinColumn(name = "rider_id", nullable = false)
     private Rider rider;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     @Column(name = "store_star", nullable = false)
     private int storeStar;
 
     @Column(name = "rider_star")
-    private int riderStar;
+    private Integer riderStar;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "menu_liked", nullable = false)

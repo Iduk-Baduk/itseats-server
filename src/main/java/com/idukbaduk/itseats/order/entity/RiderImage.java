@@ -31,11 +31,11 @@ public class RiderImage extends BaseEntity {
     private Long imageId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rider_id")
+    @JoinColumn(name = "rider_id", nullable = false)
     private Rider rider;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     @Column(name = "iamge_url", nullable = false)
