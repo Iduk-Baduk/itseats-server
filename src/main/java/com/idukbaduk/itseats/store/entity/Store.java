@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.store.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
+import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
 import com.idukbaduk.itseats.store.entity.enums.StoreStatus;
 import jakarta.persistence.*;
@@ -16,6 +17,18 @@ public class Store extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "store_id")
     private Long storeId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_category_id", nullable = false)
+    private StoreCategory storeCategory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "franchise_id")
+    private Franchise franchise;
 
     @Column(name = "store_name", nullable = false)
     private String storeName;
