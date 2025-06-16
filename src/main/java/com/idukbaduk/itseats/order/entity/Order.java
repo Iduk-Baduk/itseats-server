@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.order.entity;
 
+import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "order")
-public class Order {
+public class Order extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
