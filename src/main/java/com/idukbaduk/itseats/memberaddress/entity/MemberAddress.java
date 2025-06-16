@@ -17,17 +17,17 @@ public class MemberAddress extends BaseEntity {
     @Column(name = "address_id")
     private Long addressId;
 
-    @Column(name = "main_address")
+    @Column(name = "main_address", nullable = false)
     private String mainAddress;
 
-    @Column(name = "detail_address")
+    @Column(name = "detail_address", nullable = false)
     private String detailAddress;
 
-    @Column(name = "location")
+    @Column(name = "location", nullable = false)
     private Point location;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "address_category")
+    @Column(name = "address_category", nullable = false)
     private AddressCategory addressCategory;
 
     @Column(name = "last_used_date")
