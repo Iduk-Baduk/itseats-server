@@ -32,7 +32,7 @@ public class Menu extends BaseEntity {
     private Long menuId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "menu_group_id")
+    @JoinColumn(name = "menu_group_id", nullable = false)
     private MenuGroup menuGroup;
 
     @Column(name = "menu_name", nullable = false)
