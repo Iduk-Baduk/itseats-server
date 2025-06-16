@@ -14,6 +14,10 @@ public class StoreImage extends BaseEntity {
     @Column(name = "store_image_id")
     private Long storeImageId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store;
+
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
