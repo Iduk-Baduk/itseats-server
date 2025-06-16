@@ -2,6 +2,7 @@ package com.idukbaduk.itseats.coupon.entity;
 
 import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
 import com.idukbaduk.itseats.coupon.entity.enums.TargetType;
+import com.idukbaduk.itseats.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "coupon")
-public class Coupon {
+public class Coupon extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
