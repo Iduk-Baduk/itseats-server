@@ -10,12 +10,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.awt.Point;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "order")
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "orders")
 public class Order extends BaseEntity {
 
     @Id
@@ -23,28 +31,28 @@ public class Order extends BaseEntity {
     @Column(name = "order_id")
     private Long orderId;
 
-    @Column(name = "order_number")
+    @Column(name = "order_number", nullable = false)
     private String orderNumber;
 
-    @Column(name = "order_price")
+    @Column(name = "order_price", nullable = false)
     private int orderPrice;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "order_status")
+    @Column(name = "order_status", nullable = false)
     private OrderStatus orderStatus;
 
-    @Column(name = "delivery_eta")
+    @Column(name = "delivery_eta", nullable = false)
     private LocalDateTime deliveryEta;
 
-    @Column(name = "delivery_fee")
+    @Column(name = "delivery_fee", nullable = false)
     private int deliveryFee;
 
-    @Column(name = "delivery_address")
+    @Column(name = "delivery_address", nullable = false)
     private String deliveryAddress;
 
-    @Column(name = "destination_location")
+    @Column(name = "destination_location", nullable = false)
     private Point destinationLocation;
 
-    @Column(name = "store_location")
+    @Column(name = "store_location", nullable = false)
     private Point storeLocation;
 }
