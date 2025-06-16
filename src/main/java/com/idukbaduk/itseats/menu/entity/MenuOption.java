@@ -6,9 +6,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +30,10 @@ public class MenuOption extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "option_id")
     private Long optionId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "opt_group_id")
+    private MenuOptionGroup menuOptionGroup;
 
     @Column(name = "option_name", nullable = false)
     private String optionName;
