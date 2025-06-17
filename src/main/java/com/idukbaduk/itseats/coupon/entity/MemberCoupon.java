@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.coupon.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
+import com.idukbaduk.itseats.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +22,14 @@ public class MemberCoupon extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_coupon_id")
     private Long memberCouponId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coupon_id", nullable = false)
+    private Coupon coupon;
 
     @Column(name = "is_used")
     private Boolean isUsed;

@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.coupon.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
+import com.idukbaduk.itseats.payment.entity.Payment;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,4 +20,12 @@ public class PaymentCoupon extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_coupon_id")
     private Long paymentCouponId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id", nullable = false)
+    private Payment payment;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "used_coupon_id", nullable = false)
+    private MemberCoupon usedCoupon;
 }
