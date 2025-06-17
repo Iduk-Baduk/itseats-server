@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.memberaddress.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
+import com.idukbaduk.itseats.memberaddress.entity.enums.AddressCategory;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.springframework.data.geo.Point;

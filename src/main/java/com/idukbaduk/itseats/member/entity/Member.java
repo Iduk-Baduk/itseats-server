@@ -1,9 +1,8 @@
 package com.idukbaduk.itseats.member.entity;
 
+import com.idukbaduk.itseats.member.entity.enums.MemberType;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
