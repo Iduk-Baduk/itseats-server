@@ -24,6 +24,10 @@ public class RiderSettlement extends BaseEntity {
     @Column(name = "rider_settlement_id")
     private Long riderSettlementId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rider_id", nullable = false)
+    private Rider rider;
+
     @Column(name = "settlement_date")
     private LocalDateTime settlementDate;
 
