@@ -24,17 +24,59 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok'
+
+    /**
+     * Spring 관련 의존성
+     * - Devtools
+     * - Web
+     * - Security
+     * - OAuth2
+     * - HATEOAS
+     */
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "org.springframework.boot:spring-boot-starter-security"
+    testImplementation "org.springframework.security:spring-security-test"
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+
+    /**
+     * DB 관련 의존성
+     * - Spring JPA
+     * - MySQL
+     */
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'com.mysql:mysql-connector-j:8.3.0'
+
+    /**
+     * Util 관련 의존성
+     * - Lombok
+     * - Swagger
+     * - Docker
+     * - Validation
+     * - Jwt (jjwt)
+     *  - api, impl, jackson
+     */
+    compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+    implementation "org.springframework.boot:spring-boot-docker-compose"
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+    /**
+     * Test 관련 의존성
+     * - Spring Test
+     * - AssertJ
+     */
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    runtimeOnly 'com.mysql:mysql-connector-j'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.assertj:assertj-core:3.21.0'
+
 }
+
 
 tasks.named('test') {
     useJUnitPlatform()
