@@ -3,6 +3,8 @@ package com.idukbaduk.itseats.coupon.entity;
 import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
 import com.idukbaduk.itseats.coupon.entity.enums.TargetType;
 import com.idukbaduk.itseats.global.BaseEntity;
+import com.idukbaduk.itseats.store.entity.Franchise;
+import com.idukbaduk.itseats.store.entity.Store;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +25,14 @@ public class Coupon extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "coupon_id")
     private Long couponId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
+    private Store store;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "franchise_id")
+    private Franchise franchise;
 
     @Column(name = "discount_value", nullable = false)
     private int discountValue;
