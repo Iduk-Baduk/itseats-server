@@ -1,6 +1,8 @@
 package com.idukbaduk.itseats.memberaddress.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
+import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.memberaddress.entity.enums.AddressCategory;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.springframework.data.geo.Point;
@@ -16,6 +18,10 @@ public class MemberAddress extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "address_id")
     private Long addressId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Column(name = "main_address", nullable = false)
     private String mainAddress;

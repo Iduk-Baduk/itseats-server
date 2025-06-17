@@ -1,4 +1,4 @@
-package com.idukbaduk.itseats.member.entity;
+package com.idukbaduk.itseats.member.entity.enums;
 
 public enum MemberType {
     CUSTOMER,

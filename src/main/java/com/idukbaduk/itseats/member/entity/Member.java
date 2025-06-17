@@ -1,9 +1,11 @@
 package com.idukbaduk.itseats.member.entity;
 
+import com.idukbaduk.itseats.member.entity.enums.MemberType;
+import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -39,5 +41,4 @@ public class Member {
     @Enumerated(EnumType.STRING)
     @Column(name = "member_type", nullable = false)
     private MemberType memberType;
-
 }
