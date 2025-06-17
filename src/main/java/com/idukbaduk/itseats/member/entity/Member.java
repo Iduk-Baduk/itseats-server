@@ -41,8 +41,4 @@ public class Member {
     @Enumerated(EnumType.STRING)
     @Column(name = "member_type", nullable = false)
     private MemberType memberType;
-
-    @OneToMany
-    @JoinColumn(name = "address_id")
-    private List<MemberAddress> addresses;
 }
