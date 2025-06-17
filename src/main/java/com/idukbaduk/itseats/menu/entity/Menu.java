@@ -54,6 +54,4 @@ public class Menu extends BaseEntity {
     @Column(name = "menu_priority", nullable = false)
     private int menuPriority;
 
-    @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted;
 }
