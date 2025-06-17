@@ -13,7 +13,7 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
             "JOIN FETCH m.menuGroup mg " +
             "WHERE mg.store.storeId = :storeId " +
             "AND (:menuGroup IS NULL OR m.menuGroup.menuGroupName = :menuGroup) " +
-            "AND (:keyword IS NULL OR m.menuName LIKE %:keyword%)")
+            "AND (:keyword IS NULL OR m.menuName LIKE CONCAT('%', :keyword, '%'))")
     List<Menu> findMenusByStore(
             @Param("storeId") Long storeId,
             @Param("menuGroup") String menuGroup,
