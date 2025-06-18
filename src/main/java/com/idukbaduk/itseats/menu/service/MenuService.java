@@ -20,13 +20,10 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
 
-    public MenuListResponse getMenuList(MenuListRequest request) {
-        if (request.getStoreId() == null) {
-            throw new MenuException(MenuErrorCode.STORE_ID_REQUIRED);
-        }
+    public MenuListResponse getMenuList(Long storeId, MenuListRequest request) {
 
         List<Menu> menus = menuRepository.findMenusByStore(
-                request.getStoreId(),
+                storeId,
                 request.getMenuGroup(),
                 request.getKeyword()
         );
@@ -36,15 +33,9 @@ public class MenuService {
         }
 
         int totalMenuCount = menus.size();
-        int orderableMenuCount = (int) menus.stream()
-                .filter(m -> m.getMenuStatus() == MenuStatus.ON_SALE)
-                .count();
-        int outOfStockTodayCount = (int) menus.stream()
-                .filter(m -> m.getMenuStatus() == MenuStatus.OUT_OF_STOCK)
-                .count();
-        int hiddenMenuCount = (int) menus.stream()
-                .filter(m -> m.getMenuStatus() == MenuStatus.HIDDEN)
-                .count();
+        int orderableMenuCount = getMenuCount(menus, MenuStatus.ON_SALE);
+        int outOfStockTodayCount = getMenuCount(menus, MenuStatus.OUT_OF_STOCK);
+        int hiddenMenuCount = getMenuCount(menus, MenuStatus.HIDDEN);
 
         List<MenuInfoDto> menuInfos = menus.stream()
                 .map(menu -> MenuInfoDto.builder()
@@ -63,5 +54,11 @@ public class MenuService {
                 .hiddenMenuCount(hiddenMenuCount)
                 .menus(menuInfos)
                 .build();
+    }
+
+    private int getMenuCount(List<Menu> menus, MenuStatus menuStatus) {
+        return (int) menus.stream()
+                .filter(m -> m.getMenuStatus() == menuStatus)
+                .count();
     }
 }
