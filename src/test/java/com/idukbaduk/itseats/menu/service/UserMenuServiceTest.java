@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.within;
 import static org.mockito.Mockito.*;
 
-class UserServiceTest {
+class UserMenuServiceTest {
 
     @Mock
     private MenuGroupRepository menuGroupRepository;
@@ -33,7 +33,7 @@ class UserServiceTest {
     private MenuImageRepository menuImageRepository;
 
     @InjectMocks
-    private UserService userService;
+    private UserMenuService userMenuService;
 
     @BeforeEach
     void setUp() {
@@ -77,7 +77,7 @@ class UserServiceTest {
                 .thenReturn(Optional.of(image));
 
         // when
-        UserMenuListResponse response = userService.getMenusByStore(storeId);
+        UserMenuListResponse response = userMenuService.getMenusByStore(storeId);
 
         // then
         assertThat(response).isNotNull();

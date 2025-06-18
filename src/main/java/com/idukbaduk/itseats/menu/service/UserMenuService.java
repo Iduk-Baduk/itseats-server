@@ -19,7 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserMenuService {
 
     private final MenuGroupRepository menuGroupRepository;
     private final MenuRepository menuRepository;
