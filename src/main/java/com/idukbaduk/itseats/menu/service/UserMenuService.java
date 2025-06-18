@@ -10,57 +10,76 @@ import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuGroupRepository;
 import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
-import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class UserMenuService {
 
     private final MenuGroupRepository menuGroupRepository;
-    private final MenuRepository menuRepository;
     private final MenuImageRepository menuImageRepository;
 
     @Transactional(readOnly = true)
     public UserMenuListResponse getMenusByStore(Long storeId) {
-        List<MenuGroup> groups = menuGroupRepository.
-                findByStore_storeIdAndMenuGroupIsActiveTrueOrderByMenuGroupPriority(storeId);
+
+        List<MenuGroup> groups = menuGroupRepository.findGroupsWithMenusByStoreId(storeId);
 
         if (groups.isEmpty()) {
             throw new MenuException(MenuErrorCode.MENU_GROUP_NOT_FOUND);
         }
 
+        List<Menu> allMenus = groups.stream()
+                .flatMap(group ->
+                        group.getMenus() != null ? group.getMenus().stream() : Stream.empty())
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (allMenus.isEmpty()) {
+            throw new MenuException(MenuErrorCode.MENU_NOT_FOUND);
+        }
+
+        List<Long> menuIds = allMenus.stream()
+                .map(Menu::getMenuId)
+                .collect(Collectors.toList());
+
+        List<MenuImage> images = menuIds.isEmpty() ? Collections.emptyList() :
+                menuImageRepository.findByMenu_MenuIdInOrderByMenu_MenuIdAscDisplayOrderAsc(menuIds);
+
+        Map<Long, String> menuIdToImageUrl = new HashMap<>();
+        for (MenuImage image : images) {
+            Long menuId = image.getMenu().getMenuId();
+            if (!menuIdToImageUrl.containsKey(menuId)) {
+                menuIdToImageUrl.put(menuId, image.getImageUrl());
+            }
+        }
+
         List<UserMenuGroupDto> groupDtos = groups.stream()
                 .map(group -> {
-                    List<Menu> menus = menuRepository.
-                            findByMenuGroup_MenuGroupIdAndDeletedFalseOrderByMenuPriority(group.getMenuGroupId());
-
-                    List<UserMenuDto> menuDtos = menus.stream()
-                            .map(menu -> {
-                                String imageUrl = menuImageRepository
-                                        .findFirstByMenu_MenuIdOrderByDisplayOrderAsc(menu.getMenuId())
-                                        .map(MenuImage::getImageUrl)
-                                        .orElse(null);
-
-                                return UserMenuDto.builder()
-                                        .menuId(menu.getMenuId())
-                                        .imageUrl(imageUrl)
-                                        .name(menu.getMenuName())
-                                        .price(menu.getMenuPrice())
-                                        .description(menu.getMenuDescription())
-                                        .rating(menu.getMenuRating() != null ? menu.getMenuRating() : 0.0)
-                                        .build();
-                            }).toList();
+                    List<UserMenuDto> menuDtos = (group.getMenus() == null ? Collections.<Menu>emptyList() : group.getMenus()).stream()
+                            .filter(menu -> !menu.isDeleted())
+                            .sorted(Comparator.comparingInt(Menu::getMenuPriority))
+                            .map(menu -> UserMenuDto.builder()
+                                    .menuId(menu.getMenuId())
+                                    .imageUrl(menuIdToImageUrl.get(menu.getMenuId()))
+                                    .name(menu.getMenuName())
+                                    .price(menu.getMenuPrice())
+                                    .description(menu.getMenuDescription())
+                                    .rating(menu.getMenuRating() != null ? menu.getMenuRating() : 0.0)
+                                    .build())
+                            .toList();
 
                     return UserMenuGroupDto.builder()
                             .groupName(group.getMenuGroupName())
                             .menus(menuDtos)
                             .build();
-                }).toList();
+                })
+                .toList();
 
         return UserMenuListResponse.builder()
                 .menuGroups(groupDtos)
