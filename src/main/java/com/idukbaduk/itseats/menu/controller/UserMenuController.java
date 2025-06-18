@@ -20,7 +20,7 @@ public class UserMenuController {
 
     @GetMapping("/{storeId}/menus")
     public ResponseEntity<BaseResponse> getMenus(
-            @PathVariable("store_id") Long storeId) {
+            @PathVariable Long storeId) {
         UserMenuListResponse response = userMenuService.getMenusByStore(storeId);
         return BaseResponse.toResponseEntity(HttpStatus.OK, "메뉴 조회 성공", response);
     }
