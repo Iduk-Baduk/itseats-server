@@ -21,13 +21,7 @@ public class MenuController {
             @PathVariable Long storeId,
             @RequestBody MenuListRequest request
     ) {
-        MenuListRequest req = MenuListRequest.builder()
-                .storeId(storeId)
-                .menuGroup(request.getMenuGroup())
-                .keyword(request.getKeyword())
-                .build();
-
-        MenuListResponse data = menuService.getMenuList(req);
+        MenuListResponse data = menuService.getMenuList(storeId, request);
         return BaseResponse.toResponseEntity(HttpStatus.OK,"메뉴 목록 조회 성공", data);
     }
 

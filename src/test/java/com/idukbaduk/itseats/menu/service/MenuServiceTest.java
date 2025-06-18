@@ -33,33 +33,19 @@ class MenuServiceTest {
     private MenuService menuService;
 
     @Test
-    @DisplayName("storeId가 null이면 예외 발생")
-    void getMenuList_storeIdNull_throwsException() {
-        // given
-        MenuListRequest request = MenuListRequest.builder()
-                .storeId(null)
-                .build();
-
-        // when & then
-        assertThatThrownBy(() -> menuService.getMenuList(request))
-                .isInstanceOf(MenuException.class)
-                .hasMessageContaining(MenuErrorCode.STORE_ID_REQUIRED.getMessage());
-    }
-
-    @Test
     @DisplayName("메뉴가 없으면 예외 발생")
     void getMenuList_noMenus_throwsException() {
         // given
         Long storeId = 1L;
         MenuListRequest request = MenuListRequest.builder()
-                .storeId(storeId)
+                // storeId 필드 제거
                 .build();
 
         when(menuRepository.findMenusByStore(eq(storeId), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         // when & then
-        assertThatThrownBy(() -> menuService.getMenuList(request))
+        assertThatThrownBy(() -> menuService.getMenuList(storeId, request))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
     }
@@ -93,7 +79,7 @@ class MenuServiceTest {
         List<Menu> mockMenus = Arrays.asList(menu1, menu2);
 
         MenuListRequest request = MenuListRequest.builder()
-                .storeId(storeId)
+                // storeId 필드 제거
                 .menuGroup("음료")
                 .keyword("라떼")
                 .build();
@@ -102,7 +88,7 @@ class MenuServiceTest {
                 .thenReturn(mockMenus);
 
         // when
-        MenuListResponse response = menuService.getMenuList(request);
+        MenuListResponse response = menuService.getMenuList(storeId, request);
 
         // then
         assertThat(response.getTotalMenuCount()).isEqualTo(2);
@@ -112,3 +98,4 @@ class MenuServiceTest {
                 .containsExactly("아메리카노", "초코라떼");
     }
 }
+
