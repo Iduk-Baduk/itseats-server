@@ -9,7 +9,7 @@ public class UserMenuDto {
     private Long menuId;
     private String imageUrl;
     private String name;
-    private int price;
+    private Long price;
     private String description;
-    private double rating;
+    private Double rating;
 }

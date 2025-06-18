@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -37,5 +38,5 @@ public class MenuGroup extends BaseEntity {
     private boolean menuGroupIsActive;
 
     @OneToMany(mappedBy = "menuGroup", fetch = FetchType.LAZY)
-    private List<Menu> menus;
+    private List<Menu> menus = new ArrayList<>();
 }
