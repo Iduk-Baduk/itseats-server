@@ -20,3 +20,4 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
             @Param("keyword") String keyword
     );
 }
+

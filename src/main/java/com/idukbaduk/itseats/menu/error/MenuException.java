@@ -9,3 +9,4 @@ public class MenuException extends BaseException {
         super(errorCode);
     }
 }
+

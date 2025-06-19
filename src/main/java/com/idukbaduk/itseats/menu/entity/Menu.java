@@ -39,7 +39,7 @@ public class Menu extends BaseEntity {
     private String menuName;
 
     @Column(name = "menu_price", nullable = false)
-    private int menuPrice;
+    private Long menuPrice;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "menu_status", nullable = false)
