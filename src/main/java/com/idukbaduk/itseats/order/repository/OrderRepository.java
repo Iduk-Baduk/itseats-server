@@ -6,39 +6,30 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    @Query("""
-        SELECT MIN(FUNCTION('TIMESTAMPDIFF', 'MINUTE', o.createdAt, o.modifiedAt))
-        FROM Order o
-        WHERE o.orderStatus = 'COMPLETED'
-          AND o.deliveryType = :deliveryType
-    """)
+    @Query(value = """
+        SELECT MIN(TIMESTAMPDIFF(MINUTE, created_at, modified_at))
+        FROM orders
+        WHERE order_status = 'COMPLETED'
+          AND delivery_type = :deliveryType
+    """, nativeQuery = true)
     Integer findMinDeliveryTimeByType(@Param("deliveryType") String deliveryType);
 
-    @Query("""
-        SELECT MAX(FUNCTION('TIMESTAMPDIFF', 'MINUTE', o.createdAt, o.modifiedAt))
-        FROM Order o
-        WHERE o.orderStatus = 'COMPLETED'
-          AND o.deliveryType = :deliveryType
-    """)
+    @Query(value = """
+        SELECT MAX(TIMESTAMPDIFF(MINUTE, created_at, modified_at))
+        FROM orders
+        WHERE order_status = 'COMPLETED'
+          AND delivery_type = :deliveryType
+    """, nativeQuery = true)
     Integer findMaxDeliveryTimeByType(@Param("deliveryType") String deliveryType);
 
-    @Query("""
-        SELECT AVG(FUNCTION('TIMESTAMPDIFF', 'SECOND', o.createdAt, o.modifiedAt))
-        FROM Order o
-        WHERE o.orderStatus = 'COMPLETED'
-          AND o.deliveryType = :deliveryType
-    """)
+    @Query(value = """
+        SELECT AVG(TIMESTAMPDIFF(SECOND, created_at, modified_at))
+        FROM orders
+        WHERE order_status = 'COMPLETED'
+          AND delivery_type = :deliveryType
+    """, nativeQuery = true)
     Long findAvgDeliveryTimeByType(@Param("deliveryType") String deliveryType);
-
-    @Query("""
-        SELECT o.orderNumber
-        FROM Order o
-        WHERE o.orderNumber = :orderNumber
-    """)
-    boolean existsOrderNumber(@Param("orderNumber") String orderNumber);
 }
