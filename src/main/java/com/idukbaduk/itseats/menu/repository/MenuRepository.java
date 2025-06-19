@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MenuRepository extends JpaRepository<Menu, Long> {
 
@@ -19,4 +20,6 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
             @Param("menuGroup") String menuGroup,
             @Param("keyword") String keyword
     );
+
+    Optional<Menu> findByMenuIdAndDeletedFalse(Long menuId);
 }
