@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -96,6 +97,37 @@ class MenuServiceTest {
         assertThat(response.getOutOfStockTodayCount()).isEqualTo(1);
         assertThat(response.getMenus()).extracting(MenuInfoDto::getMenuName)
                 .containsExactly("아메리카노", "초코라떼");
+    }
+
+    @Test
+    @DisplayName("메뉴 정보를 성공적으로 반환")
+    void getMenu_success() {
+        // given
+        Long menuId = 1L;
+        Menu menu = Menu.builder()
+                .menuId(menuId)
+                .build();
+
+        when(menuRepository.findById(menuId)).thenReturn(Optional.of(menu));
+
+        // when
+        Menu result = menuService.getMenu(menuId);
+
+        // then
+        assertThat(result.getMenuId()).isEqualTo(menu.getMenuId());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 메뉴 조회시 예외 발생")
+    void getMenu_notExist() {
+        // given
+        Long menuId = 1L;
+        when(menuRepository.findById(menuId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> menuService.getMenu(menuId))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
     }
 }
 

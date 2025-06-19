@@ -61,4 +61,9 @@ public class MenuService {
                 .filter(m -> m.getMenuStatus() == menuStatus)
                 .count();
     }
+
+    public Menu getMenu(Long menuId) {
+        return menuRepository.findById(menuId)
+                .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+    }
 }
