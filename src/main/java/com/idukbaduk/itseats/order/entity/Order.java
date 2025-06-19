@@ -21,7 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.awt.*;
+import org.springframework.data.geo.Point;
 import java.time.LocalDateTime;
 
 @Entity
