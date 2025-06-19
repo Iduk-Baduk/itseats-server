@@ -34,22 +34,17 @@ public class UserMenuService {
             throw new MenuException(MenuErrorCode.MENU_GROUP_NOT_FOUND);
         }
 
-        List<Menu> allMenus = groups.stream()
-                .flatMap(group ->
-                        group.getMenus() != null ? group.getMenus().stream() : Stream.empty())
+        List<Long> menuIds = groups.stream()
+                .flatMap(group -> group.getMenus().stream())
                 .filter(Objects::nonNull)
+                .map(Menu::getMenuId)
                 .toList();
-
-        if (allMenus.isEmpty()) {
+        if (menuIds.isEmpty()) {
             throw new MenuException(MenuErrorCode.MENU_NOT_FOUND);
         }
 
-        List<Long> menuIds = allMenus.stream()
-                .map(Menu::getMenuId)
-                .collect(Collectors.toList());
-
-        List<MenuImage> images = menuIds.isEmpty() ? Collections.emptyList() :
-                menuImageRepository.findByMenu_MenuIdInOrderByMenu_MenuIdAscDisplayOrderAsc(menuIds);
+        List<MenuImage> images = menuImageRepository
+                .findByMenu_MenuIdInOrderByMenu_MenuIdAscDisplayOrderAsc(menuIds);
 
         Map<Long, String> menuIdToImageUrl = new HashMap<>();
         for (MenuImage image : images) {
