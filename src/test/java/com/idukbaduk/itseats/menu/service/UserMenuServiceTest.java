@@ -9,6 +9,8 @@ import com.idukbaduk.itseats.menu.entity.MenuOption;
 import com.idukbaduk.itseats.menu.entity.MenuOptionGroup;
 import com.idukbaduk.itseats.menu.entity.MenuImage;
 import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
+import com.idukbaduk.itseats.menu.error.MenuErrorCode;
+import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import com.idukbaduk.itseats.menu.repository.MenuOptionGroupRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class UserMenuServiceTest {
@@ -40,6 +43,19 @@ class UserMenuServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @DisplayName("존재하지 않는 메뉴 조회 시 예외 발생")
+    @Test
+    void getMenuOptions_menuNotFound_throwsException() {
+        // given
+        Long menuId = 999L;
+        when(menuRepository.findByMenuIdAndDeletedFalse(menuId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userMenuService.getMenuOptions(menuId))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
     }
 
     @DisplayName("메뉴 옵션 조회 성공")
