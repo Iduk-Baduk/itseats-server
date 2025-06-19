@@ -1,0 +1,144 @@
+package com.idukbaduk.itseats.order.service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.service.MemberService;
+import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
+import com.idukbaduk.itseats.memberaddress.service.MemberAddressService;
+import com.idukbaduk.itseats.menu.service.MenuService;
+import com.idukbaduk.itseats.order.dto.MenuOptionDTO;
+import com.idukbaduk.itseats.order.dto.OrderMenuDTO;
+import com.idukbaduk.itseats.order.dto.OrderNewRequest;
+import com.idukbaduk.itseats.order.dto.OrderNewResponse;
+import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.entity.OrderMenu;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
+import com.idukbaduk.itseats.order.repository.OrderMenuRepository;
+import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
+import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.service.StoreService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+@Service
+@RequiredArgsConstructor
+public class OrderService {
+
+    private static final String LETTER_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String DIGIT_POOL = "0123456789";
+
+    private final OrderRepository orderRepository;
+    private final OrderMenuRepository orderMenuRepository;
+
+    private final MenuService menuService;
+    private final StoreService storeService;
+    private final MemberService memberService;
+    private final MemberAddressService memberAddressService;
+
+    private final ObjectMapper objectMapper;
+
+    public OrderNewResponse getOrderNew(String username, OrderNewRequest orderNewRequest) {
+        Member member = memberService.getMemberByUsername(username);
+        MemberAddress address = memberAddressService.getMemberAddress(orderNewRequest.getAddrId());
+        Store store = storeService.getStore(orderNewRequest.getStoreId());
+
+        Order order = saveOrder(member, store, address, orderNewRequest);
+        saveAllOrderMenu(member, store, order, orderNewRequest);
+
+        int orderPrice = getOrderPrice(orderNewRequest.getOrderMenus());
+        int deliveryFee = getDeveliveryFee(store, orderNewRequest.getDeliveryType());
+
+        return OrderNewResponse.builder()
+                .defaultTImeMin(orderRepository.findMinDeliveryTimeByType(DeliveryType.DEFAULT.name()))
+                .defaultTImeMax(orderRepository.findMaxDeliveryTimeByType(DeliveryType.DEFAULT.name()))
+                .onlyOneTimeMin(orderRepository.findMinDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
+                .onlyOneTimeMax(orderRepository.findMaxDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
+                .orderPrice(orderPrice)
+                .deliveryFee(deliveryFee)
+                // 쿠폰 관련 로직은 추후 구현
+                .discountValue(0)
+                .totalCost(orderPrice + deliveryFee)
+                .build();
+    }
+
+    private Order saveOrder(Member member, Store store, MemberAddress address, OrderNewRequest orderNewRequest) {
+        Order order = Order.builder()
+                .member(member)
+                .store(store)
+                .orderNumber(getOrderNumber())
+                .orderPrice(getOrderPrice(orderNewRequest.getOrderMenus()))
+                .orderStatus(OrderStatus.WAITING)
+                .deliveryType(DeliveryType.valueOf(orderNewRequest.getDeliveryType()))
+                .deliveryEta(LocalDateTime.now()
+                        .plusMinutes(orderRepository.findAvgDeliveryTimeByType(orderNewRequest.getDeliveryType())))
+                .deliveryFee(getDeveliveryFee(store, orderNewRequest.getDeliveryType()))
+                .deliveryAddress(address.getMainAddress() + " " + address.getDetailAddress())
+                .destinationLocation(address.getLocation())
+                .storeLocation(store.getLocation())
+                .build();
+        orderRepository.save(order);
+        return order;
+    }
+
+    private String getOrderNumber() {
+        StringBuilder orderNumber = new StringBuilder();
+        Random random = new Random();
+
+        orderNumber.append(LETTER_POOL.charAt(random.nextInt(LETTER_POOL.length())));
+        for (int i = 0; i < 4; i++) {
+            orderNumber.append(DIGIT_POOL.charAt(random.nextInt(DIGIT_POOL.length())));
+        }
+        orderNumber.append(LETTER_POOL.charAt(random.nextInt(LETTER_POOL.length())));
+
+        return orderNumber.toString();
+    }
+
+    private int getOrderPrice(List<OrderMenuDTO> orderMenuDtos) {
+        return orderMenuDtos.stream()
+                .mapToInt(dto -> dto.getMenuTotalPrice() * dto.getQuantity())
+                .sum();
+    }
+
+    private int getDeveliveryFee(Store store, String deliveryType) {
+        return deliveryType.equals(DeliveryType.DEFAULT.name())
+                ? store.getDefaultDeliveryFee()
+                : store.getOnlyOneDeliveryFee();
+    }
+
+    private void saveAllOrderMenu(Member member, Store store, Order order, OrderNewRequest orderNewRequest) {
+        List<OrderMenuDTO> orderMenuDtos = orderNewRequest.getOrderMenus();
+        List<OrderMenu> orderMenus = new ArrayList<>();
+        for (OrderMenuDTO orderMenuDTO : orderMenuDtos) {
+            OrderMenu orderMenu = OrderMenu.builder()
+                    .member(member)
+                    .menu(menuService.getMenu(orderMenuDTO.getMenuId()))
+                    .store(store)
+                    .order(order)
+                    .quantity(orderMenuDTO.getQuantity())
+                    .price(orderMenuDTO.getMenuTotalPrice())
+                    .menuName(orderMenuDTO.getMenuName())
+                    .menuOption(convertMenuOptionToJson(orderMenuDTO.getMenuOption()))
+                    .build();
+
+            orderMenus.add(orderMenu);
+        }
+
+        orderMenuRepository.saveAll(orderMenus);
+    }
+
+    private String convertMenuOptionToJson(List<MenuOptionDTO> menuOption) {
+        try {
+            return objectMapper.writeValueAsString(menuOption);
+        } catch (Exception e) {
+            throw new OrderException(OrderErrorCode.MENU_OPTION_SERIALIZATION_FAIL);
+        }
+    }
+}
