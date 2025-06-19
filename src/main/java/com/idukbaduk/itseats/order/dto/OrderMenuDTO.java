@@ -1,0 +1,15 @@
+package com.idukbaduk.itseats.order.dto;
+
+import lombok.Getter;
+
+import java.util.List;
+
+@Getter
+public class OrderMenuDTO {
+
+    private Long menuId;
+    private String menuName;
+    private List<MenuOptionDTO> menuOption;
+    private int menuTotalPrice;
+    private int quantity;
+}
