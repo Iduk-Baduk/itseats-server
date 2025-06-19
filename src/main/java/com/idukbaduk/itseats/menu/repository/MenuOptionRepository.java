@@ -6,6 +6,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface MenuOptionRepository extends JpaRepository<MenuOption, Long> {
-
-    List<MenuOption> findByMenuOptionGroup_OptGroupIdOrderByOptionPriority(Long optGroupId);
 }

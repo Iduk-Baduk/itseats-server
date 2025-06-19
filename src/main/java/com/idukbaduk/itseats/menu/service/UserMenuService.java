@@ -20,7 +20,6 @@ public class UserMenuService {
     private final MenuRepository menuRepository;
     private final MenuImageRepository menuImageRepository;
     private final MenuOptionGroupRepository menuOptionGroupRepository;
-    private final MenuOptionRepository menuOptionRepository;
 
     @Transactional(readOnly = true)
     public UserMenuOptionResponse getMenuOptions(Long menuId) {
