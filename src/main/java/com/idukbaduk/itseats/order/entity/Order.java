@@ -3,6 +3,7 @@ package com.idukbaduk.itseats.order.entity;
 import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
+import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
 import com.idukbaduk.itseats.rider.entity.Rider;
 import com.idukbaduk.itseats.store.entity.Store;
 import jakarta.persistence.Column;
@@ -58,6 +59,10 @@ public class Order extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false)
     private OrderStatus orderStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_type", nullable = false)
+    private DeliveryType deliveryType;
 
     @Column(name = "delivery_eta", nullable = false)
     private LocalDateTime deliveryEta;
