@@ -32,33 +32,26 @@ public class UserMenuService {
                 .orElse(null);
 
         List<MenuOptionGroup> optionGroups = menuOptionGroupRepository
-                .findByMenu_MenuIdOrderByOptGroupPriority(menuId);
+                .findGroupsWithOptionsByMenuId(menuId);
 
         List<UserOptionGroupDto> optionGroupDtos = optionGroups.stream()
-                .map(group -> {
-                    List<MenuOption> options = menuOptionRepository
-                            .findByMenuOptionGroup_OptGroupIdOrderByOptionPriority(group.getOptGroupId());
-
-                    List<UserOptionDto> optionDtos = options.stream()
-                            .map(option -> UserOptionDto.builder()
-                                    .optionId(option.getOptionId())
-                                    .optionName(option.getOptionName())
-                                    .optionPrice(option.getOptionPrice())
-                                    .optionStatus(option.getOptionStatus().name())
-                                    .optionPriority(option.getOptionPriority())
-                                    .isSelected(false)
-                                    .build())
-                            .toList();
-
-                    return UserOptionGroupDto.builder()
-                            .optionGroupName(group.getOptGroupName())
-                            .isRequired(group.isRequired())
-                            .minSelect(group.getMinSelect())
-                            .maxSelect(group.getMaxSelect())
-                            .priority(group.getOptGroupPriority())
-                            .options(optionDtos)
-                            .build();
-                })
+                .map(group -> UserOptionGroupDto.builder()
+                        .optionGroupName(group.getOptGroupName())
+                        .isRequired(group.isRequired())
+                        .minSelect(group.getMinSelect())
+                        .maxSelect(group.getMaxSelect())
+                        .priority(group.getOptGroupPriority())
+                        .options(group.getOptions().stream()
+                                .map(option -> UserOptionDto.builder()
+                                        .optionId(option.getOptionId())
+                                        .optionName(option.getOptionName())
+                                        .optionPrice(option.getOptionPrice())
+                                        .optionStatus(option.getOptionStatus().name())
+                                        .optionPriority(option.getOptionPriority())
+                                        .isSelected(false)
+                                        .build())
+                                .toList())
+                        .build())
                 .toList();
 
         return UserMenuOptionResponse.builder()
