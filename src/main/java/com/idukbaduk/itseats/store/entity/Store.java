@@ -5,11 +5,17 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
 import com.idukbaduk.itseats.store.entity.enums.StoreStatus;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.geo.Point;
 
 @Entity
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "store")
 public class Store extends BaseEntity {
 
@@ -54,5 +60,11 @@ public class Store extends BaseEntity {
     private StoreStatus storeStatus;
 
     @Column(name = "orderable", nullable = false)
-    private Boolean orderable = true;
+    private Boolean orderable;
+
+    @Column(name = "default_delivery_fee", nullable = false)
+    private int defaultDeliveryFee;
+
+    @Column(name = "only_one_delivery_fee", nullable = false)
+    private int onlyOneDeliveryFee;
 }
