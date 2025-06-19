@@ -4,13 +4,19 @@ import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.memberaddress.entity.enums.AddressCategory;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.geo.Point;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "member_address")
 public class MemberAddress extends BaseEntity {
 
