@@ -21,6 +21,6 @@ public enum ReviewErrorCode implements ErrorCode {
 
     @Override
     public String getMessage() {
-        return "[MENU ERROR] " + message;
+        return "[REVIEW ERROR] " + message;
     }
 }
