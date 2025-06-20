@@ -38,7 +38,7 @@ class MemberAddressServiceTest {
         when(memberAddressRepository.findById(memberAddressId)).thenReturn(Optional.of(memberAddress));
 
         // when
-        MemberAddress result = memberAddressService.getMemberAddress(memberAddressId);
+        MemberAddress result = memberAddressService.getMemberAddress(member, memberAddressId);
 
         // then
         assertThat(result.getAddressId()).isEqualTo(memberAddress.getAddressId());
@@ -52,7 +52,7 @@ class MemberAddressServiceTest {
         when(memberAddressRepository.findById(memberAddressId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> memberAddressService.getMemberAddress(memberAddressId))
+        assertThatThrownBy(() -> memberAddressService.getMemberAddress(member, memberAddressId))
                 .isInstanceOf(MemberAddressException.class)
                 .hasMessageContaining(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND.getMessage());
     }

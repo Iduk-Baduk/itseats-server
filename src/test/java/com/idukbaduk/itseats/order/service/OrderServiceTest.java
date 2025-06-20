@@ -124,8 +124,8 @@ class OrderServiceTest {
                 .build();
 
         when(memberService.getMemberByUsername(username)).thenReturn(mockMember);
-        when(memberAddressService.getMemberAddress(1L)).thenReturn(mockAddress);
-        when(storeService.getStore(1L)).thenReturn(mockStore);
+        when(memberAddressService.getMemberAddress(member, 1L)).thenReturn(mockAddress);
+        when(storeService.getStore(member, 1L)).thenReturn(mockStore);
         when(menuService.getMenu(1L)).thenReturn(new Menu());
 
         when(orderRepository.findAvgDeliveryTimeByType(DeliveryType.DEFAULT.name())).thenReturn(30L);
@@ -179,8 +179,8 @@ class OrderServiceTest {
                 .build();
 
         when(memberService.getMemberByUsername(any())).thenReturn(Member.builder().build());
-        when(memberAddressService.getMemberAddress(any())).thenReturn(MemberAddress.builder().build());
-        when(storeService.getStore(any())).thenReturn(Store.builder().build());
+        when(memberAddressService.getMemberAddress(member, any())).thenReturn(MemberAddress.builder().build());
+        when(storeService.getStore(member, any())).thenReturn(Store.builder().build());
         when(menuService.getMenu(any())).thenReturn(Menu.builder().build());
         when(orderRepository.findAvgDeliveryTimeByType(any())).thenReturn(30L);
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));

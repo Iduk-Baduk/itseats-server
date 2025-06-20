@@ -38,7 +38,7 @@ class StoreServiceTest {
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
 
         // when
-        Store result = storeService.getStore(storeId);
+        Store result = storeService.getStore(member, storeId);
 
         // then
         assertThat(result.getStoreId()).isEqualTo(storeId);
@@ -52,7 +52,7 @@ class StoreServiceTest {
         when(storeRepository.findById(storeId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> storeService.getStore(storeId))
+        assertThatThrownBy(() -> storeService.getStore(member, storeId))
                 .isInstanceOf(StoreException.class)
                 .hasMessageContaining(StoreErrorCode.STORE_NOT_FOUND.getMessage());
     }
