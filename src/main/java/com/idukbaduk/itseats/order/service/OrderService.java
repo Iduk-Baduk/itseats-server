@@ -54,11 +54,11 @@ public class OrderService {
         saveAllOrderMenu(member, store, order, orderNewRequest);
 
         int orderPrice = getOrderPrice(orderNewRequest.getOrderMenus());
-        int deliveryFee = getDeveliveryFee(store, orderNewRequest.getDeliveryType());
+        int deliveryFee = getDevliveryFee(store, orderNewRequest.getDeliveryType());
 
         return OrderNewResponse.builder()
-                .defaultTImeMin(orderRepository.findMinDeliveryTimeByType(DeliveryType.DEFAULT.name()))
-                .defaultTImeMax(orderRepository.findMaxDeliveryTimeByType(DeliveryType.DEFAULT.name()))
+                .defaultTimeMin(orderRepository.findMinDeliveryTimeByType(DeliveryType.DEFAULT.name()))
+                .defaultTimeMax(orderRepository.findMaxDeliveryTimeByType(DeliveryType.DEFAULT.name()))
                 .onlyOneTimeMin(orderRepository.findMinDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
                 .onlyOneTimeMax(orderRepository.findMaxDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
                 .orderPrice(orderPrice)
@@ -79,7 +79,7 @@ public class OrderService {
                 .deliveryType(DeliveryType.valueOf(orderNewRequest.getDeliveryType()))
                 .deliveryEta(LocalDateTime.now()
                         .plusMinutes(orderRepository.findAvgDeliveryTimeByType(orderNewRequest.getDeliveryType())))
-                .deliveryFee(getDeveliveryFee(store, orderNewRequest.getDeliveryType()))
+                .deliveryFee(getDevliveryFee(store, orderNewRequest.getDeliveryType()))
                 .deliveryAddress(address.getMainAddress() + " " + address.getDetailAddress())
                 .destinationLocation(address.getLocation())
                 .storeLocation(store.getLocation())
@@ -107,7 +107,7 @@ public class OrderService {
                 .sum();
     }
 
-    private int getDeveliveryFee(Store store, String deliveryType) {
+    private int getDevliveryFee(Store store, String deliveryType) {
         return deliveryType.equals(DeliveryType.DEFAULT.name())
                 ? store.getDefaultDeliveryFee()
                 : store.getOnlyOneDeliveryFee();
