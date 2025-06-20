@@ -12,10 +12,4 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             "JOIN FETCH r.member WHERE r.store.storeId = :storeId " +
             "ORDER BY r.createdAt DESC")
     List<Review> findReviewsWithMemberByStoreId(@Param("storeId") Long storeId);
-
-    @Query("SELECT r.store.storeId, COUNT(r) " +
-            "FROM Review r WHERE r.store.storeId " +
-            "IN :storeIds GROUP BY r.store.storeId")
-    List<Object[]> countReviewsByStoreIds(@Param("storeIds") List<Long> storeIds);
-
 }

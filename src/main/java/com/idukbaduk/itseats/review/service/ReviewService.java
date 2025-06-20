@@ -39,7 +39,7 @@ public class ReviewService {
                 .toList();
 
         List<ReviewImage> images = reviewImageRepository
-                .findReviewIdByInOrderByDisplayOrderAsc(reviewIds);
+                .findByReviewIdInOrderByDisplayOrderAsc(reviewIds);
 
         Map<Long, String> reviewIdToImageUrl = new HashMap<>();
         for (ReviewImage image : images) {
