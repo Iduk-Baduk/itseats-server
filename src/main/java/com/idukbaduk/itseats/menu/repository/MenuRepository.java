@@ -20,6 +20,6 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
             @Param("menuGroup") String menuGroup,
             @Param("keyword") String keyword
     );
-
+  
     Optional<Menu> findByMenuIdAndDeletedFalse(Long menuId);
 }

@@ -60,5 +60,11 @@ public class Store extends BaseEntity {
     private StoreStatus storeStatus;
 
     @Column(name = "orderable", nullable = false)
-    private Boolean orderable = true;
+    private Boolean orderable;
+
+    @Column(name = "default_delivery_fee", nullable = false)
+    private int defaultDeliveryFee;
+
+    @Column(name = "only_one_delivery_fee", nullable = false)
+    private int onlyOneDeliveryFee;
 }

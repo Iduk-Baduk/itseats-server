@@ -1,4 +1,4 @@
-package com.idukbaduk.itseats.payment.entity.enums;
+package com.idukbaduk.itseats.order.entity.enums;
 
 public enum DeliveryType {
 

@@ -1,12 +1,11 @@
-package com.idukbaduk.itseats.menu.error;
+package com.idukbaduk.itseats.order.error;
 
 import com.idukbaduk.itseats.global.error.core.BaseException;
 import com.idukbaduk.itseats.global.error.core.ErrorCode;
 
-public class MenuException extends BaseException {
+public class OrderException extends BaseException {
 
-    public MenuException(ErrorCode errorCode) {
+    public OrderException(ErrorCode errorCode) {
         super(errorCode);
     }
 }
-
