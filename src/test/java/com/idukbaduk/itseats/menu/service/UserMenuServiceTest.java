@@ -14,6 +14,7 @@ import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import com.idukbaduk.itseats.menu.repository.MenuOptionGroupRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
+import com.idukbaduk.itseats.store.entity.Store;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,24 +50,63 @@ class UserMenuServiceTest {
     @Test
     void getMenuOptions_menuNotFound_throwsException() {
         // given
+        Long storeId = 1L;
         Long menuId = 999L;
         when(menuRepository.findByMenuIdAndDeletedFalse(menuId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> userMenuService.getMenuOptions(menuId))
+        assertThatThrownBy(() -> userMenuService.getMenuOptions(storeId, menuId))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
+    }
+
+    @DisplayName("메뉴가 가맹점에 속해있지 않은 경우 예외 발생")
+    @Test
+    void getMenuOptions_menuNotBelongToStore_throwsException() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+
+        Store store = Store.builder().storeId(storeId).build();
+
+        Store otherStore = Store.builder().storeId(2L).build();
+
+        MenuGroup menuGroup = MenuGroup.builder()
+                .menuGroupId(10L)
+                .menuGroupName("음료")
+                .store(otherStore)
+                .build();
+
+        Menu menu = Menu.builder()
+                .menuId(menuId)
+                .menuName("아메리카노")
+                .menuDescription("평범한 아메리카노입니다.")
+                .menuPrice(2000L)
+                .menuStatus(MenuStatus.ON_SALE)
+                .menuGroup(menuGroup)
+                .build();
+
+        when(menuRepository.findByMenuIdAndDeletedFalse(menuId)).thenReturn(Optional.of(menu));
+
+        // when & then
+        assertThatThrownBy(() -> userMenuService.getMenuOptions(storeId, menuId))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.MENU_NOT_BELONG_TO_STORE.getMessage());
     }
 
     @DisplayName("메뉴 옵션 조회 성공")
     @Test
     void getMenuOptions_success() {
         // given
+        Long storeId = 1L;
         Long menuId = 1L;
+
+        Store store = Store.builder().storeId(storeId).build();
 
         MenuGroup menuGroup = MenuGroup.builder()
                 .menuGroupId(10L)
                 .menuGroupName("음료")
+                .store(store)
                 .build();
 
         Menu menu = Menu.builder()
@@ -129,7 +169,7 @@ class UserMenuServiceTest {
         when(menuOptionGroupRepository.findGroupsWithOptionsByMenuId(menuId)).thenReturn(List.of(optionGroup));
 
         // when
-        UserMenuOptionResponse response = userMenuService.getMenuOptions(menuId);
+        UserMenuOptionResponse response = userMenuService.getMenuOptions(storeId, menuId);
 
         // then
         assertThat(response).isNotNull();
