@@ -31,4 +31,14 @@ public class OrderController {
                 orderService.getOrderNew(userDetails.getUsername(), orderNewRequest)
         );
     }
+
+    @GetMapping("/{orderId}/status")
+    public ResponseEntity<BaseResponse> getOrderStatus(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("orderId") Long orderId) {
+        return BaseResponse.toResponseEntity(
+                OrderResponse.GET_ORDER_STATUS_SUCCESS,
+                orderService.getOrderStatus(userDetails.getUsername(), orderId)
+        );
+    }
 }
