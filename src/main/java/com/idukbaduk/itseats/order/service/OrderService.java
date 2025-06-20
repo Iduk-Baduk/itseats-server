@@ -22,6 +22,7 @@ import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -45,6 +46,7 @@ public class OrderService {
 
     private final ObjectMapper objectMapper;
 
+    @Transactional
     public OrderNewResponse getOrderNew(String username, OrderNewRequest orderNewRequest) {
         Member member = memberService.getMemberByUsername(username);
         MemberAddress address = memberAddressService.getMemberAddress(orderNewRequest.getAddrId());
@@ -89,16 +91,12 @@ public class OrderService {
     }
 
     private String getOrderNumber() {
-        StringBuilder orderNumber = new StringBuilder();
+        long timestamp = System.currentTimeMillis();
         Random random = new Random();
+        char firstLetter = LETTER_POOL.charAt(random.nextInt(LETTER_POOL.length()));
+        char lastLetter = LETTER_POOL.charAt(random.nextInt(LETTER_POOL.length()));
 
-        orderNumber.append(LETTER_POOL.charAt(random.nextInt(LETTER_POOL.length())));
-        for (int i = 0; i < 4; i++) {
-            orderNumber.append(DIGIT_POOL.charAt(random.nextInt(DIGIT_POOL.length())));
-        }
-        orderNumber.append(LETTER_POOL.charAt(random.nextInt(LETTER_POOL.length())));
-
-        return orderNumber.toString();
+        return String.format("%c%d%c", firstLetter, timestamp % 10000, lastLetter);
     }
 
     private int getOrderPrice(List<OrderMenuDTO> orderMenuDtos) {
