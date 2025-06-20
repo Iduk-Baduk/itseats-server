@@ -2,10 +2,16 @@ package com.idukbaduk.itseats.store.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "store_image")
 public class StoreImage extends BaseEntity {
 
