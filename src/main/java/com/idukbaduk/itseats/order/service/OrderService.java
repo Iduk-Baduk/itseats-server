@@ -164,7 +164,7 @@ public class OrderService {
                         .lat(store.getLocation().getY())
                         .lng(store.getLocation().getX())
                         .build())
-                .riderReqeust(paymentService.getPaymentByOrder(order).getRiderRequest())
+                .riderRequest(paymentService.getPaymentByOrder(order).getRiderRequest())
                 .build();
     }
 }

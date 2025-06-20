@@ -16,5 +16,5 @@ public class OrderStatusResponse {
     private String deliveryAddress;
     private AddressInfoDTO destinationLocation;
     private AddressInfoDTO storeLocation;
-    private String riderReqeust;
+    private String riderRequest;
 }

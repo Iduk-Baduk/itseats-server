@@ -263,7 +263,7 @@ class OrderServiceTest {
         assertThat(response.getOrderNumber()).isEqualTo(orderNumber);
         assertThat(response.getOrderPrice()).isEqualTo(orderPrice);
         assertThat(response.getDeliveryAddress()).isEqualTo(deliveryAddress);
-        assertThat(response.getRiderReqeust()).isEqualTo(riderRequest);
+        assertThat(response.getRiderRequest()).isEqualTo(riderRequest);
 
         AddressInfoDTO destinationLocationResponse = response.getDestinationLocation();
         assertThat(destinationLocationResponse.getLat()).isEqualTo(destinationLocation.getY());
