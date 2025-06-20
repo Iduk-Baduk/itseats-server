@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/address")
+@RequestMapping("/api/addresses")
 @RequiredArgsConstructor
 public class MemberAddressController {
 
     private final MemberAddressService memberAddressService;
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<BaseResponse> createAddress(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody AddressCreateRequest addressCreateRequest) {
