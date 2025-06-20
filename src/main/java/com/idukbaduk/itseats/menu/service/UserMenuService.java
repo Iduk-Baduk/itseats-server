@@ -22,9 +22,13 @@ public class UserMenuService {
     private final MenuOptionGroupRepository menuOptionGroupRepository;
 
     @Transactional(readOnly = true)
-    public UserMenuOptionResponse getMenuOptions(Long menuId) {
+    public UserMenuOptionResponse getMenuOptions(Long storeId, Long menuId) {
         Menu menu = menuRepository.findByMenuIdAndDeletedFalse(menuId)
                 .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+
+        if (!menu.getMenuGroup().getStore().getStoreId().equals(storeId)) {
+            throw new MenuException(MenuErrorCode.MENU_NOT_BELONG_TO_STORE);
+        }
 
         String imageUrl = menuImageRepository.findFirstByMenu_MenuIdOrderByDisplayOrderAsc(menuId)
                 .map(MenuImage::getImageUrl)

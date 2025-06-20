@@ -23,7 +23,7 @@ public class UserMenuController {
             @PathVariable Long storeId,
             @PathVariable Long menuId
     ) {
-        UserMenuOptionResponse response = userMenuService.getMenuOptions(menuId);
+        UserMenuOptionResponse response = userMenuService.getMenuOptions(storeId, menuId);
 
         return BaseResponse.toResponseEntity(HttpStatus.OK, "메뉴 옵션 조회 성공", response);
     }
