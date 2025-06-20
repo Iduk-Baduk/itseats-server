@@ -7,17 +7,22 @@ import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import com.idukbaduk.itseats.memberaddress.service.MemberAddressService;
 import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.service.MenuService;
+import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
 import com.idukbaduk.itseats.order.dto.MenuOptionDTO;
 import com.idukbaduk.itseats.order.dto.OptionDTO;
 import com.idukbaduk.itseats.order.dto.OrderMenuDTO;
 import com.idukbaduk.itseats.order.dto.OrderNewRequest;
 import com.idukbaduk.itseats.order.dto.OrderNewResponse;
+import com.idukbaduk.itseats.order.dto.OrderStatusResponse;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderMenuRepository;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.payment.entity.Payment;
+import com.idukbaduk.itseats.payment.service.PaymentService;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.service.StoreService;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,8 +31,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.geo.Point;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -54,6 +62,9 @@ class OrderServiceTest {
     @Mock
     private MemberAddressService memberAddressService;
 
+    @Mock
+    private PaymentService paymentService;
+
     @InjectMocks
     private OrderService orderService;
 
@@ -66,6 +77,7 @@ class OrderServiceTest {
                 storeService,
                 memberService,
                 memberAddressService,
+                paymentService,
                 new ObjectMapper()
         );
     }
@@ -159,6 +171,7 @@ class OrderServiceTest {
                 storeService,
                 memberService,
                 memberAddressService,
+                paymentService,
                 null
         );
 
@@ -195,4 +208,85 @@ class OrderServiceTest {
                 .hasMessageContaining(OrderErrorCode.MENU_OPTION_SERIALIZATION_FAIL.getMessage());
     }
 
+    @Test
+    @DisplayName("주문 현황 조회 성공")
+    void getOrderStatus_success() {
+        //given
+        String username = "testuser";
+        Long orderId = 1L;
+        String storeName = "테스트 구름점";
+        Point storeLocation = new Point(127.0, 37.5);
+        LocalDateTime deliveryEta = LocalDateTime.of(2025, 6, 20, 12, 0, 0);
+        OrderStatus orderStatus = OrderStatus.COOKING;
+        String orderNumber = "A1234B";
+        int orderPrice = 10000;
+        String deliveryAddress = "서울시 구름구 구름로100번길 10 100호";
+        Point destinationLocation = new Point(126.9, 37.4);
+        String riderRequest = "조심히 와주세요";
+
+        Member member = Member.builder()
+                .username(username)
+                .build();
+
+        Store store = Store.builder()
+                .storeName(storeName)
+                .location(storeLocation)
+                .build();
+
+        Order order = Order.builder()
+                .orderId(orderId)
+                .store(store)
+                .deliveryEta(deliveryEta)
+                .orderStatus(orderStatus)
+                .orderNumber(orderNumber)
+                .orderPrice(orderPrice)
+                .deliveryAddress(deliveryAddress)
+                .destinationLocation(destinationLocation)
+                .build();
+
+        Payment payment = Payment.builder()
+                .riderRequest(riderRequest)
+                .build();
+
+        when(memberService.getMemberByUsername(username)).thenReturn(member);
+        when(orderRepository.findByMemberAndOrderId(member, orderId)).thenReturn(Optional.of(order));
+        when(orderMenuRepository.countOrderMenus(orderId)).thenReturn(2L);
+        when(paymentService.getPaymentByOrder(order)).thenReturn(payment);
+
+        // when
+        OrderStatusResponse response = orderService.getOrderStatus(username, orderId);
+
+        // then
+        assertThat(response.getDeliveryEta()).isEqualTo(deliveryEta.toString());
+        assertThat(response.getOrderStatus()).isEqualTo(orderStatus.name());
+        assertThat(response.getStoreName()).isEqualTo(storeName);
+        assertThat(response.getOrderNumber()).isEqualTo(orderNumber);
+        assertThat(response.getOrderPrice()).isEqualTo(orderPrice);
+        assertThat(response.getDeliveryAddress()).isEqualTo(deliveryAddress);
+        assertThat(response.getRiderReqeust()).isEqualTo(riderRequest);
+
+        AddressInfoDTO destinationLocationResponse = response.getDestinationLocation();
+        assertThat(destinationLocationResponse.getLat()).isEqualTo(destinationLocation.getY());
+        assertThat(destinationLocationResponse.getLng()).isEqualTo(destinationLocation.getX());
+
+        AddressInfoDTO storeLocationResponse = response.getStoreLocation();
+        assertThat(storeLocationResponse.getLat()).isEqualTo(storeLocation.getY());
+        assertThat(storeLocationResponse.getLng()).isEqualTo(storeLocation.getX());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 주문 조회시 예외 발생")
+    void getOrderStatus_notExist() {
+        // given
+        Long orderId = 1L;
+        Member member = Member.builder().username("testuser").build();
+
+        when(memberService.getMemberByUsername(any())).thenReturn(member);
+        when(orderRepository.findByMemberAndOrderId(member, orderId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> orderService.getOrderStatus(member.getUsername(), orderId))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
 }
