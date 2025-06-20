@@ -1,10 +1,13 @@
 package com.idukbaduk.itseats.order.repository;
 
+import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -32,4 +35,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
           AND delivery_type = :deliveryType
     """, nativeQuery = true)
     Long findAvgDeliveryTimeByType(@Param("deliveryType") String deliveryType);
+
+    Optional<Order> findByMemberAndOrderId(Member member, Long orderId);
 }
