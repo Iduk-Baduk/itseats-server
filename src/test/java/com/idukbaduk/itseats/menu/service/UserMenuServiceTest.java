@@ -225,7 +225,7 @@ class UserMenuServiceTest {
         Menu menu = Menu.builder()
                 .menuId(100L)
                 .menuName("라면")
-                .menuPrice(3000)
+                .menuPrice(3000L)
                 .menuDescription("맛있는 라면")
                 .menuPriority(1)
                 .menuRating(4.8f)
