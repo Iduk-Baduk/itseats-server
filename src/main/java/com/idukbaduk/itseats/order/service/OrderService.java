@@ -142,6 +142,7 @@ public class OrderService {
         }
     }
 
+    @Transactional(readOnly = true)
     public OrderStatusResponse getOrderStatus(String username, Long orderId) {
         Member member = memberService.getMemberByUsername(username);
         Order order = orderRepository.findByMemberAndOrderId(member, orderId)
