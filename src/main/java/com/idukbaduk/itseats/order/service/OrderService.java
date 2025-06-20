@@ -49,8 +49,8 @@ public class OrderService {
     @Transactional
     public OrderNewResponse getOrderNew(String username, OrderNewRequest orderNewRequest) {
         Member member = memberService.getMemberByUsername(username);
-        MemberAddress address = memberAddressService.getMemberAddress(orderNewRequest.getAddrId());
-        Store store = storeService.getStore(orderNewRequest.getStoreId());
+        MemberAddress address = memberAddressService.getMemberAddress(member, orderNewRequest.getAddrId());
+        Store store = storeService.getStore(member, orderNewRequest.getStoreId());
 
         Order order = saveOrder(member, store, address, orderNewRequest);
         saveAllOrderMenu(member, store, order, orderNewRequest);
