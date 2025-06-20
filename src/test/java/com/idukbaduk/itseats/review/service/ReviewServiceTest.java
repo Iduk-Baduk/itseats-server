@@ -6,6 +6,8 @@ import com.idukbaduk.itseats.review.dto.StoreReviewResponse;
 import com.idukbaduk.itseats.review.entity.Review;
 import com.idukbaduk.itseats.review.entity.ReviewImage;
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.review.error.ReviewErrorCode;
+import com.idukbaduk.itseats.review.error.ReviewException;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.review.repository.ReviewImageRepository;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
@@ -21,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class ReviewServiceTest {
@@ -36,6 +39,20 @@ class ReviewServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @DisplayName("리뷰가 없을 때 예외 발생")
+    @Test
+    void getReviewsByStore_throwsException_whenNoReviewsFound() {
+        // given
+        Long storeId = 1L;
+        when(reviewRepository.findReviewsWithMemberByStoreId(storeId))
+                .thenReturn(List.of());
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.getReviewsByStore(storeId))
+                .isInstanceOf(ReviewException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ReviewErrorCode.REVIEW_NOT_FOUND);
     }
 
     @DisplayName("가게 별 리뷰 목록 조회 성공")
@@ -85,7 +102,7 @@ class ReviewServiceTest {
 
         when(reviewRepository.findReviewsWithMemberByStoreId(storeId))
                 .thenReturn(List.of(review1, review2));
-        when(reviewImageRepository.findReviewIdByInOrderByDisplayOrderAsc(List.of(100L, 101L)))
+        when(reviewImageRepository.findByReviewIdInOrderByDisplayOrderAsc(List.of(100L, 101L)))
                 .thenReturn(List.of(image1, image2));
 
         // when
