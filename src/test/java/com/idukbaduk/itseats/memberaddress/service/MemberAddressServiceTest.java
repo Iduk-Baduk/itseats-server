@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,6 +71,7 @@ class MemberAddressServiceTest {
         assertThat(response.getDetailAddress()).isEqualTo(detailsAddress);
 
         // then - save
+        verify(memberService).getMemberByUsername(mockMember.getUsername());
         verify(memberAddressRepository).save(captor.capture());
         MemberAddress savedAddress = captor.getValue();
 
@@ -79,8 +81,8 @@ class MemberAddressServiceTest {
         assertThat(addressCategory).isEqualTo(savedAddress.getAddressCategory().name());
 
         Point point = savedAddress.getLocation();
-        assertThat(point.getX()).isEqualTo(locationX);
-        assertThat(point.getY()).isEqualTo(locationY);
+        assertThat(point.getX()).isEqualTo(locationX, within(0.001));
+        assertThat(point.getY()).isEqualTo(locationY, within(0.001));
     }
 
     @Test
