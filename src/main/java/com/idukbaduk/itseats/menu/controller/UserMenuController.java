@@ -27,10 +27,12 @@ public class UserMenuController {
         UserMenuOptionResponse response = userMenuService.getMenuOptions(storeId, menuId);
 
         return BaseResponse.toResponseEntity(HttpStatus.OK, "메뉴 옵션 조회 성공", response);
+    }
 
     @GetMapping("/{storeId}/menus")
     public ResponseEntity<BaseResponse> getMenus(
-            @PathVariable Long storeId) {
+            @PathVariable Long storeId)
+        {
         UserMenuListResponse response = userMenuService.getMenusByStore(storeId);
       
         return BaseResponse.toResponseEntity(HttpStatus.OK, "메뉴 조회 성공", response);

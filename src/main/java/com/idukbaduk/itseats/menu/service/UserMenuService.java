@@ -79,6 +79,8 @@ public class UserMenuService {
                 .menuGroupName(menu.getMenuGroup().getMenuGroupName())
                 .imageUrl(imageUrl)
                 .optionGroups(optionGroupDtos)
+                .build();
+    }
 
     @Transactional(readOnly = true)
     public UserMenuListResponse getMenusByStore(Long storeId) {
