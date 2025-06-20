@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.store.service;
 
+import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
@@ -31,14 +32,18 @@ class StoreServiceTest {
     void getStore_success() {
         // given
         Long storeId = 1L;
+        Member mockMember = Member.builder()
+                .memberId(1L)
+                .build();
         Store store = Store.builder()
                 .storeId(storeId)
+                .member(mockMember)
                 .build();
 
-        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+        when(storeRepository.findByMemberAndStoreId(mockMember, storeId)).thenReturn(Optional.of(store));
 
         // when
-        Store result = storeService.getStore(member, storeId);
+        Store result = storeService.getStore(mockMember, storeId);
 
         // then
         assertThat(result.getStoreId()).isEqualTo(storeId);
@@ -49,10 +54,13 @@ class StoreServiceTest {
     void getStore_notExist() {
         // given
         Long storeId = 1L;
-        when(storeRepository.findById(storeId)).thenReturn(Optional.empty());
+        Member mockMember = Member.builder()
+                .memberId(1L)
+                .build();
+        when(storeRepository.findByMemberAndStoreId(mockMember, storeId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> storeService.getStore(member, storeId))
+        assertThatThrownBy(() -> storeService.getStore(mockMember, storeId))
                 .isInstanceOf(StoreException.class)
                 .hasMessageContaining(StoreErrorCode.STORE_NOT_FOUND.getMessage());
     }
