@@ -39,7 +39,7 @@ public class MenuOption extends BaseEntity {
     private String optionName;
 
     @Column(name = "option_price", nullable = false)
-    private int optionPrice;
+    private Long optionPrice;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "option_status", nullable = false)

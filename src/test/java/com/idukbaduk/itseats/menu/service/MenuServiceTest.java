@@ -64,7 +64,7 @@ class MenuServiceTest {
         Menu menu1 = Menu.builder()
                 .menuId(11L)
                 .menuName("아메리카노")
-                .menuPrice(2000)
+                .menuPrice(2000L)
                 .menuStatus(MenuStatus.ON_SALE)
                 .menuGroup(menuGroup)
                 .build();
@@ -72,7 +72,7 @@ class MenuServiceTest {
         Menu menu2 = Menu.builder()
                 .menuId(12L)
                 .menuName("초코라떼")
-                .menuPrice(2500)
+                .menuPrice(2500L)
                 .menuStatus(MenuStatus.OUT_OF_STOCK)
                 .menuGroup(menuGroup)
                 .build();
