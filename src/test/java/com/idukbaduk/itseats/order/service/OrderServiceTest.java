@@ -142,7 +142,7 @@ class OrderServiceTest {
         assertThat(response.getOrderPrice()).isEqualTo(7000);
         assertThat(response.getDeliveryFee()).isEqualTo(3000);
         assertThat(response.getTotalCost()).isEqualTo(10000);
-        assertThat(response.getDefaultTImeMin()).isEqualTo(20);
+        assertThat(response.getDefaultTimeMin()).isEqualTo(20);
         assertThat(response.getOnlyOneTimeMax()).isEqualTo(45);
 
         verify(orderMenuRepository).saveAll(anyList());
