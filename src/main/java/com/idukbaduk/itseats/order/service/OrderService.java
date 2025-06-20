@@ -53,7 +53,7 @@ public class OrderService {
         Store store = storeService.getStore(member, orderNewRequest.getStoreId());
 
         Order order = saveOrder(member, store, address, orderNewRequest);
-        saveAllOrderMenu(member, store, order, orderNewRequest);
+        saveAllOrderMenu(order, orderNewRequest);
 
         int orderPrice = getOrderPrice(orderNewRequest.getOrderMenus());
         int deliveryFee = getDevliveryFee(store, orderNewRequest.getDeliveryType());
@@ -111,14 +111,12 @@ public class OrderService {
                 : store.getOnlyOneDeliveryFee();
     }
 
-    private void saveAllOrderMenu(Member member, Store store, Order order, OrderNewRequest orderNewRequest) {
+    private void saveAllOrderMenu(Order order, OrderNewRequest orderNewRequest) {
         List<OrderMenuDTO> orderMenuDtos = orderNewRequest.getOrderMenus();
         List<OrderMenu> orderMenus = new ArrayList<>();
         for (OrderMenuDTO orderMenuDTO : orderMenuDtos) {
             OrderMenu orderMenu = OrderMenu.builder()
-                    .member(member)
                     .menu(menuService.getMenu(orderMenuDTO.getMenuId()))
-                    .store(store)
                     .order(order)
                     .quantity(orderMenuDTO.getQuantity())
                     .price(orderMenuDTO.getMenuTotalPrice())
