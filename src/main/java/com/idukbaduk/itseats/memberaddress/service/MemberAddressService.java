@@ -12,6 +12,7 @@ import com.idukbaduk.itseats.memberaddress.repository.MemberAddressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class MemberAddressService {
     private final MemberAddressRepository memberAddressRepository;
     private final MemberService memberService;
 
+    @Transactional
     public AddressCreateResponse createAddress(String username, AddressCreateRequest addressCreateRequest) {
         Member member = memberService.getMemberByUsername(username);
 
