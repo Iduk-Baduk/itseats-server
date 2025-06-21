@@ -24,7 +24,6 @@ import com.idukbaduk.itseats.payment.service.PaymentService;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,7 +68,7 @@ public class OrderService {
                 .onlyOneTimeMax(orderRepository.findMaxDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
                 .orderPrice(orderPrice)
                 .deliveryFee(deliveryFee)
-                // 쿠폰 관련 로직은 추후 구현
+                // TODO: 쿠폰 관련 로직은 추후 구현
                 .discountValue(0)
                 .totalCost(orderPrice + deliveryFee)
                 .build();
@@ -167,5 +166,10 @@ public class OrderService {
                         .build())
                 .riderRequest(paymentService.getPaymentByOrder(order).getRiderRequest())
                 .build();
+    }
+
+    public Order getOrder(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 }

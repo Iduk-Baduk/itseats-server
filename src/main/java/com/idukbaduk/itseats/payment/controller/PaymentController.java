@@ -1,9 +1,9 @@
-package com.idukbaduk.itseats.memberaddress.controller;
+package com.idukbaduk.itseats.payment.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.memberaddress.dto.AddressCreateRequest;
-import com.idukbaduk.itseats.memberaddress.dto.enums.AddressResponse;
-import com.idukbaduk.itseats.memberaddress.service.MemberAddressService;
+import com.idukbaduk.itseats.payment.dto.PaymentInfoRequest;
+import com.idukbaduk.itseats.payment.dto.enums.PaymentResponse;
+import com.idukbaduk.itseats.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,19 +14,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/addresses")
+@RequestMapping("/api/orders")
 @RequiredArgsConstructor
-public class MemberAddressController {
+public class PaymentController {
 
-    private final MemberAddressService memberAddressService;
+    private final PaymentService paymentService;
 
     @PostMapping
-    public ResponseEntity<BaseResponse> createAddress(
+    public ResponseEntity<BaseResponse> createPayment(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody AddressCreateRequest addressCreateRequest) {
+            @RequestBody PaymentInfoRequest paymentInfoRequest) {
         return BaseResponse.toResponseEntity(
-                AddressResponse.CREATE_ADDRESS_SUCCESS,
-                memberAddressService.createAddress(userDetails.getUsername(), addressCreateRequest)
+                PaymentResponse.CREATE_PAYMENT_SUCCESS,
+                paymentService.createPayment(userDetails.getUsername(), paymentInfoRequest)
         );
     }
 }
