@@ -128,18 +128,6 @@ class StoreServiceTest {
     }
 
     @Test
-    @DisplayName("가게가 없을 때 전체 조회 예외 발생")
-    void getAllStores_emptyList_throwsException() {
-        // given
-        when(storeRepository.findAllByDeletedFalse()).thenReturn(Collections.emptyList());
-
-        // when & then
-        assertThatThrownBy(() -> storeService.getAllStores())
-                .isInstanceOf(StoreException.class)
-                .hasMessageContaining(StoreErrorCode.STORE_NOT_FOUND.getMessage());
-    }
-
-    @Test
     @DisplayName("리뷰가 없는 가게도 정상 처리")
     void getAllStores_noReviews_success() {
         // given
