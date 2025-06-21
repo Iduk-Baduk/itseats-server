@@ -30,10 +30,6 @@ public class ReviewService {
 
         List<Review> reviews = reviewRepository.findReviewsWithMemberByStoreId(storeId);
 
-        if (reviews.isEmpty()) {
-            throw new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND);
-        }
-
         List<Long> reviewIds = reviews.stream()
                 .map(Review::getReviewId)
                 .toList();
