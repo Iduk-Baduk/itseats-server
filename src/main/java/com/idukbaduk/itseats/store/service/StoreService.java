@@ -36,10 +36,6 @@ public class StoreService {
 
         List<Store> stores = storeRepository.findAllByDeletedFalse();
 
-        if (stores.isEmpty()) {
-            throw new StoreException(StoreErrorCode.STORE_NOT_FOUND);
-        }
-
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
 
         List<StoreImage> images = storeImageRepository.findImagesByStoreIds(storeIds);
