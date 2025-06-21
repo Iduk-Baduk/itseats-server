@@ -2,18 +2,22 @@ package com.idukbaduk.itseats.store.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
+import com.idukbaduk.itseats.store.dto.StoreCategoryListResponse;
 import com.idukbaduk.itseats.store.dto.StoreDto;
 import com.idukbaduk.itseats.store.dto.StoreListResponse;
 import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.entity.StoreCategory;
 import com.idukbaduk.itseats.store.entity.StoreImage;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
+import com.idukbaduk.itseats.store.repository.StoreCategoryRepository;
 import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +29,7 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final StoreImageRepository storeImageRepository;
     private final ReviewRepository reviewRepository;
+    private final StoreCategoryRepository storeCategoryRepository;
 
     public Store getStore(Member member, Long storeId) {
         return storeRepository.findByMemberAndStoreId(member, storeId)
@@ -69,6 +74,63 @@ public class StoreService {
                 .toList();
 
         return StoreListResponse.builder()
+                .stores(storeDtos)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public StoreCategoryListResponse getStoresByCategory(String categoryCode) {
+
+        StoreCategory category = storeCategoryRepository.findByCategoryCode(categoryCode)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.CATEGORY_NOT_FOUND));
+
+        List<Store> stores = storeRepository.findAllByStoreCategory_CategoryCodeAndDeletedFalse(categoryCode);
+
+        if (stores.isEmpty()) {
+            return StoreCategoryListResponse.builder()
+                    .category(categoryCode)
+                    .categoryName(category.getCategoryName())
+                    .stores(Collections.emptyList())
+                    .build();
+        }
+
+        String categoryName = category.getCategoryName();
+
+        List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
+
+        List<StoreImage> images = storeImageRepository.findImagesByStoreIds(storeIds);
+
+        Map<Long, String> storeIdToImageUrl = new HashMap<>();
+        for (StoreImage image : images) {
+            Long storeId = image.getStore().getStoreId();
+            if (!storeIdToImageUrl.containsKey(storeId)) {
+                storeIdToImageUrl.put(storeId, image.getImageUrl());
+            }
+        }
+
+        List<Object[]> stats = reviewRepository.findReviewStatsByStoreIds(storeIds);
+        Map<Long, Double> storeIdToAvg = new HashMap<>();
+        Map<Long, Integer> storeIdToCount = new HashMap<>();
+        for (Object[] row : stats) {
+            Long storeId = (Long) row[0];
+            Double avg = row[1] != null ? Math.round(((Double) row[1]) * 10) / 10.0 : 0.0;
+            Long count = (Long) row[2];
+            storeIdToAvg.put(storeId, avg);
+            storeIdToCount.put(storeId, count.intValue());
+        }
+
+        List<StoreDto> storeDtos = stores.stream()
+                .map(store -> StoreDto.builder()
+                        .imageUrl(storeIdToImageUrl.get(store.getStoreId()))
+                        .name(store.getStoreName())
+                        .review(storeIdToAvg.getOrDefault(store.getStoreId(), 0.0))
+                        .reviewCount(storeIdToCount.getOrDefault(store.getStoreId(),0))
+                        .build())
+                .toList();
+
+        return StoreCategoryListResponse.builder()
+                .category(categoryCode)
+                .categoryName(categoryName)
                 .stores(storeDtos)
                 .build();
     }
