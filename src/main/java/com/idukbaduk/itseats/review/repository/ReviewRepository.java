@@ -16,4 +16,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             "JOIN FETCH r.member WHERE r.store.storeId = :storeId " +
             "ORDER BY r.createdAt DESC")
     List<Review> findReviewsWithMemberByStoreId(@Param("storeId") Long storeId);
+
+    @Query("SELECT AVG(r.storeStar) FROM Review r WHERE r.store.storeId = :storeId")
+    Double findAverageRatingByStoreId(@Param("storeId") Long storeId);
+
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.store.storeId = :storeId")
+    int countByStoreId(@Param("storeId") Long storeId);
 }
