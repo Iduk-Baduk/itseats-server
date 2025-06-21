@@ -163,4 +163,18 @@ class StoreServiceTest {
         assertThat(dto.getReview()).isEqualTo(0.0);
         assertThat(dto.getReviewCount()).isEqualTo(0);
     }
+
+    @Test
+    @DisplayName("가게가 없을 때 빈 리스트 반환")
+    void getAllStores_emptyList_returnsEmptyList() {
+        // given
+        when(storeRepository.findAllByDeletedFalse()).thenReturn(Collections.emptyList());
+
+        // when
+        StoreListResponse response = storeService.getAllStores();
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getStores()).isEmpty(); // 빈 배열 확인
+    }
 }
