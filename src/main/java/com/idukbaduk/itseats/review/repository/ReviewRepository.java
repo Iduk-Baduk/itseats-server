@@ -11,4 +11,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("SELECT r.store.storeId, AVG(r.storeStar), COUNT(r) " +
             "FROM Review r WHERE r.store.storeId IN :storeIds GROUP BY r.store.storeId")
     List<Object[]> findReviewStatsByStoreIds(@Param("storeIds") List<Long> storeIds);
+
+    @Query("SELECT r FROM Review r " +
+            "JOIN FETCH r.member WHERE r.store.storeId = :storeId " +
+            "ORDER BY r.createdAt DESC")
+    List<Review> findReviewsWithMemberByStoreId(@Param("storeId") Long storeId);
 }
