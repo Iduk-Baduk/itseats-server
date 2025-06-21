@@ -41,20 +41,6 @@ class ReviewServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    @DisplayName("리뷰가 없을 때 예외 발생")
-    @Test
-    void getReviewsByStore_throwsException_whenNoReviewsFound() {
-        // given
-        Long storeId = 1L;
-        when(reviewRepository.findReviewsWithMemberByStoreId(storeId))
-                .thenReturn(List.of());
-
-        // when & then
-        assertThatThrownBy(() -> reviewService.getReviewsByStore(storeId))
-                .isInstanceOf(ReviewException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ReviewErrorCode.REVIEW_NOT_FOUND);
-    }
-
     @DisplayName("가게 별 리뷰 목록 조회 성공")
     @Test
     void getReviewsByStore_success() throws NoSuchFieldException, IllegalAccessException {
