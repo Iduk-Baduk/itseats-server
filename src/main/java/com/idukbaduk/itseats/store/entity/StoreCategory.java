@@ -2,10 +2,16 @@ package com.idukbaduk.itseats.store.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "store_category")
 public class StoreCategory extends BaseEntity {
 
@@ -16,4 +22,7 @@ public class StoreCategory extends BaseEntity {
 
     @Column(name = "category_name", nullable = false)
     private String categoryName;
+
+    @Column(name = "category_cdoe", nullable = false)
+    private String categoryCode;
 }
