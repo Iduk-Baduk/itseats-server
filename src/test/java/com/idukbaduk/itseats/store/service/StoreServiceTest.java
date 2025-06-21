@@ -2,12 +2,15 @@ package com.idukbaduk.itseats.store.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
+import com.idukbaduk.itseats.store.dto.StoreCategoryListResponse;
 import com.idukbaduk.itseats.store.dto.StoreDto;
 import com.idukbaduk.itseats.store.dto.StoreListResponse;
 import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.entity.StoreCategory;
 import com.idukbaduk.itseats.store.entity.StoreImage;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
+import com.idukbaduk.itseats.store.repository.StoreCategoryRepository;
 import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +39,9 @@ class StoreServiceTest {
 
     @Mock
     private ReviewRepository reviewRepository;
+
+    @Mock
+    private StoreCategoryRepository storeCategoryRepository;
 
     @InjectMocks
     private StoreService storeService;
@@ -164,5 +170,88 @@ class StoreServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.getStores()).isEmpty(); // 빈 배열 확인
+    }
+
+    @Test
+    @DisplayName("카테고리별 가게 목록 조회 성공")
+    void getStoresByCategory_success() {
+        // given
+        String categoryCode = "burger";
+        StoreCategory category = StoreCategory.builder()
+                .categoryCode("burger")
+                .categoryName("버거")
+                .build();
+
+        Store store1 = Store.builder().storeId(1L).storeName("버커킹 구름점").storeCategory(category).build();
+        Store store2 = Store.builder().storeId(2L).storeName("맥도날드 구름점").storeCategory(category).build();
+
+        StoreImage image1 = StoreImage.builder().store(store1).imageUrl("s3 url 1").build();
+        StoreImage image2 = StoreImage.builder().store(store2).imageUrl("s3 url 2").build();
+
+        when(storeCategoryRepository.findByCategoryCode(categoryCode)).thenReturn(Optional.of(category));
+        when(storeRepository.findAllByStoreCategory_CategoryCodeAndDeletedFalse(categoryCode))
+                .thenReturn(List.of(store1, store2));
+        when(storeImageRepository.findImagesByStoreIds(List.of(1L, 2L)))
+                .thenReturn(List.of(image1, image2));
+        when(reviewRepository.findReviewStatsByStoreIds(List.of(1L, 2L)))
+                .thenReturn(List.of(
+                        new Object[]{1L, 4.9, 1742L},
+                        new Object[]{2L, 4.7, 2847L}
+                ));
+
+        // when
+        StoreCategoryListResponse response = storeService.getStoresByCategory(categoryCode);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getCategory()).isEqualTo("burger");
+        assertThat(response.getCategoryName()).isEqualTo("버거");
+        assertThat(response.getStores()).hasSize(2);
+
+        StoreDto dto1 = response.getStores().get(0);
+        assertThat(dto1.getImageUrl()).isEqualTo("s3 url 1");
+        assertThat(dto1.getName()).isEqualTo("버커킹 구름점");
+        assertThat(dto1.getReview()).isEqualTo(4.9);
+        assertThat(dto1.getReviewCount()).isEqualTo(1742);
+
+        StoreDto dto2 = response.getStores().get(1);
+        assertThat(dto2.getImageUrl()).isEqualTo("s3 url 2");
+        assertThat(dto2.getName()).isEqualTo("맥도날드 구름점");
+        assertThat(dto2.getReview()).isEqualTo(4.7);
+        assertThat(dto2.getReviewCount()).isEqualTo(2847);
+    }
+
+    @Test
+    @DisplayName("카테고리 코드가 없으면 예외 발생")
+    void getStoresByCategory_categoryNotFound() {
+        // given
+        String categoryCode = "unknown";
+        when(storeCategoryRepository.findByCategoryCode(categoryCode)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> storeService.getStoresByCategory(categoryCode))
+                .isInstanceOf(StoreException.class)
+                .hasMessageContaining(StoreErrorCode.CATEGORY_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("카테고리는 있지만 가게가 없으면 빈 리스트 반환")
+    void getStoresByCategory_noStores() {
+        String categoryCode = "burger";
+        StoreCategory category = StoreCategory.builder()
+                .categoryCode("burger")
+                .categoryName("버거")
+                .build();
+
+        when(storeCategoryRepository.findByCategoryCode(categoryCode)).thenReturn(Optional.of(category));
+        when(storeRepository.findAllByStoreCategory_CategoryCodeAndDeletedFalse(categoryCode))
+                .thenReturn(Collections.emptyList());
+
+        StoreCategoryListResponse response = storeService.getStoresByCategory(categoryCode);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getCategory()).isEqualTo("burger");
+        assertThat(response.getCategoryName()).isEqualTo("버거");
+        assertThat(response.getStores()).isEmpty();
     }
 }

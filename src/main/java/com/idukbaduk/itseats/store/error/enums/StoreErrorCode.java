@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum StoreErrorCode implements ErrorCode {
 
-    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "가맹점 조회 실패");
+    STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "가맹점 조회 실패"),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "카테고리 조회 실패"),
+    ;
 
     private final HttpStatus httpStatus;
     private final String message;
