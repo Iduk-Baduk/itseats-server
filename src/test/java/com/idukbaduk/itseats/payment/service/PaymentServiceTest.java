@@ -5,6 +5,7 @@ import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.error.PaymentException;
 import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,13 +28,19 @@ class PaymentServiceTest {
     @InjectMocks
     private PaymentService paymentService;
 
+    private Order order;
+
+    @BeforeEach
+    void setUp() {
+        order = Order.builder()
+                .orderId(1L)
+                .build();
+    }
+
     @Test
     @DisplayName("결제 정보를 성공적으로 반환")
     void getPaymentByOrder_success() {
         // given
-        Order order = Order.builder()
-                .orderId(1L)
-                .build();
         Payment payment = Payment.builder()
                 .paymentId(1L)
                 .order(order)
@@ -52,10 +59,6 @@ class PaymentServiceTest {
     @DisplayName("존재하지 않는 결제 조회시 예외 발생")
     void getPaymentByOrder_notExist() {
         // given
-        Order order = Order.builder()
-                .orderId(1L)
-                .build();
-
         when(paymentRepository.findByOrder(order)).thenReturn(Optional.empty());
 
         // when & then
