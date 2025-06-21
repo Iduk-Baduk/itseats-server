@@ -90,14 +90,19 @@ class MemberAddressServiceTest {
     void getMemberAddress_success() {
         // given
         Long memberAddressId = 1L;
+        Member mockMember = Member.builder()
+                .memberId(1L)
+                .build();
         MemberAddress memberAddress = MemberAddress.builder()
                 .addressId(memberAddressId)
+                .member(mockMember)
                 .build();
 
-        when(memberAddressRepository.findById(memberAddressId)).thenReturn(Optional.of(memberAddress));
+        when(memberAddressRepository.findByMemberAndAddressId(mockMember, memberAddressId))
+                .thenReturn(Optional.of(memberAddress));
 
         // when
-        MemberAddress result = memberAddressService.getMemberAddress(memberAddressId);
+        MemberAddress result = memberAddressService.getMemberAddress(mockMember, memberAddressId);
 
         // then
         assertThat(result.getAddressId()).isEqualTo(memberAddress.getAddressId());
@@ -108,10 +113,13 @@ class MemberAddressServiceTest {
     void getMemberAddress_notExist() {
         // given
         Long memberAddressId = 1L;
-        when(memberAddressRepository.findById(memberAddressId)).thenReturn(Optional.empty());
+        Member mockMember = Member.builder()
+                .memberId(1L)
+                .build();
+        when(memberAddressRepository.findByMemberAndAddressId(mockMember, memberAddressId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> memberAddressService.getMemberAddress(memberAddressId))
+        assertThatThrownBy(() -> memberAddressService.getMemberAddress(mockMember, memberAddressId))
                 .isInstanceOf(MemberAddressException.class)
                 .hasMessageContaining(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND.getMessage());
     }

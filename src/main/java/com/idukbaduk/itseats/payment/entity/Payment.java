@@ -3,7 +3,6 @@ package com.idukbaduk.itseats.payment.entity;
 import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.payment.entity.enums.DeliveryType;
 import com.idukbaduk.itseats.payment.entity.enums.PaymentMethod;
 import com.idukbaduk.itseats.payment.entity.enums.PaymentStatus;
 import com.idukbaduk.itseats.payment.entity.enums.RiderRequestOption;
@@ -44,10 +43,6 @@ public class Payment extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "delivery_type", nullable = false)
-    private DeliveryType deliveryType;
 
     @Column(name = "discount_value", nullable = false)
     private int discountValue;

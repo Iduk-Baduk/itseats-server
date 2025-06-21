@@ -41,8 +41,8 @@ public class MemberAddressService {
                 .build();
     }
 
-    public MemberAddress getMemberAddress(Long addressId) {
-        return memberAddressRepository.findById(addressId)
+    public MemberAddress getMemberAddress(Member member, Long addressId) {
+        return memberAddressRepository.findByMemberAndAddressId(member, addressId)
                 .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
     }
 }
