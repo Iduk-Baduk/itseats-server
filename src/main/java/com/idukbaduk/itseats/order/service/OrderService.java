@@ -6,10 +6,12 @@ import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import com.idukbaduk.itseats.memberaddress.service.MemberAddressService;
 import com.idukbaduk.itseats.menu.service.MenuService;
+import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
 import com.idukbaduk.itseats.order.dto.MenuOptionDTO;
 import com.idukbaduk.itseats.order.dto.OrderMenuDTO;
 import com.idukbaduk.itseats.order.dto.OrderNewRequest;
 import com.idukbaduk.itseats.order.dto.OrderNewResponse;
+import com.idukbaduk.itseats.order.dto.OrderStatusResponse;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
@@ -18,9 +20,11 @@ import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderMenuRepository;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
+import com.idukbaduk.itseats.payment.service.PaymentService;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +38,6 @@ import java.util.Random;
 public class OrderService {
 
     private static final String LETTER_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final String DIGIT_POOL = "0123456789";
 
     private final OrderRepository orderRepository;
     private final OrderMenuRepository orderMenuRepository;
@@ -43,6 +46,7 @@ public class OrderService {
     private final StoreService storeService;
     private final MemberService memberService;
     private final MemberAddressService memberAddressService;
+    private final PaymentService paymentService;
 
     private final ObjectMapper objectMapper;
 
@@ -136,5 +140,32 @@ public class OrderService {
         } catch (Exception e) {
             throw new OrderException(OrderErrorCode.MENU_OPTION_SERIALIZATION_FAIL);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public OrderStatusResponse getOrderStatus(String username, Long orderId) {
+        Member member = memberService.getMemberByUsername(username);
+        Order order = orderRepository.findByMemberAndOrderId(member, orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+        Store store = order.getStore();
+
+        return OrderStatusResponse.builder()
+                .deliveryEta(order.getDeliveryEta().toString())
+                .orderStatus(order.getOrderStatus().name())
+                .storeName(store.getStoreName())
+                .orderNumber(order.getOrderNumber())
+                .orderPrice(order.getOrderPrice())
+                .orderMenuCount(orderMenuRepository.countOrderMenus(orderId))
+                .deliveryAddress(order.getDeliveryAddress())
+                .destinationLocation(AddressInfoDTO.builder()
+                        .lat(order.getDestinationLocation().getY())
+                        .lng(order.getDestinationLocation().getX())
+                        .build())
+                .storeLocation(AddressInfoDTO.builder()
+                        .lat(store.getLocation().getY())
+                        .lng(store.getLocation().getX())
+                        .build())
+                .riderRequest(paymentService.getPaymentByOrder(order).getRiderRequest())
+                .build();
     }
 }

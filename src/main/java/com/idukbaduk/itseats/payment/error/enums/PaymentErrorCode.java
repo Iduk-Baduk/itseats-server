@@ -1,14 +1,13 @@
-package com.idukbaduk.itseats.order.error.enums;
+package com.idukbaduk.itseats.payment.error.enums;
 
 import com.idukbaduk.itseats.global.error.core.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @RequiredArgsConstructor
-public enum OrderErrorCode implements ErrorCode {
+public enum PaymentErrorCode implements ErrorCode {
 
-    MENU_OPTION_SERIALIZATION_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "menuOption 직렬화 실패"),
-    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "주문 조회 실패");
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "결제 조회 실패"),;
 
     private final HttpStatus httpStatus;
     private final String message;
@@ -20,6 +19,6 @@ public enum OrderErrorCode implements ErrorCode {
 
     @Override
     public String getMessage() {
-        return "[ORDER ERROR] " + message;
+        return "[PAYMENT ERROR] " + message;
     }
 }
