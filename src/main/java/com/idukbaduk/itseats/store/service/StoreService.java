@@ -43,35 +43,13 @@ public class StoreService {
 
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
 
-        List<StoreImage> images = storeImageRepository.findImagesByStoreIds(storeIds);
+        Map<Long, String> storeIdToImageUrl = buildStoreImageMap(storeIds);
 
-        Map<Long, String> storeIdToImageUrl = new HashMap<>();
-        for (StoreImage image : images) {
-            Long storeId = image.getStore().getStoreId();
-            if (!storeIdToImageUrl.containsKey(storeId)) {
-                storeIdToImageUrl.put(storeId, image.getImageUrl());
-            }
-        }
-
-        List<Object[]> stats = reviewRepository.findReviewStatsByStoreIds(storeIds);
         Map<Long, Double> storeIdToAvg = new HashMap<>();
         Map<Long, Integer> storeIdToCount = new HashMap<>();
-        for (Object[] row : stats) {
-            Long storeId = (Long) row[0];
-            Double avg = row[1] != null ? Math.round(((Double) row[1]) * 10) / 10.0 : 0.0;
-            Long count = (Long) row[2];
-            storeIdToAvg.put(storeId, avg);
-            storeIdToCount.put(storeId, count.intValue());
-        }
+        buildReviewStatsMap(storeIds, storeIdToAvg, storeIdToCount);
 
-        List<StoreDto> storeDtos = stores.stream()
-                .map(store -> StoreDto.builder()
-                        .imageUrl(storeIdToImageUrl.get(store.getStoreId()))
-                        .name(store.getStoreName())
-                        .review(storeIdToAvg.getOrDefault(store.getStoreId(), 0.0))
-                        .reviewCount(storeIdToCount.getOrDefault(store.getStoreId(), 0))
-                        .build())
-                .toList();
+        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImageUrl, storeIdToAvg, storeIdToCount);
 
         return StoreListResponse.builder()
                 .stores(storeDtos)
@@ -94,12 +72,25 @@ public class StoreService {
                     .build();
         }
 
-        String categoryName = category.getCategoryName();
-
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
 
-        List<StoreImage> images = storeImageRepository.findImagesByStoreIds(storeIds);
+        Map<Long, String> storeIdToImageUrl = buildStoreImageMap(storeIds);
 
+        Map<Long, Double> storeIdToAvg = new HashMap<>();
+        Map<Long, Integer> storeIdToCount = new HashMap<>();
+        buildReviewStatsMap(storeIds, storeIdToAvg, storeIdToCount);
+
+        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImageUrl, storeIdToAvg, storeIdToCount);
+
+        return StoreCategoryListResponse.builder()
+                .category(categoryCode)
+                .categoryName(category.getCategoryName())
+                .stores(storeDtos)
+                .build();
+    }
+
+    private Map<Long, String> buildStoreImageMap(List<Long> storeIds) {
+        List<StoreImage> images = storeImageRepository.findImagesByStoreIds(storeIds);
         Map<Long, String> storeIdToImageUrl = new HashMap<>();
         for (StoreImage image : images) {
             Long storeId = image.getStore().getStoreId();
@@ -107,31 +98,33 @@ public class StoreService {
                 storeIdToImageUrl.put(storeId, image.getImageUrl());
             }
         }
+        return storeIdToImageUrl;
+    }
 
+    private void buildReviewStatsMap(List<Long> storeIds,
+                                     Map<Long, Double> avgMap,
+                                     Map<Long, Integer> countMap) {
         List<Object[]> stats = reviewRepository.findReviewStatsByStoreIds(storeIds);
-        Map<Long, Double> storeIdToAvg = new HashMap<>();
-        Map<Long, Integer> storeIdToCount = new HashMap<>();
         for (Object[] row : stats) {
             Long storeId = (Long) row[0];
             Double avg = row[1] != null ? Math.round(((Double) row[1]) * 10) / 10.0 : 0.0;
             Long count = (Long) row[2];
-            storeIdToAvg.put(storeId, avg);
-            storeIdToCount.put(storeId, count.intValue());
+            avgMap.put(storeId, avg);
+            countMap.put(storeId, count.intValue());
         }
+    }
 
-        List<StoreDto> storeDtos = stores.stream()
+    private List<StoreDto> buildStoreDtos(List<Store> stores,
+                                          Map<Long, String> imageMap,
+                                          Map<Long, Double> avgMap,
+                                          Map<Long, Integer> countMap) {
+        return stores.stream()
                 .map(store -> StoreDto.builder()
-                        .imageUrl(storeIdToImageUrl.get(store.getStoreId()))
+                        .imageUrl(imageMap.get(store.getStoreId()))
                         .name(store.getStoreName())
-                        .review(storeIdToAvg.getOrDefault(store.getStoreId(), 0.0))
-                        .reviewCount(storeIdToCount.getOrDefault(store.getStoreId(),0))
+                        .review(avgMap.getOrDefault(store.getStoreId(), 0.0))
+                        .reviewCount(countMap.getOrDefault(store.getStoreId(), 0))
                         .build())
                 .toList();
-
-        return StoreCategoryListResponse.builder()
-                .category(categoryCode)
-                .categoryName(categoryName)
-                .stores(storeDtos)
-                .build();
     }
 }
