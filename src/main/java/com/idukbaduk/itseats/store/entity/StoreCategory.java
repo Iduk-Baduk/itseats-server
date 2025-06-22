@@ -23,6 +23,6 @@ public class StoreCategory extends BaseEntity {
     @Column(name = "category_name", nullable = false)
     private String categoryName;
 
-    @Column(name = "category_cdoe", nullable = false)
+    @Column(name = "category_code", nullable = false)
     private String categoryCode;
 }
