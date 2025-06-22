@@ -79,7 +79,7 @@ public class StoreService {
     @Transactional(readOnly = true)
     public StoreDetailResponse getStoreDetail(Member member, Long storeId) {
 
-        Store store = storeRepository.findByIdAndDeletedFalse(storeId)
+        Store store = storeRepository.findByStoreIdAndDeletedFalse(storeId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
 
         boolean isLiked = favoriteRepository.existsByMemberAndStore(member, store);

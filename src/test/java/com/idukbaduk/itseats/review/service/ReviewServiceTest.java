@@ -88,7 +88,7 @@ class ReviewServiceTest {
 
         when(reviewRepository.findReviewsWithMemberByStoreId(storeId))
                 .thenReturn(List.of(review1, review2));
-        when(reviewImageRepository.findByReviewIdInOrderByDisplayOrderAsc(List.of(100L, 101L)))
+        when(reviewImageRepository.findByReviewReviewIdInOrderByDisplayOrderAsc(List.of(100L, 101L)))
                 .thenReturn(List.of(image1, image2));
 
         // when
