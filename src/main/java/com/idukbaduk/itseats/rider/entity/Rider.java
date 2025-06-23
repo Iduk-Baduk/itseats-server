@@ -4,6 +4,7 @@ import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.rider.entity.enums.DeliveryMethod;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,4 +40,8 @@ public class Rider extends BaseEntity {
 
     @Column(name = "preferred_area", nullable = false)
     private String preferredArea;
+
+    public void modifyIsWorking(Boolean isWorking) {
+        this.isWorking = isWorking;
+    }
 }
