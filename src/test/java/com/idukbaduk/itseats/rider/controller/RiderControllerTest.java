@@ -1,7 +1,6 @@
 package com.idukbaduk.itseats.rider.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.idukbaduk.itseats.global.error.handler.GlobalErrorCode;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.WorkingInfoResponse;
 import com.idukbaduk.itseats.rider.dto.enums.RiderResponse;
