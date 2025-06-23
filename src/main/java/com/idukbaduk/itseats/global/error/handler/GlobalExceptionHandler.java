@@ -4,18 +4,22 @@ import com.idukbaduk.itseats.global.error.core.BaseException;
 import com.idukbaduk.itseats.global.error.core.ErrorCode;
 import com.idukbaduk.itseats.global.error.core.ErrorResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.util.Objects;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        String errorMessage = Objects.requireNonNull(e.getBindingResult().getFieldError()).getDefaultMessage();
+        FieldError fieldError = e.getBindingResult().getFieldError();
+        if (fieldError == null) {
+            return getErrorResponse(e, GlobalErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        String errorMessage = fieldError.getDefaultMessage();
         return ResponseEntity
                 .status(GlobalErrorCode.INVALID_INPUT_VALUE.getStatus())
                 .body(ErrorResponse.of(GlobalErrorCode.INVALID_INPUT_VALUE, errorMessage));
