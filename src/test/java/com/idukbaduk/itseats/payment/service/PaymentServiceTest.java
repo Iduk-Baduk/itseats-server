@@ -4,17 +4,15 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
-import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
-import com.idukbaduk.itseats.order.service.OrderService;
 import com.idukbaduk.itseats.payment.dto.PaymentCreateResponse;
 import com.idukbaduk.itseats.payment.dto.PaymentInfoRequest;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.entity.enums.PaymentMethod;
+import com.idukbaduk.itseats.payment.entity.enums.PaymentStatus;
 import com.idukbaduk.itseats.payment.error.PaymentException;
 import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
@@ -29,7 +27,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -68,6 +65,7 @@ class PaymentServiceTest {
                 .orderId(1L)
                 .totalCost(10000)
                 .paymentMethod(PaymentMethod.COUPAY.name())
+                .paymentStatus(PaymentStatus.COMPLETED.name())
                 .storeRequest("맛있게 만들어주세요")
                 .riderRequest("문 앞에 두고 가주세요")
                 .build();
@@ -97,6 +95,7 @@ class PaymentServiceTest {
         assertThat(savedPayment.getOrder()).isEqualTo(order);
         assertThat(savedPayment.getTotalCost()).isEqualTo(paymentInfoRequest.getTotalCost());
         assertThat(savedPayment.getPaymentMethod()).isEqualTo(PaymentMethod.valueOf(paymentInfoRequest.getPaymentMethod()));
+        assertThat(savedPayment.getPaymentStatus()).isEqualTo(PaymentStatus.valueOf(paymentInfoRequest.getPaymentStatus()));
         assertThat(savedPayment.getStoreRequest()).isEqualTo(paymentInfoRequest.getStoreRequest());
         assertThat(savedPayment.getRiderRequest()).isEqualTo(paymentInfoRequest.getRiderRequest());
     }
