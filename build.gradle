@@ -44,10 +44,13 @@ dependencies {
      * DB 관련 의존성
      * - Spring JPA
      * - MySQL
+     * - Redis
      */
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.hibernate.orm:hibernate-spatial:6.6.18.Final'
     implementation 'com.mysql:mysql-connector-j:8.3.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 
     /**
      * Util 관련 의존성
