@@ -5,7 +5,6 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.payment.entity.enums.PaymentMethod;
 import com.idukbaduk.itseats.payment.entity.enums.PaymentStatus;
-import com.idukbaduk.itseats.payment.entity.enums.RiderRequestOption;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -61,13 +60,6 @@ public class Payment extends BaseEntity {
     @Column(name = "store_request")
     private String storeRequest;
 
-    @Column(name = "store_request_option", nullable = false)
-    private boolean storeRequestOption;
-
     @Column(name = "rider_request")
     private String riderRequest;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "rider_request_option")
-    private RiderRequestOption riderRequestOption;
 }
