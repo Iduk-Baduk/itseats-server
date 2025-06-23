@@ -78,4 +78,13 @@ public class Order extends BaseEntity {
 
     @Column(name = "store_location", nullable = false)
     private Point storeLocation;
+
+    @Column(name = "order_received_time", nullable = false)
+    private LocalDateTime orderReceivedTime;
+
+    @Column(name = "cook_start_time", nullable = false)
+    private LocalDateTime cookStartTime;
+
+    @Column(name = "order_end_time")
+    private LocalDateTime orderEndTime;
 }
