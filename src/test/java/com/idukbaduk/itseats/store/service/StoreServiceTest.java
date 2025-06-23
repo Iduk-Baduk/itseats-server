@@ -1,7 +1,10 @@
 package com.idukbaduk.itseats.store.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.repository.FavoriteRepository;
+import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
+import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
 import com.idukbaduk.itseats.store.dto.StoreCategoryListResponse;
 import com.idukbaduk.itseats.store.dto.StoreDto;
 import com.idukbaduk.itseats.store.dto.StoreListResponse;
@@ -41,7 +44,14 @@ class StoreServiceTest {
     private ReviewRepository reviewRepository;
 
     @Mock
+    private FavoriteRepository favoriteRepository;
+
+    @Mock
+    private MemberService memberService;
+    
+    @Mock
     private StoreCategoryRepository storeCategoryRepository;
+
 
     @InjectMocks
     private StoreService storeService;
@@ -170,6 +180,67 @@ class StoreServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.getStores()).isEmpty(); // 빈 배열 확인
+    }
+
+    @Test
+    @DisplayName("가게 상세 조회 성공")
+    void getStoreDetail_success() {
+        // given
+        Long storeId = 1L;
+
+        Member member = Member.builder()
+                .memberId(10L)
+                .username("testUser")
+                .build();
+
+        Store store = Store.builder()
+                .storeId(storeId)
+                .storeName("스타벅스 구름점")
+                .build();
+
+        List<StoreImage> images = List.of(
+                StoreImage.builder().store(store).imageUrl("s3_url1").displayOrder(1).build(),
+                StoreImage.builder().store(store).imageUrl("s3_url2").displayOrder(2).build()
+        );
+
+        when(memberService.getMemberByUsername(member.getUsername())).thenReturn(member);
+        when(storeRepository.findByStoreIdAndDeletedFalse(storeId)).thenReturn(Optional.of(store));
+        when(favoriteRepository.existsByMemberAndStore(member, store)).thenReturn(true);
+        when(reviewRepository.findAverageRatingByStoreId(storeId)).thenReturn(4.9);
+        when(reviewRepository.countByStoreId(storeId)).thenReturn(13812);
+        when(storeImageRepository.findAllByStoreIdOrderByDisplayOrderAsc(storeId)).thenReturn(images);
+
+        // when
+        StoreDetailResponse response = storeService.getStoreDetail(member.getUsername(), storeId);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getName()).isEqualTo("스타벅스 구름점");
+        assertThat(response.isLiked()).isTrue();
+        assertThat(response.getReview()).isEqualTo(4.9);
+        assertThat(response.getReviewCount()).isEqualTo(13812);
+        assertThat(response.getImages()).containsExactly("s3_url1", "s3_url2");
+    }
+
+    @Test
+    @DisplayName("가게 상세 정보 조회 시 가게가 존재하지 않으면 예외 발생")
+    void getStoreDetail_storeNotFound() {
+        // given
+        Long storeId = 1L;
+
+        Member member = Member.builder()
+                .memberId(10L)
+                .username("testUser")
+                .build();
+
+        when(memberService.getMemberByUsername(member.getUsername())).thenReturn(member);
+
+        when(storeRepository.findByStoreIdAndDeletedFalse(storeId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> storeService.getStoreDetail(member.getUsername(), storeId))
+                .isInstanceOf(StoreException.class)
+                .hasMessageContaining(StoreErrorCode.STORE_NOT_FOUND.getMessage());
     }
 
     @Test

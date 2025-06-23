@@ -1,7 +1,13 @@
 package com.idukbaduk.itseats.store.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
+import com.idukbaduk.itseats.member.repository.FavoriteRepository;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
+import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
+import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
 import com.idukbaduk.itseats.store.dto.StoreCategoryListResponse;
 import com.idukbaduk.itseats.store.dto.StoreDto;
 import com.idukbaduk.itseats.store.dto.StoreListResponse;
@@ -29,7 +35,11 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final StoreImageRepository storeImageRepository;
     private final ReviewRepository reviewRepository;
+    private final FavoriteRepository favoriteRepository;
+    private final MemberService memberService;
+    private final MemberRepository memberRepository;
     private final StoreCategoryRepository storeCategoryRepository;
+
 
     public Store getStore(Member member, Long storeId) {
         return storeRepository.findByMemberAndStoreId(member, storeId)
@@ -127,4 +137,34 @@ public class StoreService {
                         .build())
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public StoreDetailResponse getStoreDetail(String username, Long storeId) {
+
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Store store = storeRepository.findByStoreIdAndDeletedFalse(storeId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
+
+        boolean isLiked = favoriteRepository.existsByMemberAndStore(member, store);
+
+        Double avgRating = reviewRepository.findAverageRatingByStoreId(storeId);
+
+        int reviewCount = reviewRepository.countByStoreId(storeId);
+
+        List<String> images = storeImageRepository.findAllByStoreIdOrderByDisplayOrderAsc(storeId)
+                .stream()
+                .map(StoreImage::getImageUrl)
+                .toList();
+
+        return StoreDetailResponse.builder()
+                .name(store.getStoreName())
+                .isLiked(isLiked)
+                .review(avgRating != null ? Math.round(avgRating * 10) / 10.0 : 0.0)
+                .reviewCount(reviewCount)
+                .images(images)
+                .build();
+    }
+
 }
