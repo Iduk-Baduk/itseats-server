@@ -8,6 +8,7 @@ import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuGroupRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
+import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
@@ -73,6 +74,10 @@ public class MenuGroupService {
     }
 
     private void processRequestedGroups(Long storeId, MenuGroupRequest request, List<MenuGroup> existingGroups) {
+        Store store = storeRepository.findById(storeId).orElseThrow(
+                () -> new StoreException(StoreErrorCode.STORE_NOT_FOUND)
+        );
+
         for (MenuGroupDto dto : request.getMenuGroups()) {
             Optional<MenuGroup> existing = existingGroups.stream()
                     .filter(g -> g.getMenuGroupName().equals(dto.getMenuGroupName()))
@@ -85,7 +90,7 @@ public class MenuGroupService {
                 group.setMenuGroupIsActive(dto.isMenuGroupIsActive());
             } else {
                 // 존재하지 않으면 새로 생성
-                menuGroupRepository.save(createMenuGroup(storeId, dto));
+                menuGroupRepository.save(createMenuGroup(storeId, dto, store));
             }
         }
     }
@@ -94,11 +99,9 @@ public class MenuGroupService {
         request.getMenuGroups().sort(Comparator.comparing(MenuGroupDto::getMenuGroupPriority));
     }
 
-    private MenuGroup createMenuGroup(Long storeId, MenuGroupDto dto) {
+    private MenuGroup createMenuGroup(Long storeId, MenuGroupDto dto, Store store) {
         return MenuGroup.builder()
-                .store(storeRepository.findById(storeId).orElseThrow(
-                        () -> new StoreException(StoreErrorCode.STORE_NOT_FOUND
-                        )))
+                .store(store)
                 .menuGroupName(dto.getMenuGroupName())
                 .menuGroupPriority(dto.getMenuGroupPriority())
                 .menuGroupIsActive(dto.isMenuGroupIsActive())
