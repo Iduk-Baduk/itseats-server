@@ -12,6 +12,7 @@ import com.idukbaduk.itseats.rider.error.enums.RiderErrorCode;
 import com.idukbaduk.itseats.rider.repository.RiderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class RiderService {
     private final RiderRepository riderRepository;
     private final MemberRepository memberRepository;
 
+    @Transactional
     public WorkingInfoResponse modifyWorking(String username, ModifyWorkingRequest modifyWorkingRequest) {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
