@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,5 +30,13 @@ public class RiderController {
                 RiderResponse.MODIFY_IS_WORKING_SUCCESS,
                 riderService.modifyWorking(userDetails.getUsername(), modifyWorkingRequest)
         );
+    }
+
+    @PostMapping("/{orderId}/accept")
+    public ResponseEntity<BaseResponse> updateDeliveryStatusAccept(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("orderId") Long orderId) {
+        riderService.updateDeliveryStatusAccept(userDetails.getUsername(), orderId);
+        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_DELIVERY_STATUS_ACCEPT_SUCCESS);
     }
 }
