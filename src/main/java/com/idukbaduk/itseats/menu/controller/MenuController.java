@@ -5,6 +5,7 @@ import com.idukbaduk.itseats.menu.dto.MenuGroupRequest;
 import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
 import com.idukbaduk.itseats.menu.dto.MenuListRequest;
 import com.idukbaduk.itseats.menu.dto.MenuListResponse;
+import com.idukbaduk.itseats.menu.service.MenuGroupService;
 import com.idukbaduk.itseats.menu.service.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class MenuController {
 
     private final MenuService menuService;
+    private final MenuGroupService menuGroupService;
 
     @PostMapping("/{storeId}/menus")
     public ResponseEntity<BaseResponse> getMenuList(
@@ -32,7 +34,7 @@ public class MenuController {
             @PathVariable Long storeId,
             @RequestBody MenuGroupRequest request
     ) {
-        MenuGroupResponse data = menuService.saveMenuGroup(storeId, request);
+        MenuGroupResponse data = menuGroupService.saveMenuGroup(storeId, request);
         return BaseResponse.toResponseEntity(HttpStatus.OK, "메뉴 그룹 설정 성공", data);
     }
 }

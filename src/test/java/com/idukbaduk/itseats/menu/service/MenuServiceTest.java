@@ -27,10 +27,6 @@ class MenuServiceTest {
 
     @Mock
     private MenuRepository menuRepository;
-    @Mock
-    private MenuGroupRepository menuGroupRepository;
-    @Mock
-    private StoreRepository storeRepository;
 
     @InjectMocks
     private MenuService menuService;
@@ -130,53 +126,5 @@ class MenuServiceTest {
         assertThatThrownBy(() -> menuService.getMenu(menuId))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
-    }
-
-    @Test
-    @DisplayName("메뉴 그룹을 설정한다")
-    void saveMenuGroup_success() {
-        // given
-        Long storeId = 1L;
-        when(storeRepository.findById(storeId)).thenReturn(Optional.of(new Store()));
-
-
-        List<MenuGroup> existingMenuGroups = List.of(
-                createMenuGroup(10L, "음료", 1, Collections.emptyList()),
-                createMenuGroup(20L, "베이커리", 2, Collections.emptyList())
-        );
-        when(menuGroupRepository.findMenuGroupsByStoreId(storeId)).thenReturn(existingMenuGroups);
-
-        MenuGroupRequest request = MenuGroupRequest.builder()
-                .menuGroups(new ArrayList<>(List.of(
-                        createMenuGroupDto("커피", 1),
-                        createMenuGroupDto("음료", 2)
-                )))
-                .build();
-
-        // when
-        MenuGroupResponse result = menuService.saveMenuGroup(storeId, request);
-
-        // then
-        assertThat(existingMenuGroups.get(0).getMenuGroupPriority()).isEqualTo(2);
-        verify(menuGroupRepository).delete(argThat(group -> group.getMenuGroupName().equals("베이커리")));
-        verify(menuGroupRepository).save(argThat(group -> group.getMenuGroupName().equals("커피")));
-    }
-
-    private MenuGroup createMenuGroup(long groupId, String groupName, int priority, List<Menu> menus) {
-        return MenuGroup.builder()
-                .menuGroupId(groupId)
-                .menuGroupName(groupName)
-                .menuGroupPriority(priority)
-                .menuGroupIsActive(true)
-                .menus(menus)
-                .build();
-    }
-
-    private MenuGroupDto createMenuGroupDto(String groupName, int priority) {
-        return MenuGroupDto.builder()
-                .menuGroupName(groupName)
-                .menuGroupPriority(priority)
-                .menuGroupIsActive(true)
-                .build();
     }
 }
