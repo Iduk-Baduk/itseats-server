@@ -36,10 +36,20 @@ public class MenuGroupService {
     public MenuGroupResponse saveMenuGroup(Long storeId, MenuGroupRequest request) {
         // 요청에 없는 그룹 : 하위 메뉴 있으면 isActive=false, 없으면 삭제
         // 요청에 있는 그룹 : 기존에 있으면 이름/순서/활성화 여부 업데이트, 없던 그룹이면 새로 생성
+
         sortMenuGroupRequest(request);
 
         List<MenuGroup> existingGroups = menuGroupRepository.findMenuGroupsByStoreId(storeId);
+        updateMenuGroups(storeId, request, existingGroups);
 
+        return createResponse(storeId);
+    }
+
+    private void sortMenuGroupRequest(MenuGroupRequest request) {
+        request.getMenuGroups().sort(Comparator.comparing(MenuGroupDto::getMenuGroupPriority));
+    }
+
+    private void updateMenuGroups(Long storeId, MenuGroupRequest request, List<MenuGroup> existingGroups) {
         // 요청에 있는 그룹 이름으로 Map 생성
         Map<String, MenuGroupDto> requestedMap = request.getMenuGroups().stream()
                 .collect(Collectors.toMap(MenuGroupDto::getMenuGroupName, Function.identity()));
@@ -48,16 +58,8 @@ public class MenuGroupService {
         processRemovedGroups(existingGroups, requestedMap);
         // 요청에 있는 그룹 처리 : 업데이트 또는 생성
         processRequestedGroups(storeId, request, existingGroups);
-
-        // 응답 반환용 DTO 생성
-        List<MenuGroupDto> result = menuGroupRepository.findMenuGroupsByStoreId(storeId).stream()
-                .map(this::createMenuGroupDto)
-                .toList();
-
-        return MenuGroupResponse.builder()
-                .menuGroups(result)
-                .build();
     }
+
 
     private void processRemovedGroups(List<MenuGroup> existingGroups, Map<String, MenuGroupDto> requestedMap) {
         for (MenuGroup group : existingGroups) {
@@ -95,16 +97,22 @@ public class MenuGroupService {
         }
     }
 
-    private void sortMenuGroupRequest(MenuGroupRequest request) {
-        request.getMenuGroups().sort(Comparator.comparing(MenuGroupDto::getMenuGroupPriority));
-    }
-
     private MenuGroup createMenuGroup(Long storeId, MenuGroupDto dto, Store store) {
         return MenuGroup.builder()
                 .store(store)
                 .menuGroupName(dto.getMenuGroupName())
                 .menuGroupPriority(dto.getMenuGroupPriority())
                 .menuGroupIsActive(dto.isMenuGroupIsActive())
+                .build();
+    }
+
+    private MenuGroupResponse createResponse(Long storeId) {
+        List<MenuGroupDto> result = menuGroupRepository.findMenuGroupsByStoreId(storeId).stream()
+                .map(this::createMenuGroupDto)
+                .toList();
+
+        return MenuGroupResponse.builder()
+                .menuGroups(result)
                 .build();
     }
 
