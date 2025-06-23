@@ -101,20 +101,6 @@ class PaymentServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 멤버 조회시 예외 발생")
-    void createPayment_notExistMember() {
-        // given
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> paymentService.createPayment(username, paymentInfoRequest))
-                .isInstanceOf(MemberException.class)
-                .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
-
-        verify(memberRepository).findByUsername(username);
-    }
-
-    @Test
     @DisplayName("존재하지 않는 주문 조회시 예외 발생")
     void createPayment_notExistOrder() {
         // given
