@@ -10,7 +10,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,4 +36,14 @@ public class MenuGroup extends BaseEntity {
 
     @OneToMany(mappedBy = "menuGroup", fetch = FetchType.LAZY)
     private List<Menu> menus = new ArrayList<>();
+
+    public void deactivate() {
+        this.menuGroupPriority = 999;
+        this.menuGroupIsActive = false;
+    }
+
+    public void updatePriorityAndIsActive(int priority, boolean isActive) {
+        this.menuGroupPriority = priority;
+        this.menuGroupIsActive = isActive;
+    }
 }

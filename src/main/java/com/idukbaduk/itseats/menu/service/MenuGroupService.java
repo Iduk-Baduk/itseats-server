@@ -66,8 +66,7 @@ public class MenuGroupService {
             String name = group.getMenuGroupName();
             if (!requestedMap.containsKey(name)) {
                 if (menuRepository.existsByMenuGroup(group)) {
-                    group.setMenuGroupPriority(999);
-                    group.setMenuGroupIsActive(false); // 메뉴 있으면 비활성화
+                    group.deactivate(); // 메뉴 있으면 비활성화
                 } else {
                     menuGroupRepository.delete(group); // 메뉴 없으면 삭제
                 }
@@ -88,8 +87,7 @@ public class MenuGroupService {
             if (existing.isPresent()) {
                 // 이미 존재하면 수정
                 MenuGroup group = existing.get();
-                group.setMenuGroupPriority(dto.getMenuGroupPriority());
-                group.setMenuGroupIsActive(dto.isMenuGroupIsActive());
+                group.updatePriorityAndIsActive(dto.getMenuGroupPriority(), dto.isMenuGroupIsActive());
             } else {
                 // 존재하지 않으면 새로 생성
                 menuGroupRepository.save(createMenuGroup(storeId, dto, store));
