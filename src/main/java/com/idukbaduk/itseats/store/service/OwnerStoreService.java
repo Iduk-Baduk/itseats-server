@@ -51,7 +51,7 @@ public class OwnerStoreService {
                     .orElseThrow(() -> new StoreException(StoreErrorCode.FRANCHISE_NOT_FOUND));
         }
 
-        Point point = new Point(request.getLocationX(), request.getLocationY());
+        Point point = new Point(request.getLng(), request.getLat());
 
         Store store = Store.builder()
                 .member(member)

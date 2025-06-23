@@ -16,8 +16,8 @@ public class StoreCreateRequest {
     private String name;
     private String description;
     private String address;
-    private double locationX;
-    private double locationY;
+    private double lng; // 경도
+    private double lat; // 위도
     private String phone;
     private List<MultipartFile> images;
     private boolean isFranchise;
