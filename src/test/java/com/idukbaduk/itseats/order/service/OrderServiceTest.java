@@ -289,4 +289,35 @@ class OrderServiceTest {
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
+
+    @Test
+    @DisplayName("주문 정보를 성공적으로 반환")
+    void getOrder_success() {
+        // given
+        Long orderId = 1L;
+        Order order = Order.builder()
+                .orderId(orderId)
+                .build();
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        // when
+        Order result = orderService.getOrder(orderId);
+
+        // then
+        assertThat(result).isEqualTo(order);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 메뉴 조회시 예외 발생")
+    void getOrder_notExist() {
+        // given
+        Long orderId = 1L;
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> orderService.getOrder(orderId))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
 }
