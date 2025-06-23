@@ -2,9 +2,19 @@ package com.idukbaduk.itseats.order.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
+import com.idukbaduk.itseats.memberaddress.error.MemberAddressException;
+import com.idukbaduk.itseats.memberaddress.error.enums.MemberAddressErrorCode;
+import com.idukbaduk.itseats.memberaddress.repository.MemberAddressRepository;
 import com.idukbaduk.itseats.memberaddress.service.MemberAddressService;
+import com.idukbaduk.itseats.menu.entity.Menu;
+import com.idukbaduk.itseats.menu.error.MenuErrorCode;
+import com.idukbaduk.itseats.menu.error.MenuException;
+import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import com.idukbaduk.itseats.menu.service.MenuService;
 import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
 import com.idukbaduk.itseats.order.dto.MenuOptionDTO;
@@ -20,8 +30,15 @@ import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderMenuRepository;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
+import com.idukbaduk.itseats.payment.entity.Payment;
+import com.idukbaduk.itseats.payment.error.PaymentException;
+import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
+import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import com.idukbaduk.itseats.payment.service.PaymentService;
 import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.error.StoreException;
+import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
+import com.idukbaduk.itseats.store.repository.StoreRepository;
 import com.idukbaduk.itseats.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,20 +57,22 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMenuRepository orderMenuRepository;
-
-    private final MenuService menuService;
-    private final StoreService storeService;
-    private final MemberService memberService;
-    private final MemberAddressService memberAddressService;
-    private final PaymentService paymentService;
+    private final MenuRepository menuRepository;
+    private final StoreRepository storeRepository;
+    private final MemberRepository memberRepository;
+    private final MemberAddressRepository memberAddressRepository;
+    private final PaymentRepository paymentRepository;
 
     private final ObjectMapper objectMapper;
 
     @Transactional
     public OrderNewResponse getOrderNew(String username, OrderNewRequest orderNewRequest) {
-        Member member = memberService.getMemberByUsername(username);
-        MemberAddress address = memberAddressService.getMemberAddress(member, orderNewRequest.getAddrId());
-        Store store = storeService.getStore(member, orderNewRequest.getStoreId());
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        MemberAddress address = memberAddressRepository.findByMemberAndAddressId(member, orderNewRequest.getAddrId())
+                .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
+        Store store = storeRepository.findByMemberAndStoreId(member, orderNewRequest.getStoreId())
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
 
         Order order = saveOrder(member, store, address, orderNewRequest);
         saveAllOrderMenu(order, orderNewRequest);
@@ -118,8 +137,10 @@ public class OrderService {
         List<OrderMenuDTO> orderMenuDtos = orderNewRequest.getOrderMenus();
         List<OrderMenu> orderMenus = new ArrayList<>();
         for (OrderMenuDTO orderMenuDTO : orderMenuDtos) {
+            Menu menu = menuRepository.findById(orderMenuDTO.getMenuId())
+                    .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
             OrderMenu orderMenu = OrderMenu.builder()
-                    .menu(menuService.getMenu(orderMenuDTO.getMenuId()))
+                    .menu(menu)
                     .order(order)
                     .quantity(orderMenuDTO.getQuantity())
                     .price(orderMenuDTO.getMenuTotalPrice())
@@ -143,10 +164,13 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public OrderStatusResponse getOrderStatus(String username, Long orderId) {
-        Member member = memberService.getMemberByUsername(username);
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
         Order order = orderRepository.findByMemberAndOrderId(member, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
         Store store = order.getStore();
+        Payment payment = paymentRepository.findByOrder(order)
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         return OrderStatusResponse.builder()
                 .deliveryEta(order.getDeliveryEta().toString())
@@ -164,7 +188,7 @@ public class OrderService {
                         .lat(store.getLocation().getY())
                         .lng(store.getLocation().getX())
                         .build())
-                .riderRequest(paymentService.getPaymentByOrder(order).getRiderRequest())
+                .riderRequest(payment.getRiderRequest())
                 .build();
     }
 

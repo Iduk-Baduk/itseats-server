@@ -1,14 +1,18 @@
 package com.idukbaduk.itseats.payment.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
-import com.idukbaduk.itseats.member.service.MemberService;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
-import com.idukbaduk.itseats.order.service.OrderService;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
+import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.payment.dto.PaymentCreateResponse;
 import com.idukbaduk.itseats.payment.dto.PaymentInfoRequest;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.entity.enums.PaymentMethod;
+import com.idukbaduk.itseats.payment.entity.enums.PaymentStatus;
 import com.idukbaduk.itseats.payment.error.PaymentException;
 import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
@@ -34,20 +38,36 @@ class PaymentServiceTest {
     private PaymentRepository paymentRepository;
 
     @Mock
-    private MemberService memberService;
+    private MemberRepository memberRepository;
 
     @Mock
-    private OrderService orderService;
+    private OrderRepository orderRepository;
 
     @InjectMocks
     private PaymentService paymentService;
 
+    private final String username = "testuser";
     private Order order;
+    private Member member;
+    private PaymentInfoRequest paymentInfoRequest;
 
     @BeforeEach
     void setUp() {
+        member = Member.builder()
+                .memberId(1L)
+                .username(username)
+                .build();
         order = Order.builder()
                 .orderId(1L)
+                .build();
+
+        paymentInfoRequest = PaymentInfoRequest.builder()
+                .orderId(1L)
+                .totalCost(10000)
+                .paymentMethod(PaymentMethod.COUPAY.name())
+                .paymentStatus(PaymentStatus.COMPLETED.name())
+                .storeRequest("맛있게 만들어주세요")
+                .riderRequest("문 앞에 두고 가주세요")
                 .build();
     }
 
@@ -55,26 +75,8 @@ class PaymentServiceTest {
     @DisplayName("결제 정보 저장 성공")
     void createPayment() {
         // given
-        String username = "testuser";
-        Member member = Member.builder()
-                .username(username)
-                .build();
-
-        Long orderId = 1L;
-        int totalCost = 10000;
-        String paymentMethod = PaymentMethod.COUPAY.name();
-        String storeRequest = "맛있게 만들어주세요";
-        String riderRequest = "문 앞에 두고 가주세요";
-        PaymentInfoRequest paymentInfoRequest = PaymentInfoRequest.builder()
-                .orderId(orderId)
-                .totalCost(totalCost)
-                .paymentMethod(paymentMethod)
-                .storeRequest(storeRequest)
-                .riderRequest(riderRequest)
-                .build();
-
-        when(memberService.getMemberByUsername(username)).thenReturn(member);
-        when(orderService.getOrder(orderId)).thenReturn(order);
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
+        when(orderRepository.findById(1L)).thenReturn(Optional.ofNullable(order));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
 
         ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
@@ -91,10 +93,26 @@ class PaymentServiceTest {
 
         assertThat(savedPayment.getMember()).isEqualTo(member);
         assertThat(savedPayment.getOrder()).isEqualTo(order);
-        assertThat(savedPayment.getTotalCost()).isEqualTo(totalCost);
-        assertThat(savedPayment.getPaymentMethod()).isEqualTo(PaymentMethod.valueOf(paymentMethod));
-        assertThat(savedPayment.getStoreRequest()).isEqualTo(storeRequest);
-        assertThat(savedPayment.getRiderRequest()).isEqualTo(riderRequest);
+        assertThat(savedPayment.getTotalCost()).isEqualTo(paymentInfoRequest.getTotalCost());
+        assertThat(savedPayment.getPaymentMethod()).isEqualTo(PaymentMethod.valueOf(paymentInfoRequest.getPaymentMethod()));
+        assertThat(savedPayment.getPaymentStatus()).isEqualTo(PaymentStatus.valueOf(paymentInfoRequest.getPaymentStatus()));
+        assertThat(savedPayment.getStoreRequest()).isEqualTo(paymentInfoRequest.getStoreRequest());
+        assertThat(savedPayment.getRiderRequest()).isEqualTo(paymentInfoRequest.getRiderRequest());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 주문 조회시 예외 발생")
+    void createPayment_notExistOrder() {
+        // given
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
+        when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> paymentService.createPayment(username, paymentInfoRequest))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+
+        verify(orderRepository).findById(1L);
     }
 
     @Test
@@ -117,7 +135,7 @@ class PaymentServiceTest {
 
     @Test
     @DisplayName("존재하지 않는 결제 조회시 예외 발생")
-    void getPaymentByOrder_notExist() {
+    void getPaymentByOrder_notExistPayment() {
         // given
         when(paymentRepository.findByOrder(order)).thenReturn(Optional.empty());
 
