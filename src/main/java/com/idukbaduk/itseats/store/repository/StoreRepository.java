@@ -13,8 +13,6 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 
     Optional<Store> findByMemberAndStoreId(Member member, Long storeId);
 
-    Optional<Store> findByStoreId(Long storeId);
-
     List<Store> findAllByDeletedFalse();
 
     List<Store> findAllByStoreCategory_CategoryCodeAndDeletedFalse(String categoryCode);

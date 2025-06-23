@@ -95,7 +95,9 @@ public class MenuService {
             if (!requestedMap.containsKey(name)) {
                 boolean hasMenus = menuRepository.existsByMenuGroup(group);
                 if (hasMenus) {
+                    group.setMenuGroupPriority(999);
                     group.setMenuGroupIsActive(false); // 메뉴 있으면 비활성화
+                    System.out.println("비활성화 실행");
                 } else {
                     menuGroupRepository.delete(group); // 메뉴 없으면 삭제
                 }
@@ -135,7 +137,7 @@ public class MenuService {
 
     private MenuGroup createMenuGroup(Long storeId, MenuGroupDto dto) {
         return MenuGroup.builder()
-                .store(storeRepository.findByStoreId(storeId).orElseThrow(
+                .store(storeRepository.findById(storeId).orElseThrow(
                         () -> new StoreException(StoreErrorCode.STORE_NOT_FOUND
                         )))
                 .menuGroupName(dto.getMenuGroupName())
