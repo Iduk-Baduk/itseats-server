@@ -1,6 +1,8 @@
 package com.idukbaduk.itseats.menu.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import com.idukbaduk.itseats.menu.dto.MenuGroupRequest;
+import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
 import com.idukbaduk.itseats.menu.dto.MenuListRequest;
 import com.idukbaduk.itseats.menu.dto.MenuListResponse;
 import com.idukbaduk.itseats.menu.service.MenuService;
@@ -25,4 +27,12 @@ public class MenuController {
         return BaseResponse.toResponseEntity(HttpStatus.OK,"메뉴 목록 조회 성공", data);
     }
 
+    @PostMapping("/{storeId}/menu-groups")
+    public ResponseEntity<BaseResponse> saveMenuGroup(
+            @PathVariable Long storeId,
+            @RequestBody MenuGroupRequest request
+    ) {
+        MenuGroupResponse data = menuService.saveMenuGroup(storeId, request);
+        return BaseResponse.toResponseEntity(HttpStatus.OK, "메뉴 그룹 설정 성공", data);
+    }
 }
