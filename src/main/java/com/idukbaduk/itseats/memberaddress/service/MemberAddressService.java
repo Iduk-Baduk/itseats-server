@@ -1,7 +1,9 @@
 package com.idukbaduk.itseats.memberaddress.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
-import com.idukbaduk.itseats.member.service.MemberService;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateRequest;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateResponse;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
@@ -19,11 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberAddressService {
 
     private final MemberAddressRepository memberAddressRepository;
-    private final MemberService memberService;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public AddressCreateResponse createAddress(String username, AddressCreateRequest addressCreateRequest) {
-        Member member = memberService.getMemberByUsername(username);
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         MemberAddress memberAddress = MemberAddress.builder()
                 .member(member)
