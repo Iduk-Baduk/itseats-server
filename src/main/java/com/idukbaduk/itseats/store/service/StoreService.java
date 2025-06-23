@@ -1,7 +1,10 @@
 package com.idukbaduk.itseats.store.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.FavoriteRepository;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
@@ -30,6 +33,7 @@ public class StoreService {
     private final ReviewRepository reviewRepository;
     private final FavoriteRepository favoriteRepository;
     private final MemberService memberService;
+    private final MemberRepository memberRepository;
 
     public Store getStore(Member member, Long storeId) {
         return storeRepository.findByMemberAndStoreId(member, storeId)
@@ -81,7 +85,8 @@ public class StoreService {
     @Transactional(readOnly = true)
     public StoreDetailResponse getStoreDetail(String username, Long storeId) {
 
-        Member member = memberService.getMemberByUsername(username);
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         Store store = storeRepository.findByStoreIdAndDeletedFalse(storeId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
