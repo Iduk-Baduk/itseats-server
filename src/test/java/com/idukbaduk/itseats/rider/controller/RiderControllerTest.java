@@ -75,4 +75,21 @@ class RiderControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("출/퇴근 여부는 필수값입니다."));
     }
+
+    @Test
+    @DisplayName("배달 수락 성공")
+    @WithMockUser(username = "testuser")
+    void updateDeliveryStatusAccept_success() throws Exception {
+        // given
+        long orderId = 1L;
+
+        // when & then
+        mockMvc.perform(post("/api/rider/" + orderId + "/accept")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.httpStatus")
+                        .value(RiderResponse.UPDATE_DELIVERY_STATUS_ACCEPT_SUCCESS.getHttpStatus().value()))
+                .andExpect(jsonPath("$.message")
+                        .value(RiderResponse.UPDATE_DELIVERY_STATUS_ACCEPT_SUCCESS.getMessage()));
+    }
 }
