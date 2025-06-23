@@ -47,7 +47,7 @@ public class Order extends BaseEntity {
     private Store store;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rider_id", nullable = false)
+    @JoinColumn(name = "rider_id")
     private Rider rider;
 
     @Column(name = "order_number", nullable = false)
@@ -78,4 +78,9 @@ public class Order extends BaseEntity {
 
     @Column(name = "store_location", nullable = false)
     private Point storeLocation;
+
+    public void updateOrderStatusAccept(Rider rider, OrderStatus orderStatus) {
+        this.rider = rider;
+        this.orderStatus = orderStatus;
+    }
 }
