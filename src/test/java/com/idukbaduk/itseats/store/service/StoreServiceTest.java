@@ -2,6 +2,7 @@ package com.idukbaduk.itseats.store.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.FavoriteRepository;
+import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
 import com.idukbaduk.itseats.store.dto.StoreDto;
@@ -41,6 +42,9 @@ class StoreServiceTest {
 
     @Mock
     private FavoriteRepository favoriteRepository;
+
+    @Mock
+    private MemberService memberService;
 
     @InjectMocks
     private StoreService storeService;
@@ -176,7 +180,12 @@ class StoreServiceTest {
     void getStoreDetail_success() {
         // given
         Long storeId = 1L;
-        Member member = Member.builder().memberId(10L).build();
+
+        Member member = Member.builder()
+                .memberId(10L)
+                .username("testUser")
+                .build();
+
         Store store = Store.builder()
                 .storeId(storeId)
                 .storeName("스타벅스 구름점")
@@ -187,14 +196,15 @@ class StoreServiceTest {
                 StoreImage.builder().store(store).imageUrl("s3_url2").displayOrder(2).build()
         );
 
-        when(storeRepository.findByIdAndDeletedFalse(storeId)).thenReturn(Optional.of(store));
+        when(memberService.getMemberByUsername(member.getUsername())).thenReturn(member);
+        when(storeRepository.findByStoreIdAndDeletedFalse(storeId)).thenReturn(Optional.of(store));
         when(favoriteRepository.existsByMemberAndStore(member, store)).thenReturn(true);
         when(reviewRepository.findAverageRatingByStoreId(storeId)).thenReturn(4.9);
         when(reviewRepository.countByStoreId(storeId)).thenReturn(13812);
         when(storeImageRepository.findAllByStoreIdOrderByDisplayOrderAsc(storeId)).thenReturn(images);
 
         // when
-        StoreDetailResponse response = storeService.getStoreDetail(member, storeId);
+        StoreDetailResponse response = storeService.getStoreDetail(member.getUsername(), storeId);
 
         // then
         assertThat(response).isNotNull();
@@ -210,11 +220,18 @@ class StoreServiceTest {
     void getStoreDetail_storeNotFound() {
         // given
         Long storeId = 1L;
-        Member member = Member.builder().memberId(10L).build();
-        when(storeRepository.findByIdAndDeletedFalse(storeId)).thenReturn(Optional.empty());
+
+        Member member = Member.builder()
+                .memberId(10L)
+                .username("testUser")
+                .build();
+
+        when(memberService.getMemberByUsername(member.getUsername())).thenReturn(member);
+
+        when(storeRepository.findByStoreIdAndDeletedFalse(storeId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> storeService.getStoreDetail(member, storeId))
+        assertThatThrownBy(() -> storeService.getStoreDetail(member.getUsername(), storeId))
                 .isInstanceOf(StoreException.class)
                 .hasMessageContaining(StoreErrorCode.STORE_NOT_FOUND.getMessage());
     }

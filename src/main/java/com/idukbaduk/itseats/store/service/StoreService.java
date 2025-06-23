@@ -2,6 +2,7 @@ package com.idukbaduk.itseats.store.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.FavoriteRepository;
+import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
 import com.idukbaduk.itseats.store.dto.StoreDto;
@@ -28,6 +29,7 @@ public class StoreService {
     private final StoreImageRepository storeImageRepository;
     private final ReviewRepository reviewRepository;
     private final FavoriteRepository favoriteRepository;
+    private final MemberService memberService;
 
     public Store getStore(Member member, Long storeId) {
         return storeRepository.findByMemberAndStoreId(member, storeId)
@@ -77,7 +79,9 @@ public class StoreService {
     }
 
     @Transactional(readOnly = true)
-    public StoreDetailResponse getStoreDetail(Member member, Long storeId) {
+    public StoreDetailResponse getStoreDetail(String username, Long storeId) {
+
+        Member member = memberService.getMemberByUsername(username);
 
         Store store = storeRepository.findByStoreIdAndDeletedFalse(storeId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
