@@ -24,10 +24,10 @@ public class RiderController {
     @PostMapping("/working")
     public ResponseEntity<BaseResponse> modifyWorking(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody @Valid ModifyWorkingRequest modifyWokingRequest) {
+            @RequestBody @Valid ModifyWorkingRequest modifyWorkingRequest) {
         return BaseResponse.toResponseEntity(
                 RiderResponse.MODIFY_IS_WORKING_SUCCESS,
-                riderService.modifyWorking(userDetails.getUsername(), modifyWokingRequest)
+                riderService.modifyWorking(userDetails.getUsername(), modifyWorkingRequest)
         );
     }
 }
