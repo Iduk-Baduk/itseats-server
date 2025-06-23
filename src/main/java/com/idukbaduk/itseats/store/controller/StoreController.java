@@ -3,6 +3,7 @@ package com.idukbaduk.itseats.store.controller;
 import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
+import com.idukbaduk.itseats.store.dto.StoreCategoryListResponse;
 import com.idukbaduk.itseats.store.dto.StoreListResponse;
 import com.idukbaduk.itseats.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
@@ -37,4 +38,9 @@ public class StoreController {
         return BaseResponse.toResponseEntity(HttpStatus.OK, "가게 상세 조회 성공", response);
     }
 
+    @GetMapping("/list/{storeCategory}")
+    public ResponseEntity<BaseResponse> getStoresByCategory(@PathVariable String storeCategory) {
+        StoreCategoryListResponse response = storeService.getStoresByCategory(storeCategory);
+        return BaseResponse.toResponseEntity(HttpStatus.OK, "카테고리 별 가게 목록 조회 성공", response);
+    }
 }

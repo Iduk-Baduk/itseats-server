@@ -8,18 +8,22 @@ import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
+import com.idukbaduk.itseats.store.dto.StoreCategoryListResponse;
 import com.idukbaduk.itseats.store.dto.StoreDto;
 import com.idukbaduk.itseats.store.dto.StoreListResponse;
 import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.entity.StoreCategory;
 import com.idukbaduk.itseats.store.entity.StoreImage;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
+import com.idukbaduk.itseats.store.repository.StoreCategoryRepository;
 import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +38,8 @@ public class StoreService {
     private final FavoriteRepository favoriteRepository;
     private final MemberService memberService;
     private final MemberRepository memberRepository;
+    private final StoreCategoryRepository storeCategoryRepository;
+
 
     public Store getStore(Member member, Long storeId) {
         return storeRepository.findByMemberAndStoreId(member, storeId)
@@ -47,8 +53,54 @@ public class StoreService {
 
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
 
-        List<StoreImage> images = storeImageRepository.findImagesByStoreIds(storeIds);
+        Map<Long, String> storeIdToImageUrl = buildStoreImageMap(storeIds);
 
+        Map<Long, Double> storeIdToAvg = new HashMap<>();
+        Map<Long, Integer> storeIdToCount = new HashMap<>();
+        buildReviewStatsMap(storeIds, storeIdToAvg, storeIdToCount);
+
+        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImageUrl, storeIdToAvg, storeIdToCount);
+
+        return StoreListResponse.builder()
+                .stores(storeDtos)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public StoreCategoryListResponse getStoresByCategory(String categoryCode) {
+
+        StoreCategory category = storeCategoryRepository.findByCategoryCode(categoryCode)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.CATEGORY_NOT_FOUND));
+
+        List<Store> stores = storeRepository.findAllByStoreCategory_CategoryCodeAndDeletedFalse(categoryCode);
+
+        if (stores.isEmpty()) {
+            return StoreCategoryListResponse.builder()
+                    .category(categoryCode)
+                    .categoryName(category.getCategoryName())
+                    .stores(Collections.emptyList())
+                    .build();
+        }
+
+        List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
+
+        Map<Long, String> storeIdToImageUrl = buildStoreImageMap(storeIds);
+
+        Map<Long, Double> storeIdToAvg = new HashMap<>();
+        Map<Long, Integer> storeIdToCount = new HashMap<>();
+        buildReviewStatsMap(storeIds, storeIdToAvg, storeIdToCount);
+
+        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImageUrl, storeIdToAvg, storeIdToCount);
+
+        return StoreCategoryListResponse.builder()
+                .category(categoryCode)
+                .categoryName(category.getCategoryName())
+                .stores(storeDtos)
+                .build();
+    }
+
+    private Map<Long, String> buildStoreImageMap(List<Long> storeIds) {
+        List<StoreImage> images = storeImageRepository.findImagesByStoreIds(storeIds);
         Map<Long, String> storeIdToImageUrl = new HashMap<>();
         for (StoreImage image : images) {
             Long storeId = image.getStore().getStoreId();
@@ -56,30 +108,34 @@ public class StoreService {
                 storeIdToImageUrl.put(storeId, image.getImageUrl());
             }
         }
+        return storeIdToImageUrl;
+    }
 
+    private void buildReviewStatsMap(List<Long> storeIds,
+                                     Map<Long, Double> avgMap,
+                                     Map<Long, Integer> countMap) {
         List<Object[]> stats = reviewRepository.findReviewStatsByStoreIds(storeIds);
-        Map<Long, Double> storeIdToAvg = new HashMap<>();
-        Map<Long, Integer> storeIdToCount = new HashMap<>();
         for (Object[] row : stats) {
             Long storeId = (Long) row[0];
             Double avg = row[1] != null ? Math.round(((Double) row[1]) * 10) / 10.0 : 0.0;
             Long count = (Long) row[2];
-            storeIdToAvg.put(storeId, avg);
-            storeIdToCount.put(storeId, count.intValue());
+            avgMap.put(storeId, avg);
+            countMap.put(storeId, count.intValue());
         }
+    }
 
-        List<StoreDto> storeDtos = stores.stream()
+    private List<StoreDto> buildStoreDtos(List<Store> stores,
+                                          Map<Long, String> imageMap,
+                                          Map<Long, Double> avgMap,
+                                          Map<Long, Integer> countMap) {
+        return stores.stream()
                 .map(store -> StoreDto.builder()
-                        .imageUrl(storeIdToImageUrl.get(store.getStoreId()))
+                        .imageUrl(imageMap.get(store.getStoreId()))
                         .name(store.getStoreName())
-                        .review(storeIdToAvg.getOrDefault(store.getStoreId(), 0.0))
-                        .reviewCount(storeIdToCount.getOrDefault(store.getStoreId(), 0))
+                        .review(avgMap.getOrDefault(store.getStoreId(), 0.0))
+                        .reviewCount(countMap.getOrDefault(store.getStoreId(), 0))
                         .build())
                 .toList();
-
-        return StoreListResponse.builder()
-                .stores(storeDtos)
-                .build();
     }
 
     @Transactional(readOnly = true)
