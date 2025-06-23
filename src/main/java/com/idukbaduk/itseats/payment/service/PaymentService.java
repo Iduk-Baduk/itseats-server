@@ -8,6 +8,7 @@ import com.idukbaduk.itseats.payment.dto.PaymentCreateResponse;
 import com.idukbaduk.itseats.payment.dto.PaymentInfoRequest;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.entity.enums.PaymentMethod;
+import com.idukbaduk.itseats.payment.entity.enums.PaymentStatus;
 import com.idukbaduk.itseats.payment.error.PaymentException;
 import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
@@ -41,6 +42,7 @@ public class PaymentService {
                 .discountValue(0)
                 .totalCost(paymentInfoRequest.getTotalCost())
                 .paymentMethod(PaymentMethod.valueOf(paymentInfoRequest.getPaymentMethod()))
+                .paymentStatus(PaymentStatus.valueOf(paymentInfoRequest.getPaymentStatus()))
                 .storeRequest(paymentInfoRequest.getStoreRequest())
                 .riderRequest(paymentInfoRequest.getRiderRequest())
                 .build();
