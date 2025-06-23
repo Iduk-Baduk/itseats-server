@@ -34,6 +34,6 @@ public class StoreMediaService {
 
     private String generateImageUrl(MultipartFile file) {
         // 임시 파일명 기반 URL
-        return "https:/example/" + file.getOriginalFilename();
+        return "https://example.com/" + file.getOriginalFilename();
     }
 }
