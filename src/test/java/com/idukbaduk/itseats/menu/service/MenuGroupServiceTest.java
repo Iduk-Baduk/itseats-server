@@ -22,8 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -42,6 +41,29 @@ class MenuGroupServiceTest {
     private MenuGroupService menuGroupService;
 
     @Test
+    @DisplayName("메뉴 그룹을 조회한다")
+    void getMenuGroup_success() {
+        // given
+        Long storeId = 1L;
+        List<MenuGroup> menuGroups = List.of(
+                createMenuGroup(10L, "음료", 1, true),
+                createMenuGroup(20L, "베이커리", 999, false)
+        );
+        when(menuGroupRepository.findMenuGroupsByStoreId(storeId)).thenReturn(menuGroups);
+
+        // when
+        MenuGroupResponse data = menuGroupService.getMenuGroup(storeId);
+
+        // then
+        assertThat(data.getMenuGroups()).hasSize(2)
+                .extracting("menuGroupName", "menuGroupIsActive", "displayName")
+                .containsExactlyInAnyOrder(
+                        tuple("음료", true, "음료"),
+                        tuple("베이커리", false, "베이커리 (비활성화)")
+                );
+    }
+
+    @Test
     @DisplayName("메뉴 그룹을 설정한다")
     void saveMenuGroup_success() {
         // given
@@ -50,8 +72,8 @@ class MenuGroupServiceTest {
 
 
         List<MenuGroup> existingMenuGroups = List.of(
-                createMenuGroup(10L, "음료", 1, Collections.emptyList()),
-                createMenuGroup(20L, "베이커리", 2, Collections.emptyList())
+                createMenuGroup(10L, "음료", 1, true),
+                createMenuGroup(20L, "베이커리", 2, true)
         );
         when(menuGroupRepository.findMenuGroupsByStoreId(storeId)).thenReturn(existingMenuGroups);
 
@@ -79,8 +101,8 @@ class MenuGroupServiceTest {
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(new Store()));
 
         List<MenuGroup> existingMenuGroups = List.of(
-                createMenuGroup(10L, "음료", 1, Collections.emptyList()),
-                createMenuGroup(20L, "베이커리", 2, Collections.emptyList())
+                createMenuGroup(10L, "음료", 1, true),
+                createMenuGroup(20L, "베이커리", 2, true)
         );
         when(menuGroupRepository.findMenuGroupsByStoreId(storeId)).thenReturn(existingMenuGroups);
 
@@ -136,13 +158,12 @@ class MenuGroupServiceTest {
                 .isInstanceOf(StoreException.class);
     }
 
-    private MenuGroup createMenuGroup(long groupId, String groupName, int priority, List<Menu> menus) {
+    private MenuGroup createMenuGroup(long groupId, String groupName, int priority, boolean isActive) {
         return MenuGroup.builder()
                 .menuGroupId(groupId)
                 .menuGroupName(groupName)
                 .menuGroupPriority(priority)
-                .menuGroupIsActive(true)
-                .menus(menus)
+                .menuGroupIsActive(isActive)
                 .build();
     }
 
