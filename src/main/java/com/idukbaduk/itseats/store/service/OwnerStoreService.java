@@ -48,10 +48,11 @@ public class OwnerStoreService {
         return StoreDashboardResponse.builder()
                 .storeName(store.getStoreName())
                 .customerRating(customerRating)
-                .avgCookTime((avgCookTime != null ? avgCookTime.intValue() : 0) + "분")
-                .cookTimeAccuracy((int) cookTimeAccuracy + "%")
-                .pickupTime((avgPickupTime != null ? avgPickupTime.intValue() : 0) + "분")
-                .orderAcceptanceRate((int) acceptanceRate + "%")
+                .avgCookTime(Math.round(avgCookTime) + "분")
+                .cookTimeAccuracy(Math.round(cookTimeAccuracy) + "%")
+                .pickupTime(Math.round(avgPickupTime) + "분")
+                .orderAcceptanceRate(Math.round(acceptanceRate) + "%")
                 .build();
     }
+
 }

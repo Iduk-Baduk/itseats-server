@@ -61,7 +61,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Long countAccurateOrdersByStoreId(@Param("storeId") Long storeId);
 
     @Query(value = """
-            SELECT AVG(TIMESTAMPDIFF(MINUTE, order_received_time, order_end_time)) " +
+            SELECT AVG(TIMESTAMPDIFF(MINUTE, order_received_time, order_end_time))
             FROM orders 
             WHERE store_id = :storeId 
             AND order_received_time IS NOT NULL 
