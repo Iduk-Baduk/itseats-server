@@ -43,7 +43,7 @@ public class RiderService {
     }
 
     @Transactional
-    public void updateDeliveryStatusAccept(String username, Long orderId) {
+    public void acceptDelivery(String username, Long orderId) {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
         Rider rider = riderRepository.findByMember(member)

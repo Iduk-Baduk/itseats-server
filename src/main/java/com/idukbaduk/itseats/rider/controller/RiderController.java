@@ -36,7 +36,7 @@ public class RiderController {
     public ResponseEntity<BaseResponse> updateDeliveryStatusAccept(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
-        riderService.updateDeliveryStatusAccept(userDetails.getUsername(), orderId);
+        riderService.acceptDelivery(userDetails.getUsername(), orderId);
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_DELIVERY_STATUS_ACCEPT_SUCCESS);
     }
 }

@@ -108,7 +108,7 @@ class RiderServiceTest {
 
     @Test
     @DisplayName("주문 상태를 배차 완료 상태로 변경에 성공")
-    void updateDeliveryStatusAccept_success() {
+    void acceptDelivery_success() {
         // given
         Order order = Order.builder()
                 .orderId(1L)
@@ -120,7 +120,7 @@ class RiderServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         // when
-        riderService.updateDeliveryStatusAccept(username, 1L);
+        riderService.acceptDelivery(username, 1L);
 
         // then
         assertThat(order.getOrderId()).isEqualTo(1L);
@@ -130,7 +130,7 @@ class RiderServiceTest {
 
     @Test
     @DisplayName("주문이 직전 단계가 아닌 경우 주문 상태를 변경하면 예외 발생")
-    void updateDeliveryStatusAccept_updateStatusFail() {
+    void acceptDelivery_acceptStatusFail() {
         // given
         Order order = Order.builder()
                 .orderId(1L)
@@ -142,14 +142,14 @@ class RiderServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         // when
-        assertThatThrownBy(() -> riderService.updateDeliveryStatusAccept(username, 1L))
+        assertThatThrownBy(() -> riderService.acceptDelivery(username, 1L))
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL.getMessage());
     }
 
     @Test
     @DisplayName("라이더가 이미 배차된 주문의 주문 상태를 변경하면 예외 발생")
-    void updateDeliveryStatusAccept_alreadyAssignedRider() {
+    void acceptDelivery_alreadyAssignedRider() {
         // given
         Order order = Order.builder()
                 .orderId(1L)
@@ -162,7 +162,7 @@ class RiderServiceTest {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         // when
-        assertThatThrownBy(() -> riderService.updateDeliveryStatusAccept(username, 1L))
+        assertThatThrownBy(() -> riderService.acceptDelivery(username, 1L))
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_ALREADY_ASSIGNED.getMessage());
     }
