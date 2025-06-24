@@ -5,6 +5,8 @@ import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Objects;
+
 @Getter
 @RequiredArgsConstructor
 public enum OrderStatus {
@@ -29,7 +31,7 @@ public enum OrderStatus {
     private final OrderStatus previousStatus;
 
     public void validateTransitionFrom(OrderStatus currentStatus) {
-        if (this.previousStatus != currentStatus) {
+        if (!Objects.equals(this.previousStatus, currentStatus)) {
             throw new OrderException(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL);
         }
     }
