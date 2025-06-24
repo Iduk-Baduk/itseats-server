@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.geo.Point;
+import org.locationtech.jts.geom.Point;
 
 import java.util.Optional;
 
@@ -62,8 +62,8 @@ class MemberAddressServiceTest {
         AddressCreateRequest request = AddressCreateRequest.builder()
                 .mainAddress("서울시 구름구 구름로100번길 10")
                 .detailAddress("100호")
-                .locationX(126.9780)
-                .locationY(37.5665)
+                .lng(126.9780)
+                .lat(37.5665)
                 .addressCategory(AddressCategory.HOUSE.name())
                 .build();
 
@@ -92,8 +92,8 @@ class MemberAddressServiceTest {
         assertThat(request.getAddressCategory()).isEqualTo(savedAddress.getAddressCategory().name());
 
         Point point = savedAddress.getLocation();
-        assertThat(point.getX()).isEqualTo(request.getLocationX(), within(0.001));
-        assertThat(point.getY()).isEqualTo(request.getLocationY(), within(0.001));
+        assertThat(point.getX()).isEqualTo(request.getLng(), within(0.001));
+        assertThat(point.getY()).isEqualTo(request.getLat(), within(0.001));
     }
 
     @Test

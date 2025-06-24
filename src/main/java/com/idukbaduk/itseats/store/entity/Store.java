@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.geo.Point;
+import org.locationtech.jts.geom.Point;
 
 @Entity
 @Getter
@@ -45,7 +45,7 @@ public class Store extends BaseEntity {
     @Column(name = "store_address", nullable = false)
     private String storeAddress;
 
-    @Column(name = "location", nullable = false)
+    @Column(name = "location", columnDefinition = "POINT", nullable = false)
     private Point location;
 
     @Enumerated(EnumType.STRING)
