@@ -19,7 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.geo.Point;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -58,8 +57,8 @@ class OwnerStoreServiceTest {
                 .name("테스트가게")
                 .description("설명")
                 .address("서울시 강남구")
-                .locationX(127.0)
-                .locationY(37.5)
+                .lng(127.0)
+                .lat(37.5)
                 .phone("010-1234-5678")
                 .images(List.of(mock(MultipartFile.class)))
                 .isFranchise(true)
