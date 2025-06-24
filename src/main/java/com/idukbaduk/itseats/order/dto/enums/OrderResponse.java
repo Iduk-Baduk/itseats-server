@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 public enum OrderResponse implements Response {
 
     GET_ORDER_DETAILS_SUCCESS(HttpStatus.OK, "주문 정보 상세 조회 성공"),
-    GET_ORDER_STATUS_SUCCESS(HttpStatus.OK, "주문 현황 조회 성공");
+    GET_ORDER_STATUS_SUCCESS(HttpStatus.OK, "주문 현황 조회 성공"),
+    GET_STORE_ORDERS_SUCCESS(HttpStatus.OK, "주문 접수 조회 성공"),
+    ;
 
     private final HttpStatus httpStatus;
     private final String message;
