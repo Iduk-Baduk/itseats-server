@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.menu.repository;
 
 import com.idukbaduk.itseats.menu.entity.Menu;
+import com.idukbaduk.itseats.menu.entity.MenuGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +23,6 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     );
   
     Optional<Menu> findByMenuIdAndDeletedFalse(Long menuId);
+
+    boolean existsByMenuGroup(MenuGroup menuGroup);
 }

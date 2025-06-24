@@ -81,15 +81,24 @@ public class Order extends BaseEntity {
     @Column(name = "store_location", nullable = false)
     private Point storeLocation;
 
-    public void updateOrderStatusAccept(Rider rider, OrderStatus orderStatus) {
-        if (this.orderStatus != OrderStatus.COOKED) {
-            throw new OrderException(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL);
-        }
-        if (this.rider != null) {
-            throw new OrderException(OrderErrorCode.ORDER_ALREADY_ASSIGNED);
-        }
+    @Column(name = "order_received_time", nullable = false)
+    private LocalDateTime orderReceivedTime;
 
-        this.rider = rider;
-        this.orderStatus = orderStatus;
+    @Column(name = "cook_start_time", nullable = false)
+    private LocalDateTime cookStartTime;
+
+    @Column(name = "order_end_time")
+    private LocalDateTime orderEndTime;
+
+    public void updateOrderStatusAccept(Rider rider, OrderStatus orderStatus) {
+      if (this.orderStatus != OrderStatus.COOKED) {
+          throw new OrderException(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL);
+      }
+      if (this.rider != null) {
+          throw new OrderException(OrderErrorCode.ORDER_ALREADY_ASSIGNED);
+      }
+
+      this.rider = rider;
+      this.orderStatus = orderStatus;
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -37,4 +38,46 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Long findAvgDeliveryTimeByType(@Param("deliveryType") String deliveryType);
 
     Optional<Order> findByMemberAndOrderId(Member member, Long orderId);
+
+    List<Order> findAllByStore_StoreId(Long storeStoreId);
+
+    @Query(value = """
+            SELECT AVG(TIMESTAMPDIFF(MINUTE, cook_start_time, order_end_time))
+            FROM orders
+            WHERE store_id = :storeId 
+            AND cook_start_time IS NOT NULL
+            AND order_end_time IS NOT NULL
+            """, nativeQuery = true)
+    Double findAverageCookTimeByStoreId(@Param("storeId") Long storeId);
+
+    @Query(value = """ 
+            SELECT COUNT(*)
+            FROM orders
+            WHERE store_id = :storeId 
+            AND order_end_time IS NOT NULL 
+            AND delivery_eta IS NOT NULL 
+            AND ABS(TIMESTAMPDIFF(MINUTE, delivery_eta, order_end_time)) <= 5
+            """, nativeQuery = true)
+    Long countAccurateOrdersByStoreId(@Param("storeId") Long storeId);
+
+    @Query(value = """
+            SELECT AVG(TIMESTAMPDIFF(MINUTE, order_received_time, order_end_time))
+            FROM orders 
+            WHERE store_id = :storeId 
+            AND order_received_time IS NOT NULL 
+            AND order_end_time IS NOT NULL
+            """ , nativeQuery = true)
+    Double findAveragePickupTimeByStoreId(@Param("storeId") Long storeId);
+
+    @Query(value = "SELECT COUNT(*) FROM orders WHERE store_id = :storeId",
+            nativeQuery = true)
+    Long countTotalOrdersByStoreId(@Param("storeId") Long storeId);
+
+    @Query(value = """ 
+            SELECT COUNT(*) 
+            FROM orders WHERE store_id = :storeId AND order_status 
+            IN ('COOKING', 'RIDER_READY', 'DELIVERING', 'DELIVERED', 'COMPLETED')
+            """, nativeQuery = true)
+    Long countAcceptedOrdersByStoreId(@Param("storeId") Long storeId);
+
 }

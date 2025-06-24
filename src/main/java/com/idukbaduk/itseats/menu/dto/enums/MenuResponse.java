@@ -1,14 +1,14 @@
-package com.idukbaduk.itseats.memberaddress.dto.enums;
+package com.idukbaduk.itseats.menu.dto.enums;
 
-import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.global.response.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @RequiredArgsConstructor
-public enum AddressResponse implements Response {
+public enum MenuResponse implements Response {
 
-    CREATE_ADDRESS_SUCCESS(HttpStatus.CREATED, "주소 추가 성공");
+    GET_MENU_LIST_SUCCESS(HttpStatus.OK, "메뉴 목록 조회 성공"),
+    SAVE_MENU_GROUP_SUCCESS(HttpStatus.OK, "메뉴 그룹 설정 성공");
 
     private final HttpStatus httpStatus;
     private final String message;

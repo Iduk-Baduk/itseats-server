@@ -1,0 +1,124 @@
+package com.idukbaduk.itseats.store.service;
+
+import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
+import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.review.repository.ReviewRepository;
+import com.idukbaduk.itseats.store.dto.StoreDashboardResponse;
+import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
+import com.idukbaduk.itseats.member.service.MemberService;
+import com.idukbaduk.itseats.store.dto.StoreCreateRequest;
+import com.idukbaduk.itseats.store.dto.StoreCreateResponse;
+import com.idukbaduk.itseats.store.entity.Franchise;
+import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.entity.StoreCategory;
+import com.idukbaduk.itseats.store.error.StoreException;
+import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
+import com.idukbaduk.itseats.store.repository.FranchiseRepository;
+import com.idukbaduk.itseats.store.repository.StoreCategoryRepository;
+import com.idukbaduk.itseats.store.repository.StoreImageRepository;
+import com.idukbaduk.itseats.store.repository.StoreRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.geo.Point;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class OwnerStoreService {
+
+    private final StoreRepository storeRepository;
+    private final ReviewRepository reviewRepository;
+    private final OrderRepository orderRepository;
+    private final StoreCategoryRepository storeCategoryRepository;
+    private final FranchiseRepository franchiseRepository;
+    private final StoreImageRepository storeImageRepository;
+    private final MemberRepository memberRepository;
+    private final StoreMediaService storeMediaService;
+
+    @Transactional(readOnly = true)
+    public StoreDashboardResponse getDashboard(Long storeId) {
+
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
+
+        Double avgRating = reviewRepository.findAverageRatingByStoreId(storeId);
+        double customerRating = avgRating != null ? avgRating : 0.0;
+
+        Double avgCookTime = orderRepository.findAverageCookTimeByStoreId(storeId);
+        Long accurateCount = orderRepository.countAccurateOrdersByStoreId(storeId);
+        Double avgPickupTime = orderRepository.findAveragePickupTimeByStoreId(storeId);
+        Long totalOrders = orderRepository.countTotalOrdersByStoreId(storeId);
+        Long acceptedOrders = orderRepository.countAcceptedOrdersByStoreId(storeId);
+
+        double cookTimeAccuracy = (totalOrders != null && totalOrders > 0 && accurateCount != null)
+                ? accurateCount * 100.0 / totalOrders : 0.0;
+
+        double acceptanceRate = (totalOrders != null && totalOrders > 0 && acceptedOrders != null)
+                ? acceptedOrders * 100.0 / totalOrders : 0.0;
+
+        return StoreDashboardResponse.builder()
+                .storeName(store.getStoreName())
+                .customerRating(customerRating)
+                .avgCookTime(Math.round(avgCookTime) + "분")
+                .cookTimeAccuracy(Math.round(cookTimeAccuracy) + "%")
+                .pickupTime(Math.round(avgPickupTime) + "분")
+                .orderAcceptanceRate(Math.round(acceptanceRate) + "%")
+                .build();
+    }
+
+    @Transactional
+    public StoreCreateResponse createStore(String username, StoreCreateRequest request) {
+
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(()-> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        StoreCategory storeCategory = storeCategoryRepository.
+                findByCategoryName(request.getCategoryName())
+                .orElseThrow(() -> new StoreException(StoreErrorCode.CATEGORY_NOT_FOUND));
+
+        Franchise franchise = null;
+        if (request.isFranchise()) {
+            if (request.getFranchiseId() == null) {
+                throw new StoreException(StoreErrorCode.FRANCHISE_ID_REQUIRED);
+            }
+            franchise = franchiseRepository.findById(request.getFranchiseId())
+                    .orElseThrow(() -> new StoreException(StoreErrorCode.FRANCHISE_NOT_FOUND));
+        }
+
+        Point point = new Point(request.getLng(), request.getLat());
+
+        Store store = Store.builder()
+                .member(member)
+                .storeCategory(storeCategory)
+                .franchise(franchise)
+                .storeName(request.getName())
+                .description(request.getDescription())
+                .storeAddress(request.getAddress())
+                .location(point)
+                .storePhone(request.getPhone())
+                .defaultDeliveryFee(request.getDefaultDeliveryFee())
+                .onlyOneDeliveryFee(request.getOnlyOneDeliveryFee())
+                .build();
+
+        Store savedStore = storeRepository.save(store);
+
+        storeMediaService.createStoreImages(savedStore, request.getImages());
+
+        return StoreCreateResponse.builder()
+                .storeId(savedStore.getStoreId())
+                .name(savedStore.getStoreName())
+                .categoryName(storeCategory.getCategoryName())
+                .isFranchise(request.isFranchise())
+                .description(savedStore.getDescription())
+                .address(savedStore.getStoreAddress())
+                .phone(savedStore.getStorePhone())
+                .build();
+    }
+}
