@@ -2,6 +2,7 @@ package com.idukbaduk.itseats.order.repository;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.rider.entity.Rider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -80,6 +81,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             IN ('COOKING', 'RIDER_READY', 'DELIVERING', 'DELIVERED', 'COMPLETED')
             """, nativeQuery = true)
     Long countAcceptedOrdersByStoreId(@Param("storeId") Long storeId);
+
+    @Query("SELECT DISTINCT o FROM Order o " +
+            "JOIN FETCH o.orderMenus om " +
+            "JOIN FETCH om.menu m " +
+            "LEFT JOIN FETCH o.rider r " +
+            "LEFT JOIN FETCH r.member rm " +
+            "WHERE o.store.storeId = :storeId")
+    List<Order> findAllWithMenusByStoreId(@Param("storeId") Long storeId);
 
     Optional<Order> findByRiderAndOrderId(Rider rider, Long orderId);
 }
