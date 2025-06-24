@@ -46,7 +46,7 @@ public class OwnerOrderService {
                 .sum();
 
         int totalPrice = order.getOrderMenus().stream()
-                .mapToInt(OrderMenu::getPrice)
+                .mapToInt(orderMenu -> orderMenu.getPrice() * orderMenu.getQuantity())
                 .sum();
 
         Optional<Payment> optionalPayment = paymentRepository.findByOrder(order);
