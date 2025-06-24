@@ -1,14 +1,15 @@
 package com.idukbaduk.itseats.menu.service;
 
-import com.idukbaduk.itseats.menu.dto.MenuInfoDto;
-import com.idukbaduk.itseats.menu.dto.MenuListRequest;
-import com.idukbaduk.itseats.menu.dto.MenuListResponse;
+import com.idukbaduk.itseats.menu.dto.*;
 import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.entity.MenuGroup;
 import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
+import com.idukbaduk.itseats.menu.repository.MenuGroupRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
+import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.repository.StoreRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,10 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -130,4 +128,3 @@ class MenuServiceTest {
                 .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
     }
 }
-

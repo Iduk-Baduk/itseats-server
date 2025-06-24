@@ -2,11 +2,11 @@ package com.idukbaduk.itseats.order.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idukbaduk.itseats.member.entity.Member;
-import com.idukbaduk.itseats.member.service.MemberService;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
-import com.idukbaduk.itseats.memberaddress.service.MemberAddressService;
+import com.idukbaduk.itseats.memberaddress.repository.MemberAddressRepository;
 import com.idukbaduk.itseats.menu.entity.Menu;
-import com.idukbaduk.itseats.menu.service.MenuService;
+import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
 import com.idukbaduk.itseats.order.dto.MenuOptionDTO;
 import com.idukbaduk.itseats.order.dto.OptionDTO;
@@ -22,9 +22,10 @@ import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderMenuRepository;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.payment.entity.Payment;
-import com.idukbaduk.itseats.payment.service.PaymentService;
+import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import com.idukbaduk.itseats.store.entity.Store;
-import com.idukbaduk.itseats.store.service.StoreService;
+import com.idukbaduk.itseats.store.repository.StoreRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,56 +52,72 @@ class OrderServiceTest {
     private OrderMenuRepository orderMenuRepository;
 
     @Mock
-    private MenuService menuService;
+    private MenuRepository menuRepository;
 
     @Mock
-    private StoreService storeService;
+    private StoreRepository storeRepository;
 
     @Mock
-    private MemberService memberService;
+    private MemberRepository memberRepository;
 
     @Mock
-    private MemberAddressService memberAddressService;
+    private MemberAddressRepository memberAddressRepository;
 
     @Mock
-    private PaymentService paymentService;
+    private PaymentRepository paymentRepository;
 
     @InjectMocks
     private OrderService orderService;
+
+    private final String username = "testuser";
+    private Member member;
+    private Store store;
+    private MemberAddress address;
+    private OrderNewRequest orderNewRequest;
+    private Order order;
 
     @BeforeEach
     void setup() {
         orderService = new OrderService(
                 orderRepository,
                 orderMenuRepository,
-                menuService,
-                storeService,
-                memberService,
-                memberAddressService,
-                paymentService,
+                menuRepository,
+                storeRepository,
+                memberRepository,
+                memberAddressRepository,
+                paymentRepository,
                 new ObjectMapper()
         );
-    }
 
-    @Test
-    @DisplayName("주문 정보 상세 조회 성공")
-    void getOrderNew_success() {
-        // given
-        String username = "testuser";
-        Member mockMember = Member.builder()
+        member = Member.builder()
+                .memberId(1L)
                 .username(username)
                 .build();
 
-        Store mockStore = Store.builder()
+        store = Store.builder()
                 .storeId(1L)
+                .storeName("테스트 구름점")
                 .defaultDeliveryFee(3000)
                 .onlyOneDeliveryFee(3500)
+                .location(new Point(127.0, 37.5))
                 .build();
 
-        MemberAddress mockAddress = MemberAddress.builder()
+        address = MemberAddress.builder()
                 .addressId(1L)
                 .mainAddress("서울시 구름구 구름로100번길 10")
                 .detailAddress("100호")
+                .build();
+
+        order = Order.builder()
+                .orderId(1L)
+                .store(store)
+                .deliveryEta(LocalDateTime.of(2025, 6, 20, 12, 0, 0))
+                .orderStatus(OrderStatus.COOKING)
+                .orderNumber("A1234B")
+                .orderPrice(10000)
+                .deliveryAddress("서울시 구름구 구름로100번길 10 100호")
+                .destinationLocation(new Point(126.9, 37.4))
+                .storeLocation(new Point(127.0, 37.5))
                 .build();
 
         OrderMenuDTO orderMenuDTO1 = OrderMenuDTO.builder()
@@ -112,7 +129,7 @@ class OrderServiceTest {
                                 .options(List.of(OptionDTO.builder()
                                         .optionPrice(1000)
                                         .build()))
-                        .build()))
+                                .build()))
                 .menuTotalPrice(2000)
                 .build();
         OrderMenuDTO orderMenuDTO2 = OrderMenuDTO.builder()
@@ -128,17 +145,24 @@ class OrderServiceTest {
                 .menuTotalPrice(3000)
                 .build();
 
-        OrderNewRequest request = OrderNewRequest.builder()
+        orderNewRequest = OrderNewRequest.builder()
                 .addrId(1L)
                 .storeId(1L)
                 .deliveryType(DeliveryType.DEFAULT.name())
                 .orderMenus(List.of(orderMenuDTO1, orderMenuDTO2))
                 .build();
+    }
 
-        when(memberService.getMemberByUsername(username)).thenReturn(mockMember);
-        when(memberAddressService.getMemberAddress(mockMember, 1L)).thenReturn(mockAddress);
-        when(storeService.getStore(mockMember, 1L)).thenReturn(mockStore);
-        when(menuService.getMenu(1L)).thenReturn(new Menu());
+    @Test
+    @DisplayName("주문 정보 상세 조회 성공")
+    void getOrderNew_success() {
+        // given
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
+        when(memberAddressRepository.findByMemberAndAddressId(member, 1L))
+                .thenReturn(Optional.ofNullable(address));
+        when(storeRepository.findByMemberAndStoreId(member, 1L)).thenReturn(Optional.ofNullable(store));
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(new Menu()));
+        when(menuRepository.findById(2L)).thenReturn(Optional.of(new Menu()));
 
         when(orderRepository.findAvgDeliveryTimeByType(DeliveryType.DEFAULT.name())).thenReturn(30L);
         when(orderRepository.findMinDeliveryTimeByType(DeliveryType.DEFAULT.name())).thenReturn(20);
@@ -148,7 +172,7 @@ class OrderServiceTest {
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
 
         // when
-        OrderNewResponse response = orderService.getOrderNew(username, request);
+        OrderNewResponse response = orderService.getOrderNew(username, orderNewRequest);
 
         // then
         assertThat(response.getOrderPrice()).isEqualTo(7000);
@@ -167,43 +191,24 @@ class OrderServiceTest {
         OrderService exceptionOrderService = new OrderService(
                 orderRepository,
                 orderMenuRepository,
-                menuService,
-                storeService,
-                memberService,
-                memberAddressService,
-                paymentService,
+                menuRepository,
+                storeRepository,
+                memberRepository,
+                memberAddressRepository,
+                paymentRepository,
                 null
         );
 
-        String username = "testuser";
-
-        Member mockMember = Member.builder()
-                .memberId(1L)
-                .build();
-
-        OrderMenuDTO menuDTO = OrderMenuDTO.builder()
-                .menuId(1L)
-                .menuName("메뉴")
-                .quantity(1)
-                .menuTotalPrice(1000)
-                .menuOption(List.of(MenuOptionDTO.builder().build()))
-                .build();
-        OrderNewRequest request = OrderNewRequest.builder()
-                .addrId(1L)
-                .storeId(1L)
-                .deliveryType(DeliveryType.DEFAULT.name())
-                .orderMenus(List.of(menuDTO))
-                .build();
-
-        when(memberService.getMemberByUsername(any())).thenReturn(Member.builder().build());
-        when(memberAddressService.getMemberAddress(any(), any())).thenReturn(MemberAddress.builder().build());
-        when(storeService.getStore(any(), any())).thenReturn(Store.builder().build());
-        when(menuService.getMenu(any())).thenReturn(Menu.builder().build());
+        when(memberRepository.findByUsername(any())).thenReturn(Optional.ofNullable(member));
+        when(memberAddressRepository.findByMemberAndAddressId(any(), any()))
+                .thenReturn(Optional.ofNullable(address));
+        when(storeRepository.findByMemberAndStoreId(any(), any())).thenReturn(Optional.ofNullable(store));
+        when(menuRepository.findById(any())).thenReturn(Optional.ofNullable(Menu.builder().build()));
         when(orderRepository.findAvgDeliveryTimeByType(any())).thenReturn(30L);
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
 
         // when & then
-        assertThatThrownBy(() -> exceptionOrderService.getOrderNew(username, request))
+        assertThatThrownBy(() -> exceptionOrderService.getOrderNew(username, orderNewRequest))
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.MENU_OPTION_SERIALIZATION_FAIL.getMessage());
     }
@@ -212,64 +217,35 @@ class OrderServiceTest {
     @DisplayName("주문 현황 조회 성공")
     void getOrderStatus_success() {
         //given
-        String username = "testuser";
-        Long orderId = 1L;
-        String storeName = "테스트 구름점";
-        Point storeLocation = new Point(127.0, 37.5);
-        LocalDateTime deliveryEta = LocalDateTime.of(2025, 6, 20, 12, 0, 0);
-        OrderStatus orderStatus = OrderStatus.COOKING;
-        String orderNumber = "A1234B";
-        int orderPrice = 10000;
-        String deliveryAddress = "서울시 구름구 구름로100번길 10 100호";
-        Point destinationLocation = new Point(126.9, 37.4);
-        String riderRequest = "조심히 와주세요";
-
-        Member member = Member.builder()
-                .username(username)
-                .build();
-
-        Store store = Store.builder()
-                .storeName(storeName)
-                .location(storeLocation)
-                .build();
-
-        Order order = Order.builder()
-                .orderId(orderId)
-                .store(store)
-                .deliveryEta(deliveryEta)
-                .orderStatus(orderStatus)
-                .orderNumber(orderNumber)
-                .orderPrice(orderPrice)
-                .deliveryAddress(deliveryAddress)
-                .destinationLocation(destinationLocation)
-                .build();
-
         Payment payment = Payment.builder()
-                .riderRequest(riderRequest)
+                .riderRequest("조심히 와주세요")
                 .build();
 
-        when(memberService.getMemberByUsername(username)).thenReturn(member);
-        when(orderRepository.findByMemberAndOrderId(member, orderId)).thenReturn(Optional.of(order));
-        when(orderMenuRepository.countOrderMenus(orderId)).thenReturn(2L);
-        when(paymentService.getPaymentByOrder(order)).thenReturn(payment);
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
+        when(orderRepository.findByMemberAndOrderId(member, 1L)).thenReturn(Optional.of(order));
+        when(orderMenuRepository.countOrderMenus(1L)).thenReturn(2L);
+        when(paymentRepository.findByOrder(order)).thenReturn(Optional.ofNullable(payment));
 
         // when
-        OrderStatusResponse response = orderService.getOrderStatus(username, orderId);
+        OrderStatusResponse response = orderService.getOrderStatus(username, 1L);
 
         // then
-        assertThat(response.getDeliveryEta()).isEqualTo(deliveryEta.toString());
-        assertThat(response.getOrderStatus()).isEqualTo(orderStatus.name());
-        assertThat(response.getStoreName()).isEqualTo(storeName);
-        assertThat(response.getOrderNumber()).isEqualTo(orderNumber);
-        assertThat(response.getOrderPrice()).isEqualTo(orderPrice);
-        assertThat(response.getDeliveryAddress()).isEqualTo(deliveryAddress);
-        assertThat(response.getRiderRequest()).isEqualTo(riderRequest);
+        assertThat(response.getDeliveryEta()).isEqualTo(order.getDeliveryEta().toString());
+        assertThat(response.getOrderStatus()).isEqualTo(order.getOrderStatus().name());
+        assertThat(response.getStoreName()).isEqualTo(order.getStore().getStoreName());
+        assertThat(response.getOrderNumber()).isEqualTo(order.getOrderNumber());
+        assertThat(response.getOrderPrice()).isEqualTo(order.getOrderPrice());
+        assertThat(response.getDeliveryAddress()).isEqualTo(order.getDeliveryAddress());
+        Assertions.assertNotNull(payment);
+        assertThat(response.getRiderRequest()).isEqualTo(payment.getRiderRequest());
 
         AddressInfoDTO destinationLocationResponse = response.getDestinationLocation();
+        Point destinationLocation = order.getDestinationLocation();
         assertThat(destinationLocationResponse.getLat()).isEqualTo(destinationLocation.getY());
         assertThat(destinationLocationResponse.getLng()).isEqualTo(destinationLocation.getX());
 
         AddressInfoDTO storeLocationResponse = response.getStoreLocation();
+        Point storeLocation = order.getStoreLocation();
         assertThat(storeLocationResponse.getLat()).isEqualTo(storeLocation.getY());
         assertThat(storeLocationResponse.getLng()).isEqualTo(storeLocation.getX());
     }
@@ -278,14 +254,11 @@ class OrderServiceTest {
     @DisplayName("존재하지 않는 주문 조회시 예외 발생")
     void getOrderStatus_notExist() {
         // given
-        Long orderId = 1L;
-        Member member = Member.builder().username("testuser").build();
-
-        when(memberService.getMemberByUsername(any())).thenReturn(member);
-        when(orderRepository.findByMemberAndOrderId(member, orderId)).thenReturn(Optional.empty());
+        when(memberRepository.findByUsername(any())).thenReturn(Optional.ofNullable(member));
+        when(orderRepository.findByMemberAndOrderId(member, 1L)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> orderService.getOrderStatus(member.getUsername(), orderId))
+        assertThatThrownBy(() -> orderService.getOrderStatus(username, 1L))
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
@@ -294,15 +267,10 @@ class OrderServiceTest {
     @DisplayName("주문 정보를 성공적으로 반환")
     void getOrder_success() {
         // given
-        Long orderId = 1L;
-        Order order = Order.builder()
-                .orderId(orderId)
-                .build();
-
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         // when
-        Order result = orderService.getOrder(orderId);
+        Order result = orderService.getOrder(1L);
 
         // then
         assertThat(result).isEqualTo(order);
@@ -312,11 +280,10 @@ class OrderServiceTest {
     @DisplayName("존재하지 않는 메뉴 조회시 예외 발생")
     void getOrder_notExist() {
         // given
-        Long orderId = 1L;
-        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+        when(orderRepository.findById(1L)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> orderService.getOrder(orderId))
+        assertThatThrownBy(() -> orderService.getOrder(1L))
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }

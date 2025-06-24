@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.menu.repository;
 
 import com.idukbaduk.itseats.menu.entity.MenuGroup;
+import com.idukbaduk.itseats.store.entity.Store;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,4 +18,9 @@ public interface MenuGroupRepository extends JpaRepository<MenuGroup, Long> {
             "AND (m IS NULL OR m.deleted = false) " +
             "ORDER BY g.menuGroupPriority, m.menuPriority")
     List<MenuGroup> findGroupsWithMenusByStoreId(@Param("storeId") Long storeId);
+
+    @Query("SELECT g FROM MenuGroup g " +
+            "WHERE g.store.storeId = :storeId " +
+            "ORDER BY g.menuGroupPriority")
+    List<MenuGroup> findMenuGroupsByStoreId(@Param("storeId") Long storeId);
 }
