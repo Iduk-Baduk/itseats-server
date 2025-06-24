@@ -54,4 +54,17 @@ public class RiderService {
 
         order.updateOrderStatusAccept(rider, OrderStatus.RIDER_READY);
     }
+
+    @Transactional
+    public void updateOrderStatusAfterAccept(String username, Long orderId, OrderStatus orderStatus) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Rider rider = riderRepository.findByMember(member)
+                .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
+
+        Order order = orderRepository.findByRiderAndOrderId(rider, orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        order.updateStatus(orderStatus);
+    }
 }
