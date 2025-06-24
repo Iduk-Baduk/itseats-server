@@ -24,7 +24,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.springframework.data.geo.Point;
+import org.locationtech.jts.geom.Point;
 import java.time.LocalDateTime;
 
 @Entity
@@ -75,10 +75,10 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_address", nullable = false)
     private String deliveryAddress;
 
-    @Column(name = "destination_location", nullable = false)
+    @Column(name = "destination_location", columnDefinition = "POINT", nullable = false)
     private Point destinationLocation;
 
-    @Column(name = "store_location", nullable = false)
+    @Column(name = "store_location", columnDefinition = "POINT", nullable = false)
     private Point storeLocation;
 
     @Column(name = "order_received_time", nullable = false)

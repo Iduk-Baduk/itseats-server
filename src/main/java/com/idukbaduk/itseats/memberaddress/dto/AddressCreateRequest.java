@@ -9,7 +9,7 @@ public class AddressCreateRequest {
 
     private String mainAddress;
     private String detailAddress;
-    private double locationX;
-    private double locationY;
+    private double lng;
+    private double lat;
     private String addressCategory;
 }
