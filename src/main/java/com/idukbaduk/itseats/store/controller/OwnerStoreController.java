@@ -31,8 +31,9 @@ public class OwnerStoreController {
     @GetMapping("/{storeId}/dashboard")
     public ResponseEntity<BaseResponse> getStoreDashboard(@PathVariable Long storeId) {
         StoreDashboardResponse response = ownerStoreService.getDashboard(storeId);
-        return BaseResponse.toResponseEntity(HttpStatus.OK,"가맹점 대시보드 조회 성공", response);
-  
+        return BaseResponse.toResponseEntity(HttpStatus.OK, "가맹점 대시보드 조회 성공", response);
+    }
+
     @PostMapping(value = "/store-regist", consumes = {"multipart/form-data"})
     public ResponseEntity<BaseResponse> createStore(
             @AuthenticationPrincipal UserDetails userDetails,

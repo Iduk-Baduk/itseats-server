@@ -73,12 +73,6 @@ public class OwnerStoreService {
                 .build();
     }
 
-    private final StoreCategoryRepository storeCategoryRepository;
-    private final FranchiseRepository franchiseRepository;
-    private final StoreImageRepository storeImageRepository;
-    private final MemberRepository memberRepository;
-    private final StoreMediaService storeMediaService;
-
     @Transactional
     public StoreCreateResponse createStore(String username, StoreCreateRequest request) {
 
