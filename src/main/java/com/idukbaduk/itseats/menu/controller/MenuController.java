@@ -9,7 +9,6 @@ import com.idukbaduk.itseats.menu.dto.enums.MenuResponse;
 import com.idukbaduk.itseats.menu.service.MenuGroupService;
 import com.idukbaduk.itseats.menu.service.MenuService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,5 +36,11 @@ public class MenuController {
     ) {
         MenuGroupResponse data = menuGroupService.saveMenuGroup(storeId, request);
         return BaseResponse.toResponseEntity(MenuResponse.SAVE_MENU_GROUP_SUCCESS, data);
+    }
+
+    @GetMapping("/{storeId}/menu-groups")
+    public ResponseEntity<BaseResponse> getMenuGroup(@PathVariable Long storeId) {
+        MenuGroupResponse data = menuGroupService.getMenuGroup(storeId);
+        return BaseResponse.toResponseEntity(MenuResponse.GET_MENU_GROUP_SUCCESS, data);
     }
 }
