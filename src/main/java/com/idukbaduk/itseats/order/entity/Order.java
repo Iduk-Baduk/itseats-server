@@ -99,4 +99,9 @@ public class Order extends BaseEntity {
         this.rider = rider;
         this.orderStatus = orderStatus;
     }
+
+    public void updateStatus(OrderStatus orderStatus) {
+        orderStatus.validateTransitionFrom(this.orderStatus);
+        this.orderStatus = orderStatus;
+    }
 }
