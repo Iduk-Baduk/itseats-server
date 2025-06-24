@@ -46,6 +46,7 @@ dependencies {
      * - MySQL
      */
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.hibernate.orm:hibernate-spatial:6.6.18.Final'
     implementation 'com.mysql:mysql-connector-j:8.3.0'
 
     /**
