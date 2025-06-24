@@ -2,21 +2,14 @@ package com.idukbaduk.itseats.menu.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -54,4 +47,10 @@ public class Menu extends BaseEntity {
     @Column(name = "menu_priority", nullable = false)
     private int menuPriority;
 
+    @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MenuOptionGroup> menuOptionGroups = new ArrayList<>();
+
+    public void addMenuOptionGroup(MenuOptionGroup menuOptionGroup) {
+        menuOptionGroups.add(menuOptionGroup);
+    }
 }

@@ -41,6 +41,10 @@ public class MenuOptionGroup extends BaseEntity {
     @Column(name = "opt_group_priority", nullable = false)
     private int optGroupPriority;
 
-    @OneToMany(mappedBy = "menuOptionGroup", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "menuOptionGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuOption> options;
+
+    public void addOption(MenuOption menuOption) {
+        options.add(menuOption);
+    }
 }
