@@ -77,7 +77,7 @@ public class OwnerStoreService {
     public StoreCreateResponse createStore(String username, StoreCreateRequest request) {
 
         Member member = memberRepository.findByUsername(username)
-                .orElseThrow(()-> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         StoreCategory storeCategory = storeCategoryRepository.
                 findByCategoryName(request.getCategoryName())
