@@ -50,9 +50,7 @@ public class OwnerOrderService {
                 .sum();
 
         Optional<Payment> optionalPayment = paymentRepository.findByOrder(order);
-        String customerRequest = optionalPayment
-                .map(payment -> combineRequests(payment.getStoreRequest(), payment.getRiderRequest()))
-                .orElse("");
+        String customerRequest = optionalPayment.map(Payment::getStoreRequest).orElse("");
 
         String riderPhone = null;
         if (order.getRider() != null && order.getRider().getMember() != null) {
@@ -69,12 +67,5 @@ public class OwnerOrderService {
                 .customerRequest(customerRequest)
                 .riderPhone(riderPhone)
                 .build();
-    }
-
-    private String combineRequests(String storeRequest, String riderRequest) {
-        if (storeRequest == null && riderRequest == null) return "";
-        if (storeRequest == null) return riderRequest;
-        if (riderRequest == null) return storeRequest;
-        return storeRequest + " " + riderRequest;
     }
 }
