@@ -3,6 +3,7 @@ package com.idukbaduk.itseats.order.repository;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.rider.entity.Rider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -88,4 +89,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "LEFT JOIN FETCH r.member rm " +
             "WHERE o.store.storeId = :storeId")
     List<Order> findAllWithMenusByStoreId(@Param("storeId") Long storeId);
+
+    Optional<Order> findByRiderAndOrderId(Rider rider, Long orderId);
 }

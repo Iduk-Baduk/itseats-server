@@ -45,6 +45,10 @@ public class MenuGroupService {
         return createResponse(storeId);
     }
 
+    public MenuGroupResponse getMenuGroup(Long storeId) {
+        return createResponse(storeId);
+    }
+
     private void sortMenuGroupRequest(MenuGroupRequest request) {
         request.getMenuGroups().sort(Comparator.comparing(MenuGroupDto::getMenuGroupPriority));
     }

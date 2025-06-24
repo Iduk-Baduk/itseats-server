@@ -13,4 +13,8 @@ public class MenuGroupDto {
     private String menuGroupName;
     private int menuGroupPriority;
     private boolean menuGroupIsActive;
+
+    public String getDisplayName() {
+        return menuGroupName + (menuGroupIsActive ? "" : " (비활성화)");
+    }
 }

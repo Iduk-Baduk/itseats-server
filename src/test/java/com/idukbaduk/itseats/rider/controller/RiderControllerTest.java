@@ -1,7 +1,6 @@
 package com.idukbaduk.itseats.rider.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.idukbaduk.itseats.global.error.handler.GlobalErrorCode;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.WorkingInfoResponse;
 import com.idukbaduk.itseats.rider.dto.enums.RiderResponse;
@@ -74,5 +73,39 @@ class RiderControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("출/퇴근 여부는 필수값입니다."));
+    }
+
+    @Test
+    @DisplayName("배달 수락 성공")
+    @WithMockUser(username = "testuser")
+    void updateDeliveryStatusAccept_success() throws Exception {
+        // given
+        long orderId = 1L;
+
+        // when & then
+        mockMvc.perform(post("/api/rider/" + orderId + "/accept")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.httpStatus")
+                        .value(RiderResponse.UPDATE_STATUS_ACCEPT_SUCCESS.getHttpStatus().value()))
+                .andExpect(jsonPath("$.message")
+                        .value(RiderResponse.UPDATE_STATUS_ACCEPT_SUCCESS.getMessage()));
+    }
+
+    @Test
+    @DisplayName("배달 완료 성공")
+    @WithMockUser(username = "testuser")
+    void updateDeliveryStatusDone_success() throws Exception {
+        // given
+        long orderId = 1L;
+
+        // when & then
+        mockMvc.perform(post("/api/rider/" + orderId + "/done")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.httpStatus")
+                        .value(RiderResponse.UPDATE_STATUS_DELIVERED_SUCCESS.getHttpStatus().value()))
+                .andExpect(jsonPath("$.message")
+                        .value(RiderResponse.UPDATE_STATUS_DELIVERED_SUCCESS.getMessage()));
     }
 }
