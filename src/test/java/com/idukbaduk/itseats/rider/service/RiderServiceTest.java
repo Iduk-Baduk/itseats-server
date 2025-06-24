@@ -2,6 +2,11 @@ package com.idukbaduk.itseats.rider.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
+import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
+import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.WorkingInfoResponse;
 import com.idukbaduk.itseats.rider.entity.Rider;
@@ -27,9 +32,10 @@ class RiderServiceTest {
 
     @Mock
     private RiderRepository riderRepository;
-
     @Mock
     private MemberRepository memberRepository;
+    @Mock
+    private OrderRepository orderRepository;
 
     @InjectMocks
     private RiderService riderService;
@@ -98,5 +104,66 @@ class RiderServiceTest {
         assertThatThrownBy(() -> riderService.modifyWorking(username, ModifyWorkingRequest.builder().build()))
                 .isInstanceOf(RiderException.class)
                 .hasMessageContaining(RiderErrorCode.RIDER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("주문 상태를 배차 완료 상태로 변경에 성공")
+    void acceptDelivery_success() {
+        // given
+        Order order = Order.builder()
+                .orderId(1L)
+                .orderStatus(OrderStatus.COOKED)
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+
+        // when
+        riderService.acceptDelivery(username, 1L);
+
+        // then
+        assertThat(order.getOrderId()).isEqualTo(1L);
+        assertThat(order.getRider()).isEqualTo(rider);
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.RIDER_READY);
+    }
+
+    @Test
+    @DisplayName("주문이 직전 단계가 아닌 경우 주문 상태를 변경하면 예외 발생")
+    void acceptDelivery_acceptStatusFail() {
+        // given
+        Order order = Order.builder()
+                .orderId(1L)
+                .orderStatus(OrderStatus.COOKING)
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+
+        // when
+        assertThatThrownBy(() -> riderService.acceptDelivery(username, 1L))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL.getMessage());
+    }
+
+    @Test
+    @DisplayName("라이더가 이미 배차된 주문의 주문 상태를 변경하면 예외 발생")
+    void acceptDelivery_alreadyAssignedRider() {
+        // given
+        Order order = Order.builder()
+                .orderId(1L)
+                .orderStatus(OrderStatus.COOKED)
+                .rider(rider)
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+
+        // when
+        assertThatThrownBy(() -> riderService.acceptDelivery(username, 1L))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.ORDER_ALREADY_ASSIGNED.getMessage());
     }
 }

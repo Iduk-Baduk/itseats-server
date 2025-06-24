@@ -7,7 +7,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum RiderResponse implements Response {
 
-    MODIFY_IS_WORKING_SUCCESS(HttpStatus.OK, "출/퇴근 상태전환 성공");
+    MODIFY_IS_WORKING_SUCCESS(HttpStatus.OK, "출/퇴근 상태전환 성공"),
+    UPDATE_DELIVERY_STATUS_ACCEPT_SUCCESS(HttpStatus.OK, "배달 수락 완료");
 
     private final HttpStatus httpStatus;
     private final String message;

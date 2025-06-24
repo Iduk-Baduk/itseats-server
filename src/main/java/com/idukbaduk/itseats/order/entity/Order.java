@@ -4,6 +4,8 @@ import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.rider.entity.Rider;
 import com.idukbaduk.itseats.store.entity.Store;
 import jakarta.persistence.Column;
@@ -47,7 +49,7 @@ public class Order extends BaseEntity {
     private Store store;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rider_id", nullable = false)
+    @JoinColumn(name = "rider_id")
     private Rider rider;
 
     @Column(name = "order_number", nullable = false)
@@ -87,4 +89,16 @@ public class Order extends BaseEntity {
 
     @Column(name = "order_end_time")
     private LocalDateTime orderEndTime;
+
+    public void updateOrderStatusAccept(Rider rider, OrderStatus orderStatus) {
+      if (this.orderStatus != OrderStatus.COOKED) {
+          throw new OrderException(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL);
+      }
+      if (this.rider != null) {
+          throw new OrderException(OrderErrorCode.ORDER_ALREADY_ASSIGNED);
+      }
+
+      this.rider = rider;
+      this.orderStatus = orderStatus;
+    }
 }
