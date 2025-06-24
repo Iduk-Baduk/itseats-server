@@ -121,7 +121,7 @@ class OwnerOrderServiceTest {
     }
 
     @Test
-    @DisplayName("주문이 존재하지 않으면 예외 발생")
+    @DisplayName("주문 수락 시 주문이 존재하지 않으면 예외 발생")
     void acceptOrder_orderNotFound() {
         // given
         Long orderId = 1L;
