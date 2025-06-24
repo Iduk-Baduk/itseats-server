@@ -91,14 +91,14 @@ public class Order extends BaseEntity {
     private LocalDateTime orderEndTime;
 
     public void updateOrderStatusAccept(Rider rider, OrderStatus orderStatus) {
-      if (this.orderStatus != OrderStatus.COOKED) {
+        if (this.orderStatus != OrderStatus.COOKED) {
           throw new OrderException(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL);
-      }
-      if (this.rider != null) {
+        }
+        if (this.rider != null) {
           throw new OrderException(OrderErrorCode.ORDER_ALREADY_ASSIGNED);
-      }
+        }
 
-      this.rider = rider;
-      this.orderStatus = orderStatus;
+        this.rider = rider;
+        this.orderStatus = orderStatus;
     }
 }
