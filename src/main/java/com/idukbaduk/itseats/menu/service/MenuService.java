@@ -3,11 +3,16 @@ package com.idukbaduk.itseats.menu.service;
 import com.idukbaduk.itseats.menu.dto.*;
 import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.entity.MenuGroup;
+import com.idukbaduk.itseats.menu.entity.MenuOption;
+import com.idukbaduk.itseats.menu.entity.MenuOptionGroup;
 import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuGroupRepository;
+import com.idukbaduk.itseats.menu.repository.MenuOptionGroupRepository;
+import com.idukbaduk.itseats.menu.repository.MenuOptionRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
+import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
@@ -15,10 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -27,6 +29,10 @@ import java.util.stream.Collectors;
 public class MenuService {
 
     private final MenuRepository menuRepository;
+    private final MenuGroupRepository menuGroupRepository;
+    private final MenuOptionGroupRepository menuOptionGroupRepository;
+    private final MenuOptionRepository menuOptionRepository;
+    private final StoreRepository storeRepository;
 
     public MenuListResponse getMenuList(Long storeId, MenuListRequest request) {
 
@@ -73,5 +79,95 @@ public class MenuService {
     public Menu getMenu(Long menuId) {
         return menuRepository.findById(menuId)
                 .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+    }
+
+    public MenuResponse createMenu(Long storeId, MenuRequest request) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
+        MenuGroup menuGroup =
+                menuGroupRepository.findMenuGroupByMenuGroupNameAndStore(request.getMenuGroupName(), store)
+                .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_GROUP_NOT_FOUND));
+
+        // 한 메뉴에 대해서 동일한 optGroupName이 존재하면 예외 처리
+        validateDuplicateOptionGroupNames(request);
+
+        Menu menu = Menu.builder()
+                .menuGroup(menuGroup)
+                .menuName(request.getMenuName())
+                .menuPrice(request.getMenuPrice())
+                .menuStatus(request.getMenuStatus())
+                .menuRating(0f)
+                .menuDescription(request.getMenuDescription())
+                .menuPriority(request.getMenuPriority())
+                .build();
+
+        for (MenuOptionGroupDto groupDto : request.getOptionGroups()) {
+            MenuOptionGroup optionGroup = MenuOptionGroup.builder()
+                    .menu(menu)
+                    .optGroupName(groupDto.getOptionGroupName())
+                    .isRequired(groupDto.isRequired())
+                    .minSelect(groupDto.getMinSelect())
+                    .maxSelect(groupDto.getMaxSelect())
+                    .optGroupPriority(groupDto.getPriority())
+                    .build();
+            menu.addMenuOptionGroup(optionGroup);
+
+            for (MenuOptionDto optionDto : groupDto.getOptions()) {
+                MenuOption option = MenuOption.builder()
+                        .menuOptionGroup(optionGroup)
+                        .optionName(optionDto.getOptionName())
+                        .optionPrice(optionDto.getOptionPrice())
+                        .optionStatus(optionDto.getOptionStatus())
+                        .optionPriority(optionDto.getOptionPriority())
+                        .build();
+                optionGroup.addOption(option);
+            }
+        }
+
+        menu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
+
+        // TODO 이미지 처리
+
+        return toResponse(menu);
+    }
+
+    private void validateDuplicateOptionGroupNames(MenuRequest request) {
+        Set<String> nameSet = new HashSet<>();
+        for (MenuOptionGroupDto groupDto : request.getOptionGroups()) {
+            if (!nameSet.add(groupDto.getOptionGroupName())) {
+                throw new MenuException(MenuErrorCode.OPTION_GROUP_NAME_DUPLICATED);
+            }
+        }
+    }
+
+    private MenuResponse toResponse(Menu menu) {
+        return MenuResponse.builder()
+                .menuId(menu.getMenuId())
+                .menuName(menu.getMenuName())
+                .menuDescription(menu.getMenuDescription())
+                .menuPrice(menu.getMenuPrice())
+                .menuStatus(menu.getMenuStatus())
+                .optionGroups(menu.getMenuOptionGroups().stream()
+                        .map(og -> MenuOptionGroupDto.builder()
+                                .optionGroupName(og.getOptGroupName())
+                                .isRequired(og.isRequired())
+                                .minSelect(og.getMinSelect())
+                                .maxSelect(og.getMaxSelect())
+                                .priority(og.getOptGroupPriority())
+                                .options(
+                                        og.getOptions().stream()
+                                                .map(op ->MenuOptionDto.builder()
+                                                        .optionName(op.getOptionName())
+                                                        .optionPrice(op.getOptionPrice())
+                                                        .optionStatus(op.getOptionStatus())
+                                                        .optionPriority(op.getOptionPriority())
+                                                        .build())
+                                                .toList()
+                                )
+                                .build()
+                        )
+                        .toList()
+                )
+                .build();
     }
 }
