@@ -2,6 +2,7 @@ package com.idukbaduk.itseats.order.repository;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.rider.entity.Rider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -80,4 +81,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             """, nativeQuery = true)
     Long countAcceptedOrdersByStoreId(@Param("storeId") Long storeId);
 
+    Optional<Order> findByRiderAndOrderId(Rider rider, Long orderId);
 }
