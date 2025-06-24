@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.order.service;
 
+import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.order.dto.OrderDetailResponse;
 import com.idukbaduk.itseats.order.dto.OrderMenuItemDTO;
 import com.idukbaduk.itseats.order.entity.Order;
@@ -38,20 +39,23 @@ class OwnerOrderServiceTest {
         // given
         Member member = Member.builder().name("구름톤").build();
 
+        Menu menuEntity1 = Menu.builder().menuId(11L).build();
+        Menu menuEntity2 = Menu.builder().menuId(12L).build();
+
         OrderMenu menu1 = OrderMenu.builder()
+                .menu(menuEntity1)
                 .menuName("아메리카노")
                 .quantity(2)
                 .price(4000)
                 .menuOption("샷추가,사이즈업")
-                .menu(null) // 실제 Menu 엔티티가 필요하면 추가
                 .build();
 
         OrderMenu menu2 = OrderMenu.builder()
+                .menu(menuEntity2)
                 .menuName("에스프레소")
                 .quantity(1)
                 .price(1500)
                 .menuOption("")
-                .menu(null)
                 .build();
 
         Order order = Order.builder()
