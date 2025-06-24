@@ -80,4 +80,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             """, nativeQuery = true)
     Long countAcceptedOrdersByStoreId(@Param("storeId") Long storeId);
 
+    @Query("SELECT o FROM Order o " +
+            "JOIN FETCH o.member m " +
+            "JOIN FETCH o.orderMenus om " +
+            "JOIN FETCH om.menu menu " +
+            "WHERE o.orderId = :orderId")
+    Optional<Order> findDetailById(@Param("orderId") Long orderId);
 }
