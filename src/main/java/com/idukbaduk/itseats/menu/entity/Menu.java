@@ -47,6 +47,7 @@ public class Menu extends BaseEntity {
     @Column(name = "menu_priority", nullable = false)
     private int menuPriority;
 
+    @Builder.Default
     @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuOptionGroup> menuOptionGroups = new ArrayList<>();
 
