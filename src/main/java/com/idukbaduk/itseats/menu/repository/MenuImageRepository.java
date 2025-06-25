@@ -11,6 +11,4 @@ public interface MenuImageRepository extends JpaRepository<MenuImage, Long> {
     Optional<MenuImage> findFirstByMenu_MenuIdOrderByDisplayOrderAsc(Long menuId);
 
     List<MenuImage> findByMenu_MenuIdInOrderByMenu_MenuIdAscDisplayOrderAsc(List<Long> menuIds);
-
-    List<MenuImage> findByMenu_MenuIdOrderByDisplayOrderAsc(Long menuId);
 }

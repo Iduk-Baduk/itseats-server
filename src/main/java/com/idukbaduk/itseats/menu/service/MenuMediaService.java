@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,19 +21,24 @@ public class MenuMediaService {
         if (images == null || images.isEmpty())
             return Collections.emptyList();
 
-        int order = 0;
+        // 이미지 파일 유효성 검증
         for (MultipartFile image : images) {
-            // 임시 URL 생성
-            String imageUrl = generateImageUrl(image);
+            if (image.isEmpty()) {
+                throw new IllegalArgumentException("Empty image file is not allowed");
+            }
+        }
 
+        List<MenuImage> menuImages = new ArrayList<>();
+        for (int i = 0; i < images.size(); i++) {
+            String imageUrl = generateImageUrl(images.get(i));
             MenuImage menuImage = MenuImage.builder()
                     .menu(menu)
                     .imageUrl(imageUrl)
-                    .displayOrder(order++)
+                    .displayOrder(i)
                     .build();
-            menuImageRepository.save(menuImage);
+            menuImages.add(menuImage);
         }
-        return menuImageRepository.findByMenu_MenuIdOrderByDisplayOrderAsc(menu.getMenuId());
+        return menuImageRepository.saveAll(menuImages);
     }
 
     private String generateImageUrl(MultipartFile file) {
