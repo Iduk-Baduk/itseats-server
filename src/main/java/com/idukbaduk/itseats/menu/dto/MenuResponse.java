@@ -21,6 +21,6 @@ public class MenuResponse {
     private MenuStatus menuStatus;
     private String menuGroupName;
     private int menuPriority;
-    // TODO images 처리
+    private List<String> images;
     List<MenuOptionGroupDto> optionGroups;
 }

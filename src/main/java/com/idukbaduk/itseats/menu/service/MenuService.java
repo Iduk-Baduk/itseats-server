@@ -1,10 +1,7 @@
 package com.idukbaduk.itseats.menu.service;
 
 import com.idukbaduk.itseats.menu.dto.*;
-import com.idukbaduk.itseats.menu.entity.Menu;
-import com.idukbaduk.itseats.menu.entity.MenuGroup;
-import com.idukbaduk.itseats.menu.entity.MenuOption;
-import com.idukbaduk.itseats.menu.entity.MenuOptionGroup;
+import com.idukbaduk.itseats.menu.entity.*;
 import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
@@ -32,8 +29,7 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
     private final MenuGroupRepository menuGroupRepository;
-    private final MenuOptionGroupRepository menuOptionGroupRepository;
-    private final MenuOptionRepository menuOptionRepository;
+    private final MenuMediaService menuMediaService;
 
     public MenuListResponse getMenuList(Long storeId, MenuListRequest request) {
 
@@ -90,8 +86,9 @@ public class MenuService {
         createAndAttachOptions(menu, request.getOptionGroups());
         Menu savedMenu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
 
-        // TODO 이미지 저장
-        return toResponse(savedMenu);
+        List<MenuImage> images = menuMediaService.createMenuImages(savedMenu, request.getImages());
+
+        return toResponse(savedMenu, images);
     }
 
     private MenuGroup findMenuGroup(Long storeId, String menuGroupName) {
@@ -146,13 +143,16 @@ public class MenuService {
         }
     }
 
-    private MenuResponse toResponse(Menu menu) {
+    private MenuResponse toResponse(Menu menu, List<MenuImage> images) {
         return MenuResponse.builder()
                 .menuId(menu.getMenuId())
                 .menuName(menu.getMenuName())
                 .menuDescription(menu.getMenuDescription())
                 .menuPrice(menu.getMenuPrice())
                 .menuStatus(menu.getMenuStatus())
+                .menuGroupName(menu.getMenuGroup().getMenuGroupName())
+                .menuPriority(menu.getMenuPriority())
+                .images(images.stream().map(MenuImage::getImageUrl).toList())
                 .optionGroups(menu.getMenuOptionGroups().stream()
                         .map(og -> MenuOptionGroupDto.builder()
                                 .optionGroupName(og.getOptGroupName())
