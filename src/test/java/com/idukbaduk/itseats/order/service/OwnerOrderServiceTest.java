@@ -2,9 +2,12 @@ package com.idukbaduk.itseats.order.service;
 
 import com.idukbaduk.itseats.order.dto.OrderReceptionDTO;
 import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
+import com.idukbaduk.itseats.order.dto.OrderRejectResponse;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
@@ -20,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -97,5 +102,38 @@ class OwnerOrderServiceTest {
 
         List<OrderReceptionResponse> result = ownerOrderService.getOrders(1L);
         assertThat(result.get(0).getCustomerRequest()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("주문 거절 성공")
+    void rejectOrder_success() {
+        // given
+        Long orderId = 1L;
+        String reason = "재고 부족";
+        Order order = mock(Order.class);
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+        given(order.getOrderStatus()).willReturn(OrderStatus.WAITING);
+
+        // when
+        OrderRejectResponse response = ownerOrderService.rejectOrder(orderId, reason);
+
+        // then
+        assertThat(response.isSuccess()).isTrue();
+        assertThat(response.getReason()).isEqualTo(reason);
+        then(order).should().updateStatus(OrderStatus.REJECTED);
+    }
+
+    @Test
+    @DisplayName("주문 거절 시 주문이 존재하지 않으면 예외 발생")
+    void rejectOrder_orderNotFound() {
+        // given: 주문이 존재하지 않음
+        Long orderId = 1L;
+        String reason = "재고 부족";
+        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.rejectOrder(orderId, reason))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
 }
