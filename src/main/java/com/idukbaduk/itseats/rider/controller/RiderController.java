@@ -41,6 +41,14 @@ public class RiderController {
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_ACCEPT_SUCCESS);
     }
 
+    @PostMapping("/{orderId}/pickup")
+    public ResponseEntity<BaseResponse> updateDeliveryStatusPickup(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("orderId") Long orderId) {
+        riderService.updateOrderStatusAfterAccept(userDetails.getUsername(), orderId, OrderStatus.DELIVERING);
+        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_PICKUP_SUCCESS);
+    }
+
     @PostMapping("/{orderId}/done")
     public ResponseEntity<BaseResponse> updateDeliveryStatusDone(
             @AuthenticationPrincipal UserDetails userDetails,
