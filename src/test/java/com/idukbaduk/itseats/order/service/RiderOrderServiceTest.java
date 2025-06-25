@@ -327,7 +327,7 @@ class RiderOrderServiceTest {
         // given
         Order order = Order.builder()
                 .orderId(1L)
-                .orderStatus(OrderStatus.RIDER_READY)
+                .orderStatus(OrderStatus.ARRIVED)
                 .rider(rider)
                 .build();
 
