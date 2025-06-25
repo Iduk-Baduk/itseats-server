@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -41,6 +42,11 @@ public class MenuOptionGroup extends BaseEntity {
     @Column(name = "opt_group_priority", nullable = false)
     private int optGroupPriority;
 
-    @OneToMany(mappedBy = "menuOptionGroup", fetch = FetchType.LAZY)
-    private List<MenuOption> options;
+    @Builder.Default
+    @OneToMany(mappedBy = "menuOptionGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MenuOption> options = new ArrayList<>();
+
+    public void addOption(MenuOption menuOption) {
+        options.add(menuOption);
+    }
 }

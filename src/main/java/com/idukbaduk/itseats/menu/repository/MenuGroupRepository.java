@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MenuGroupRepository extends JpaRepository<MenuGroup, Long> {
 
@@ -23,4 +24,6 @@ public interface MenuGroupRepository extends JpaRepository<MenuGroup, Long> {
             "WHERE g.store.storeId = :storeId " +
             "ORDER BY g.menuGroupPriority")
     List<MenuGroup> findMenuGroupsByStoreId(@Param("storeId") Long storeId);
+
+    Optional<MenuGroup> findMenuGroupByMenuGroupNameAndStore_StoreId(String menuGroupName, Long storeId);
 }
