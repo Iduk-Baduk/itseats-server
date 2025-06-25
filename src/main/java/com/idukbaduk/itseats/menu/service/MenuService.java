@@ -10,6 +10,7 @@ import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.Set;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MenuService {
 
     private final MenuRepository menuRepository;
@@ -73,6 +75,7 @@ public class MenuService {
                 .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
     }
 
+    @Transactional
     public MenuResponse createMenu(Long storeId, MenuRequest request, List<MultipartFile> imageFiles) {
         MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
         validateDuplicateOptionGroupNames(request.getOptionGroups());
@@ -87,6 +90,7 @@ public class MenuService {
         return toResponse(savedMenu, images);
     }
 
+    @Transactional
     public MenuResponse updateMenu(Long storeId, Long menuId, MenuRequest request, List<MultipartFile> imageFiles) {
         Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
         MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
@@ -100,6 +104,12 @@ public class MenuService {
         List<MenuImage> images = menuMediaService.updateMenuImages(savedMenu, imageFiles);
 
         return toResponse(savedMenu, images);
+    }
+
+    @Transactional
+    public void deleteMenu(Long menuId) {
+        Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+        menuRepository.delete(menu); // is_deleted = true 설정 (@SQLDelete 이용)
     }
 
     private MenuGroup findMenuGroup(Long storeId, String menuGroupName) {

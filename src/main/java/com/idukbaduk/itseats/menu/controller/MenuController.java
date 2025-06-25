@@ -61,6 +61,12 @@ public class MenuController {
         );
     }
 
+    @DeleteMapping(value = "/{storeId}/menus/{menuId}")
+    public ResponseEntity<BaseResponse> deleteMenu(@PathVariable Long storeId, @PathVariable Long menuId) {
+        menuService.deleteMenu(menuId);
+        return BaseResponse.toResponseEntity(MenuResponse.DELETE_MENU_SUCCESS);
+    }
+
     @PostMapping("/{storeId}/menu-groups")
     public ResponseEntity<BaseResponse> saveMenuGroup(
             @PathVariable Long storeId,
