@@ -7,6 +7,7 @@ import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.dto.OrderDetailsResponse;
 import com.idukbaduk.itseats.order.dto.OrderItemDTO;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
@@ -72,5 +73,31 @@ public class RiderOrderService {
                         .options(orderMenu.getMenuOption())
                         .build())
                 .toList();
+    }
+
+    @Transactional
+    public void acceptDelivery(String username, Long orderId) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Rider rider = riderRepository.findByMember(member)
+                .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        order.updateOrderStatusAccept(rider, OrderStatus.RIDER_READY);
+    }
+
+    @Transactional
+    public void updateOrderStatusAfterAccept(String username, Long orderId, OrderStatus orderStatus) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Rider rider = riderRepository.findByMember(member)
+                .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
+
+        Order order = orderRepository.findByRiderAndOrderId(rider, orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        order.updateStatus(orderStatus);
     }
 }
