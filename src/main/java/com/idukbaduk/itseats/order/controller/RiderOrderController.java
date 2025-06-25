@@ -40,11 +40,19 @@ public class RiderOrderController {
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_ACCEPT_SUCCESS);
     }
 
+    @PostMapping("/{orderId}/arrived")
+    public ResponseEntity<BaseResponse> updateDeliveryStatusArrived(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("orderId") Long orderId) {
+        riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.ARRIVED);
+        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_ARRIVED_SUCCESS);
+    }
+
     @PostMapping("/{orderId}/pickup")
     public ResponseEntity<BaseResponse> updateDeliveryStatusPickup(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
-        riderOrderService.updateOrderStatusAfterAccept(userDetails.getUsername(), orderId, OrderStatus.DELIVERING);
+        riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.DELIVERING);
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_PICKUP_SUCCESS);
     }
 
@@ -52,7 +60,7 @@ public class RiderOrderController {
     public ResponseEntity<BaseResponse> updateDeliveryStatusDone(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
-        riderOrderService.updateOrderStatusAfterAccept(userDetails.getUsername(), orderId, OrderStatus.DELIVERED);
+        riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.DELIVERED);
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_DELIVERED_SUCCESS);
     }
 }
