@@ -17,6 +17,7 @@ import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MenuService {
@@ -32,7 +34,6 @@ public class MenuService {
     private final MenuGroupRepository menuGroupRepository;
     private final MenuOptionGroupRepository menuOptionGroupRepository;
     private final MenuOptionRepository menuOptionRepository;
-    private final StoreRepository storeRepository;
 
     public MenuListResponse getMenuList(Long storeId, MenuListRequest request) {
 
@@ -82,10 +83,8 @@ public class MenuService {
     }
 
     public MenuResponse createMenu(Long storeId, MenuRequest request) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
         MenuGroup menuGroup =
-                menuGroupRepository.findMenuGroupByMenuGroupNameAndStore(request.getMenuGroupName(), store)
+                menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(request.getMenuGroupName(), storeId)
                 .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_GROUP_NOT_FOUND));
 
         // 한 메뉴에 대해서 동일한 optGroupName이 존재하면 예외 처리

@@ -1,15 +1,13 @@
 package com.idukbaduk.itseats.menu.dto;
 
 import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,6 +18,6 @@ public class MenuRequest {
     private MenuStatus menuStatus;
     private String menuGroupName;
     private int menuPriority;
-    private List<MultipartFile> images;
     List<MenuOptionGroupDto> optionGroups;
+    List<MultipartFile> images;
 }

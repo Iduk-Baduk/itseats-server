@@ -1,16 +1,17 @@
 package com.idukbaduk.itseats.menu.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.menu.dto.MenuGroupRequest;
-import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
-import com.idukbaduk.itseats.menu.dto.MenuListRequest;
-import com.idukbaduk.itseats.menu.dto.MenuListResponse;
+import com.idukbaduk.itseats.menu.dto.*;
 import com.idukbaduk.itseats.menu.dto.enums.MenuResponse;
 import com.idukbaduk.itseats.menu.service.MenuGroupService;
 import com.idukbaduk.itseats.menu.service.MenuService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/owner")
@@ -25,8 +26,24 @@ public class MenuController {
             @PathVariable Long storeId,
             @RequestBody MenuListRequest request
     ) {
-        MenuListResponse data = menuService.getMenuList(storeId, request);
-        return BaseResponse.toResponseEntity(MenuResponse.GET_MENU_LIST_SUCCESS, data);
+        return BaseResponse.toResponseEntity(
+                MenuResponse.GET_MENU_LIST_SUCCESS,
+                menuService.getMenuList(storeId, request)
+        );
+    }
+
+    @PostMapping(value = "/{storeId}/menus/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<BaseResponse> createMenu(
+            @PathVariable Long storeId,
+            @ModelAttribute MenuRequest request
+            ) {
+        // TODO @Valid 검증 넣기
+        // TODO 이미지 전송 엔드포인트 분리
+
+        return BaseResponse.toResponseEntity(
+                MenuResponse.CREATE_MENU_SUCCESS,
+                menuService.createMenu(storeId, request)
+        );
     }
 
     @PostMapping("/{storeId}/menu-groups")
@@ -34,8 +51,10 @@ public class MenuController {
             @PathVariable Long storeId,
             @RequestBody MenuGroupRequest request
     ) {
-        MenuGroupResponse data = menuGroupService.saveMenuGroup(storeId, request);
-        return BaseResponse.toResponseEntity(MenuResponse.SAVE_MENU_GROUP_SUCCESS, data);
+        return BaseResponse.toResponseEntity(
+                MenuResponse.SAVE_MENU_GROUP_SUCCESS,
+                menuGroupService.saveMenuGroup(storeId, request)
+        );
     }
 
     @GetMapping("/{storeId}/menu-groups")
