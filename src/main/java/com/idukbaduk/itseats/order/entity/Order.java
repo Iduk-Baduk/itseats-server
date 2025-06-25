@@ -103,7 +103,7 @@ public class Order extends BaseEntity {
     }
 
     public void reject(String reason) {
-        orderStatus.validateTransitionFrom(this.orderStatus);
+        OrderStatus.REJECTED.validateTransitionFrom(this.orderStatus);
         this.orderStatus = OrderStatus.REJECTED;
         this.rejectReason = reason;
     }
