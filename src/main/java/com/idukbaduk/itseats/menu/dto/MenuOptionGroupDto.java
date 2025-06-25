@@ -25,7 +25,7 @@ public class MenuOptionGroupDto {
     @Min(value = 1, message = "최대 선택 수는 1 이상이어야 합니다.")
     private int maxSelect;
 
-    @Min(value = 0, message = "옵셥 그룹 우선순위는 0 이상이어야 합니다.")
+    @Min(value = 0, message = "옵션 그룹 우선순위는 0 이상이어야 합니다.")
     private int priority;
 
     @NotEmpty(message = "옵션 목록은 하나 이상 포함되어야 합니다.")

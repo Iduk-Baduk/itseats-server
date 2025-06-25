@@ -80,7 +80,8 @@ public class MenuService {
 
     public MenuResponse createMenu(Long storeId, MenuRequest request) {
         MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
-        validateDuplicateOptionGroupNames(request);
+        validateDuplicateOptionGroupNames(request.getOptionGroups());
+        validateOptionSelectRangeValid(request.getOptionGroups());
 
         Menu menu = createBaseMenu(request, menuGroup);
         createAndAttachOptions(menu, request.getOptionGroups());
@@ -96,12 +97,21 @@ public class MenuService {
                 .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_GROUP_NOT_FOUND));
     }
 
-    private void validateDuplicateOptionGroupNames(MenuRequest request) {
+    private void validateDuplicateOptionGroupNames(List<MenuOptionGroupDto> optionGroups) {
         // 한 메뉴에 대해서 동일한 optGroupName이 존재하면 예외 처리
         Set<String> nameSet = new HashSet<>();
-        for (MenuOptionGroupDto groupDto : request.getOptionGroups()) {
+        for (MenuOptionGroupDto groupDto : optionGroups) {
             if (!nameSet.add(groupDto.getOptionGroupName())) {
                 throw new MenuException(MenuErrorCode.OPTION_GROUP_NAME_DUPLICATED);
+            }
+        }
+    }
+
+    private void validateOptionSelectRangeValid(List<MenuOptionGroupDto> optionGroups) {
+        // 옵션 그룹의 maxSelect가 minSelect보다 작으면 예외 처리
+        for (MenuOptionGroupDto groupDto : optionGroups) {
+            if (groupDto.getMaxSelect() < groupDto.getMinSelect()) {
+                throw new MenuException(MenuErrorCode.OPTION_GROUP_RANGE_INVALID);
             }
         }
     }

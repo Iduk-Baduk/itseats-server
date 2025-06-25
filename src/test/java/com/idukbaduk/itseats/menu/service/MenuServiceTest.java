@@ -231,5 +231,23 @@ class MenuServiceTest {
                 .hasMessageContaining(MenuErrorCode.OPTION_GROUP_NAME_DUPLICATED.getMessage());
     }
 
+    @Test
+    @DisplayName("메뉴 추가시 옵션 최소 선택이 최대 선택보다 크면 예외 발생")
+    void createMenu_optionGroupRangeInvalid() {
+        // given
+        Long storeId = 1L;
+        when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
+                .thenReturn(Optional.ofNullable(MenuGroup.builder().build()));
+        MenuRequest menuRequest = MenuRequest.builder()
+                .menuGroupName("그룹")
+                .optionGroups(List.of(
+                        MenuOptionGroupDto.builder().optionGroupName("사이드").maxSelect(1).minSelect(2).build()
+                ))
+                .build();
 
+        // when & then
+        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.OPTION_GROUP_RANGE_INVALID.getMessage());
+    }
 }
