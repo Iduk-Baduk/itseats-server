@@ -1,15 +1,11 @@
 package com.idukbaduk.itseats.order.service;
 
-import com.idukbaduk.itseats.order.dto.OrderDetailResponse;
-import com.idukbaduk.itseats.order.dto.OrderMenuItemDTO;
+import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
-import com.idukbaduk.itseats.order.dto.OrderAcceptResponse;
-import com.idukbaduk.itseats.order.dto.OrderReceptionDTO;
-import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
@@ -128,5 +124,15 @@ public class OwnerOrderService {
         order.updateStatus(OrderStatus.ACCEPTED);
 
         return new OrderAcceptResponse(true);
+    }
+
+    @Transactional
+    public OrderCookedResponse markAsCooked(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        order.updateStatus(OrderStatus.COOKED);
+
+        return new OrderCookedResponse(true);
     }
 }

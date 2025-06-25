@@ -1,11 +1,7 @@
 package com.idukbaduk.itseats.order.service;
 
 import com.idukbaduk.itseats.menu.entity.Menu;
-import com.idukbaduk.itseats.order.dto.OrderDetailResponse;
-import com.idukbaduk.itseats.order.dto.OrderMenuItemDTO;
-import com.idukbaduk.itseats.order.dto.OrderAcceptResponse;
-import com.idukbaduk.itseats.order.dto.OrderReceptionDTO;
-import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
+import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
@@ -100,7 +96,7 @@ class OwnerOrderServiceTest {
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
-    
+
     @Test
     @DisplayName("가게 주문 목록 정상 조회")
     void getOrders_success() {
@@ -190,6 +186,35 @@ class OwnerOrderServiceTest {
 
         // when & then
         assertThatThrownBy(() -> ownerOrderService.acceptOrder(orderId))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("조리 완료 성공")
+    void markAsCooked_success() {
+        // given
+        Long orderId = 1L;
+        Order order = mock(Order.class);
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        // when
+        OrderCookedResponse response = ownerOrderService.markAsCooked(orderId);
+
+        // then
+        assertThat(response.isSuccess()).isTrue();
+        then(order).should().updateStatus(OrderStatus.COOKED);
+    }
+
+    @Test
+    @DisplayName("조리 완료 상태 변경 시 주문이 존재하지 않으면 예외 발생")
+    void markAsCooked_orderNotFound() {
+        // given
+        Long orderId = 1L;
+        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.markAsCooked(orderId))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }

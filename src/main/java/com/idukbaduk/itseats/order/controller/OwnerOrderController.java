@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.order.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import com.idukbaduk.itseats.order.dto.OrderCookedResponse;
 import com.idukbaduk.itseats.order.dto.OrderDetailResponse;
 import com.idukbaduk.itseats.order.dto.OrderAcceptResponse;
 import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
@@ -36,5 +37,11 @@ public class OwnerOrderController {
     public ResponseEntity<BaseResponse> acceptOrder(@PathVariable("orderId") Long orderId) {
         OrderAcceptResponse response = ownerOrderService.acceptOrder(orderId);
         return BaseResponse.toResponseEntity(OrderResponse.ACCEPT_ORDER_SUCCESS, response);
+    }
+
+    @PostMapping("/orders/{orderId}/ready")
+    public ResponseEntity<BaseResponse> cookingComplete(@PathVariable("orderId") Long orderId) {
+        OrderCookedResponse response = ownerOrderService.markAsCooked(orderId);
+        return BaseResponse.toResponseEntity(OrderResponse.COOKED_SUCCESS, response);
     }
 }

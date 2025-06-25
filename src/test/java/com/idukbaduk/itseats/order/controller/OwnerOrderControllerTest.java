@@ -2,11 +2,8 @@ package com.idukbaduk.itseats.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idukbaduk.itseats.global.error.handler.GlobalExceptionHandler;
-import com.idukbaduk.itseats.order.dto.OrderDetailResponse;
-import com.idukbaduk.itseats.order.dto.OrderMenuItemDTO;
+import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.order.dto.OrderAcceptResponse;
-import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
 import com.idukbaduk.itseats.order.dto.enums.OrderResponse;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
@@ -100,7 +97,7 @@ class OwnerOrderControllerTest {
                 .andExpect(jsonPath("$.status").value(OrderErrorCode.ORDER_NOT_FOUND.getStatus().value()))
                 .andExpect(jsonPath("$.message").value(OrderErrorCode.ORDER_NOT_FOUND.getMessage()));
     }
-    
+
     @DisplayName("주문 접수 정보 조회 성공")
     void getOrders_success() throws Exception {
         OrderReceptionResponse response = OrderReceptionResponse.builder()
@@ -168,6 +165,39 @@ class OwnerOrderControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/owner/orders/{orderId}/accept", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(OrderErrorCode.ORDER_NOT_FOUND.getStatus().value()))
+                .andExpect(jsonPath("$.message").value(OrderErrorCode.ORDER_NOT_FOUND.getMessage()));
+    }
+
+    @Test
+    @DisplayName("조리 완료 성공 응답")
+    void markAsCooked_success() throws Exception {
+        // given
+        Long orderId = 1L;
+        given(ownerOrderService.markAsCooked(orderId))
+                .willReturn(new OrderCookedResponse(true));
+
+        // when & then
+        mockMvc.perform(post("/api/owner/orders/{orderId}/ready", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.httpStatus").value(OrderResponse.COOKED_SUCCESS.getHttpStatus().value()))
+                .andExpect(jsonPath("$.message").value(OrderResponse.COOKED_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.data.success").value(true));
+    }
+
+    @Test
+    @DisplayName("조리 완료 상태 변경 시 주문이 존재하지 않으면 에러 응답")
+    void markAsCooked_orderNotFound() throws Exception {
+        // given
+        Long orderId = 2L;
+        given(ownerOrderService.markAsCooked(orderId))
+                .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        // when & then
+        mockMvc.perform(post("/api/owner/orders/{orderId}/ready", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(OrderErrorCode.ORDER_NOT_FOUND.getStatus().value()))
