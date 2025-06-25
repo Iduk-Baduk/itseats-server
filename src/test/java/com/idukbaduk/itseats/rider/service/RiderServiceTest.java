@@ -220,4 +220,25 @@ class RiderServiceTest {
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
+
+    @Test
+    @DisplayName("주문 상태를 배달 중 상태로 변경에 성공")
+    void updateOrderStatusAfterAccept_delivering_success() {
+        // given
+        Order order = Order.builder()
+                .orderId(1L)
+                .orderStatus(OrderStatus.RIDER_READY)
+                .rider(rider)
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
+
+        // when
+        riderService.updateOrderStatusAfterAccept(username, 1L, OrderStatus.DELIVERING);
+
+        // then
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.DELIVERING);
+    }
 }

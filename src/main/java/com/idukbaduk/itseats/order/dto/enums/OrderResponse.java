@@ -11,7 +11,8 @@ public enum OrderResponse implements Response {
     GET_ORDER_STATUS_SUCCESS(HttpStatus.OK, "주문 현황 조회 성공"),
     GET_STORE_ORDERS_SUCCESS(HttpStatus.OK, "주문 접수 조회 성공"),
     ACCEPT_ORDER_SUCCESS(HttpStatus.OK, "주문 수락 성공"),
-    ;
+    GET_RIDER_ORDER_DETAILS_SUCCESS(HttpStatus.OK, "주문 정보 조회 성공");
+
 
     private final HttpStatus httpStatus;
     private final String message;
