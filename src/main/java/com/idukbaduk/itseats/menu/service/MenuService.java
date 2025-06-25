@@ -163,27 +163,32 @@ public class MenuService {
                 .menuGroupName(menu.getMenuGroup().getMenuGroupName())
                 .menuPriority(menu.getMenuPriority())
                 .images(images.stream().map(MenuImage::getImageUrl).toList())
-                .optionGroups(menu.getMenuOptionGroups().stream()
-                        .map(og -> MenuOptionGroupDto.builder()
-                                .optionGroupName(og.getOptGroupName())
-                                .isRequired(og.isRequired())
-                                .minSelect(og.getMinSelect())
-                                .maxSelect(og.getMaxSelect())
-                                .priority(og.getOptGroupPriority())
-                                .options(
-                                        og.getOptions().stream()
-                                                .map(op ->MenuOptionDto.builder()
-                                                        .optionName(op.getOptionName())
-                                                        .optionPrice(op.getOptionPrice())
-                                                        .optionStatus(op.getOptionStatus())
-                                                        .optionPriority(op.getOptionPriority())
-                                                        .build())
-                                                .toList()
-                                )
-                                .build()
-                        )
-                        .toList()
-                )
+                .optionGroups(optionGroupsToDto(menu.getMenuOptionGroups()))
                 .build();
+    }
+
+    private List<MenuOptionGroupDto> optionGroupsToDto(List<MenuOptionGroup> optionGroups) {
+        return optionGroups.stream()
+                .map(og -> MenuOptionGroupDto.builder()
+                        .optionGroupName(og.getOptGroupName())
+                        .isRequired(og.isRequired())
+                        .minSelect(og.getMinSelect())
+                        .maxSelect(og.getMaxSelect())
+                        .priority(og.getOptGroupPriority())
+                        .options(optionToDto(og.getOptions()))
+                        .build()
+                )
+                .toList();
+    }
+
+    private List<MenuOptionDto> optionToDto(List<MenuOption> options) {
+        return options.stream()
+                .map(op ->MenuOptionDto.builder()
+                        .optionName(op.getOptionName())
+                        .optionPrice(op.getOptionPrice())
+                        .optionStatus(op.getOptionStatus())
+                        .optionPriority(op.getOptionPriority())
+                        .build())
+                .toList();
     }
 }
