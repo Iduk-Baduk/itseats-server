@@ -37,9 +37,7 @@ public class MenuController {
     public ResponseEntity<BaseResponse> createMenu(
             @PathVariable Long storeId,
             @Valid @ModelAttribute MenuRequest request
-            ) {
-        // TODO 이미지 전송 엔드포인트 분리
-
+    ) {
         return BaseResponse.toResponseEntity(
                 MenuResponse.CREATE_MENU_SUCCESS,
                 menuService.createMenu(storeId, request)
