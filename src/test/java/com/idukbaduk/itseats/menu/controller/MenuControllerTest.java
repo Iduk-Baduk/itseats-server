@@ -1,34 +1,32 @@
 package com.idukbaduk.itseats.menu.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idukbaduk.itseats.menu.dto.MenuGroupDto;
 import com.idukbaduk.itseats.menu.dto.MenuGroupRequest;
 import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
-import com.idukbaduk.itseats.menu.dto.enums.MenuResponse;
-import com.idukbaduk.itseats.menu.entity.Menu;
-import com.idukbaduk.itseats.menu.entity.MenuGroup;
+import com.idukbaduk.itseats.menu.dto.MenuResponse;
 import com.idukbaduk.itseats.menu.service.MenuGroupService;
 import com.idukbaduk.itseats.menu.service.MenuService;
-import com.nimbusds.common.contenttype.ContentType;
+import com.idukbaduk.itseats.store.dto.enums.StoreResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.idukbaduk.itseats.menu.dto.enums.MenuResponse.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,6 +43,59 @@ class MenuControllerTest {
     private MenuService menuService;
     @MockitoBean
     private MenuGroupService menuGroupService;
+
+    @DisplayName("메뉴 추가 성공")
+    @Test
+    void createMenu_success() throws Exception {
+        // given
+        MenuResponse response = MenuResponse.builder()
+                .menuId(1L)
+                .menuName("아메리카노")
+                .menuPrice(2000L)
+                .menuGroupName("음료")
+                .images(List.of("s3 link"))
+                .build();
+        when(menuService.createMenu(anyLong(), any())).thenReturn(response);
+
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "images", "test.jpg", "image/jpeg", "test image content".getBytes());
+
+        // when & then
+        mockMvc.perform(multipart("/api/owner/1/menus/new")
+                .file(imageFile)
+                .param("menuName", "아메리카노")
+                .param("menuDescription", "평범한 아메리카노입니다.")
+                .param("menuPrice", "2000")
+                .param("menuStatus", "ON_SALE")
+                .param("menuGroupName", "음료")
+                .param("menuPriority", "1")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .accept(MediaType.APPLICATION_JSON)
+                .characterEncoding("UTF-8"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.httpStatus").value(201))
+                .andExpect(jsonPath("$.message").value(CREATE_MENU_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.data.menuId").value("1"))
+                .andExpect(jsonPath("$.data.menuName").value("아메리카노"));
+    }
+
+    @DisplayName("메뉴 추가 요청 검증 실패 - 메뉴 이름 없음")
+    @Test
+    void createMenu_notValid() throws Exception {
+        // when & then
+        mockMvc.perform(multipart("/api/owner/1/menus/new")
+                        .param("menuDescription", "평범한 아메리카노입니다.")
+                        .param("menuPrice", "2000")
+                        .param("menuStatus", "ON_SALE")
+                        .param("menuGroupName", "음료")
+                        .param("menuPriority", "1")
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("메뉴 이름은 필수입니다."));
+    }
 
     @DisplayName("메뉴 그룹 조회 성공")
     @Test
@@ -64,7 +115,7 @@ class MenuControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.httpStatus").value(200))
-                .andExpect(jsonPath("$.message").value(MenuResponse.GET_MENU_GROUP_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.message").value(GET_MENU_GROUP_SUCCESS.getMessage()))
                 .andExpect(jsonPath("$.data.menuGroups[0].displayName").value("음료"))
                 .andExpect(jsonPath("$.data.menuGroups[1].menuGroupName").value("샌드위치"))
                 .andExpect(jsonPath("$.data.menuGroups[1].displayName").value("샌드위치 (비활성화)"));
@@ -95,7 +146,7 @@ class MenuControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.httpStatus").value(200))
-                .andExpect(jsonPath("$.message").value(MenuResponse.SAVE_MENU_GROUP_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.message").value(SAVE_MENU_GROUP_SUCCESS.getMessage()))
                 .andExpect(jsonPath("$.data.menuGroups[0].menuGroupName").value("음료"));
     }
 
