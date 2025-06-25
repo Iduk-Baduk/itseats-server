@@ -2,6 +2,7 @@ package com.idukbaduk.itseats.store.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.FavoriteRepository;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
@@ -45,12 +46,12 @@ class StoreServiceTest {
 
     @Mock
     private FavoriteRepository favoriteRepository;
-
-    @Mock
-    private MemberService memberService;
     
     @Mock
     private StoreCategoryRepository storeCategoryRepository;
+
+    @Mock
+    private MemberRepository memberRepository;
 
 
     @InjectMocks
@@ -203,7 +204,7 @@ class StoreServiceTest {
                 StoreImage.builder().store(store).imageUrl("s3_url2").displayOrder(2).build()
         );
 
-        when(memberService.getMemberByUsername(member.getUsername())).thenReturn(member);
+        when(memberRepository.findByUsername(member.getUsername())).thenReturn(Optional.of(member));
         when(storeRepository.findByStoreIdAndDeletedFalse(storeId)).thenReturn(Optional.of(store));
         when(favoriteRepository.existsByMemberAndStore(member, store)).thenReturn(true);
         when(reviewRepository.findAverageRatingByStoreId(storeId)).thenReturn(4.9);
@@ -233,7 +234,7 @@ class StoreServiceTest {
                 .username("testUser")
                 .build();
 
-        when(memberService.getMemberByUsername(member.getUsername())).thenReturn(member);
+        when(memberRepository.findByUsername(member.getUsername())).thenReturn(Optional.of(member));
 
         when(storeRepository.findByStoreIdAndDeletedFalse(storeId)).thenReturn(Optional.empty());
 

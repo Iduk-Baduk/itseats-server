@@ -1,5 +1,8 @@
 package com.idukbaduk.itseats.order.service;
 
+import com.idukbaduk.itseats.menu.entity.Menu;
+import com.idukbaduk.itseats.order.dto.OrderDetailResponse;
+import com.idukbaduk.itseats.order.dto.OrderMenuItemDTO;
 import com.idukbaduk.itseats.order.dto.OrderAcceptResponse;
 import com.idukbaduk.itseats.order.dto.OrderReceptionDTO;
 import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
@@ -9,6 +12,7 @@ import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -40,6 +44,63 @@ class OwnerOrderServiceTest {
     @InjectMocks
     private OwnerOrderService ownerOrderService;
 
+    @Test
+    @DisplayName("주문 상세 조회 성공")
+    void getOrderDetail_success() {
+        // given
+        Member member = Member.builder().name("구름톤").build();
+
+        Menu menuEntity1 = Menu.builder().menuId(11L).build();
+        Menu menuEntity2 = Menu.builder().menuId(12L).build();
+
+        OrderMenu menu1 = OrderMenu.builder()
+                .menu(menuEntity1)
+                .menuName("아메리카노")
+                .quantity(2)
+                .price(4000)
+                .menuOption("샷추가,사이즈업")
+                .build();
+
+        OrderMenu menu2 = OrderMenu.builder()
+                .menu(menuEntity2)
+                .menuName("에스프레소")
+                .quantity(1)
+                .price(1500)
+                .menuOption("")
+                .build();
+
+        Order order = Order.builder()
+                .orderId(3L)
+                .orderNumber("GRMT0N")
+                .member(member)
+                .orderStatus(OrderStatus.WAITING)
+                .orderReceivedTime(LocalDateTime.of(2025, 5, 5, 0, 0))
+                .orderMenus(List.of(menu1, menu2))
+                .build();
+
+        when(orderRepository.findDetailById(3L)).thenReturn(Optional.of(order));
+
+        // when
+        OrderDetailResponse response = ownerOrderService.getOrderDetail(3L);
+
+        // then
+        assertThat(response.getOrderId()).isEqualTo(3L);
+        assertThat(response.getOrderNumber()).isEqualTo("GRMT0N");
+        assertThat(response.getMemberName()).isEqualTo("구름톤");
+        assertThat(response.getOrderStatus()).isEqualTo("WAITING");
+        assertThat(response.getMenuItems()).hasSize(2);
+        assertThat(response.getMenuItems().get(0).getMenuName()).isEqualTo("아메리카노");
+    }
+
+    @Test
+    @DisplayName("주문이 없으면 예외 발생")
+    void getOrderDetail_notFound() {
+        when(orderRepository.findDetailById(999L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> ownerOrderService.getOrderDetail(999L))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
+    
     @Test
     @DisplayName("가게 주문 목록 정상 조회")
     void getOrders_success() {
