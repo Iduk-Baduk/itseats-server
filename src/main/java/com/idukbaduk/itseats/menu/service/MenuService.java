@@ -93,7 +93,7 @@ public class MenuService {
         validateDuplicateOptionGroupNames(request.getOptionGroups());
         validateOptionSelectRange(request.getOptionGroups());
 
-        updateMenu(request, menu, menuGroup); // menu 필드 업데이트
+        updateMenuFields(request, menu, menuGroup); // menu 필드 업데이트
         menu.setMenuOptionGroups(createOptionGroups(menu, request.getOptionGroups())); // 옵션 그룹 삭제 후 추가
         Menu savedMenu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
 
@@ -138,7 +138,7 @@ public class MenuService {
                 .build();
     }
 
-    private void updateMenu(MenuRequest request, Menu menu, MenuGroup menuGroup) {
+    private void updateMenuFields(MenuRequest request, Menu menu, MenuGroup menuGroup) {
         menu.updateMenu(
                 menuGroup,
                 request.getMenuName(),
