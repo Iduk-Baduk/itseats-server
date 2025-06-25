@@ -89,7 +89,7 @@ public class RiderOrderService {
     }
 
     @Transactional
-    public void updateOrderStatusAfterAccept(String username, Long orderId, OrderStatus orderStatus) {
+    public void updateOrderStatus(String username, Long orderId, OrderStatus orderStatus) {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
         Rider rider = riderRepository.findByMember(member)
