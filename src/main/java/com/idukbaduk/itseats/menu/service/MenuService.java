@@ -81,7 +81,7 @@ public class MenuService {
     public MenuResponse createMenu(Long storeId, MenuRequest request) {
         MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
         validateDuplicateOptionGroupNames(request.getOptionGroups());
-        validateOptionSelectRangeValid(request.getOptionGroups());
+        validateOptionSelectRange(request.getOptionGroups());
 
         Menu menu = createBaseMenu(request, menuGroup);
         createAndAttachOptions(menu, request.getOptionGroups());
@@ -107,7 +107,7 @@ public class MenuService {
         }
     }
 
-    private void validateOptionSelectRangeValid(List<MenuOptionGroupDto> optionGroups) {
+    private void validateOptionSelectRange(List<MenuOptionGroupDto> optionGroups) {
         // 옵션 그룹의 maxSelect가 minSelect보다 작으면 예외 처리
         for (MenuOptionGroupDto groupDto : optionGroups) {
             if (groupDto.getMaxSelect() < groupDto.getMinSelect()) {
