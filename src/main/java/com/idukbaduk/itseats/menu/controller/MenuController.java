@@ -1,7 +1,10 @@
 package com.idukbaduk.itseats.menu.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.menu.dto.*;
+import com.idukbaduk.itseats.menu.dto.MenuGroupRequest;
+import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
+import com.idukbaduk.itseats.menu.dto.MenuListRequest;
+import com.idukbaduk.itseats.menu.dto.MenuRequest;
 import com.idukbaduk.itseats.menu.dto.enums.MenuResponse;
 import com.idukbaduk.itseats.menu.service.MenuGroupService;
 import com.idukbaduk.itseats.menu.service.MenuService;
@@ -10,9 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/owner")
