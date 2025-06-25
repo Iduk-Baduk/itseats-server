@@ -2,8 +2,12 @@ package com.idukbaduk.itseats.order.service;
 
 import com.idukbaduk.itseats.order.dto.OrderReceptionDTO;
 import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
+import com.idukbaduk.itseats.order.dto.OrderRejectResponse;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
@@ -67,5 +71,15 @@ public class OwnerOrderService {
                 .customerRequest(customerRequest)
                 .riderPhone(riderPhone)
                 .build();
+    }
+
+    @Transactional
+    public OrderRejectResponse rejectOrder(Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        order.updateStatus(OrderStatus.REJECTED);
+
+        return new OrderRejectResponse(true, reason);
     }
 }
