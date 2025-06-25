@@ -2,8 +2,11 @@ package com.idukbaduk.itseats.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import com.idukbaduk.itseats.order.dto.OrderAcceptResponse;
 import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
 import com.idukbaduk.itseats.order.dto.enums.OrderResponse;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.service.OwnerOrderService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,8 +21,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OwnerOrderController.class)
@@ -70,5 +75,42 @@ class OwnerOrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data").isEmpty());
+    }
+
+    @Test
+    @DisplayName("주문 수락 성공")
+    void acceptOrder_success() throws Exception {
+        // given
+        Long orderId = 1L;
+        given(ownerOrderService.acceptOrder(orderId)).willReturn(new OrderAcceptResponse(true));
+
+        // when & then
+
+
+        mockMvc.perform(post("/api/owner/orders/" + orderId + "/accept")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.httpStatus")
+                        .value(OrderResponse.ACCEPT_ORDER_SUCCESS.getHttpStatus().value()))
+                .andExpect(jsonPath("$.message")
+                        .value(OrderResponse.ACCEPT_ORDER_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.data.success")
+                        .value(true));
+    }
+
+    @Test
+    @DisplayName("주문 수락 시 주문이 존재하지 않는 경우 에러 발생")
+    void acceptOrder_orderNotFound() throws Exception {
+        // given
+        Long orderId = 2L;
+        given(ownerOrderService.acceptOrder(orderId))
+                .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        // when & then
+        mockMvc.perform(post("/api/owner/orders/{orderId}/accept", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(OrderErrorCode.ORDER_NOT_FOUND.getStatus().value()))
+                .andExpect(jsonPath("$.message").value(OrderErrorCode.ORDER_NOT_FOUND.getMessage()));
     }
 }
