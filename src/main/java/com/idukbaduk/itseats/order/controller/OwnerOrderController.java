@@ -6,6 +6,7 @@ import com.idukbaduk.itseats.order.dto.OrderRejectRequest;
 import com.idukbaduk.itseats.order.dto.OrderRejectResponse;
 import com.idukbaduk.itseats.order.dto.enums.OrderResponse;
 import com.idukbaduk.itseats.order.service.OwnerOrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class OwnerOrderController {
     @PostMapping("/orders/{orderId}/reject")
     public ResponseEntity<BaseResponse> rejectOrder(
             @PathVariable("orderId") Long orderId,
-            @RequestBody OrderRejectRequest request) {
+            @RequestBody @Valid OrderRejectRequest request) {
         OrderRejectResponse response = ownerOrderService.rejectOrder(orderId, request.getReason());
         return BaseResponse.toResponseEntity(OrderResponse.REJECT_ORDER_SUCCESS, response);
     }
