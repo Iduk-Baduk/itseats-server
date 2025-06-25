@@ -78,7 +78,7 @@ public class OwnerOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
-        order.updateStatus(OrderStatus.REJECTED);
+        order.reject(reason);
 
         return new OrderRejectResponse(true, reason);
     }
