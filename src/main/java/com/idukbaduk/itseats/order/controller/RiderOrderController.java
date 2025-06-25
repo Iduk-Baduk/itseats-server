@@ -6,6 +6,7 @@ import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.service.RiderOrderService;
 import com.idukbaduk.itseats.rider.dto.enums.RiderResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/rider")
@@ -46,6 +49,17 @@ public class RiderOrderController {
             @PathVariable("orderId") Long orderId) {
         riderOrderService.updateOrderStatusAfterAccept(userDetails.getUsername(), orderId, OrderStatus.DELIVERING);
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_PICKUP_SUCCESS);
+    }
+
+    @PostMapping(path = "/{orderId}/picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<BaseResponse> uploadRiderImage(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("orderId") Long orderId,
+            @RequestParam("image") MultipartFile image) {
+        return BaseResponse.toResponseEntity(
+                OrderResponse.UPLOAD_RIDER_IMAGE_SUCCESS,
+                riderOrderService.uploadRiderImage(userDetails.getUsername(), orderId, image)
+        );
     }
 
     @PostMapping("/{orderId}/done")
