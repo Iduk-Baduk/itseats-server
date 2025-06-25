@@ -3,6 +3,7 @@ package com.idukbaduk.itseats.menu.service;
 import com.idukbaduk.itseats.menu.dto.*;
 import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.entity.MenuGroup;
+import com.idukbaduk.itseats.menu.entity.MenuImage;
 import com.idukbaduk.itseats.menu.entity.MenuOptionGroup;
 import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.*;
 
@@ -141,6 +143,9 @@ class MenuServiceTest {
         when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
                 .thenReturn(Optional.ofNullable(MenuGroup.builder().menuGroupName("음료").build()));
 
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "images", "test.jpg", "image/jpeg", "test image content".getBytes());
+
         MenuRequest request = MenuRequest.builder()
                 .menuName("아메리카노")
                 .menuDescription("그냥 아메리카노")
@@ -148,6 +153,7 @@ class MenuServiceTest {
                 .menuStatus(MenuStatus.ON_SALE)
                 .menuGroupName("음료")
                 .menuPriority(1)
+                .images(List.of(imageFile))
                 .optionGroups(List.of(
                         MenuOptionGroupDto.builder()
                                 .optionGroupName("샷 추가")
@@ -167,7 +173,11 @@ class MenuServiceTest {
                 ))
                 .build();
         when(menuRepository.save(any(Menu.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(menuMediaService.createMenuImages(any(), any())).thenReturn(Collections.emptyList());
+        when(menuMediaService.createMenuImages(any(Menu.class), any())).thenReturn(List.of(
+                MenuImage.builder()
+                        .imageUrl("s3 link")
+                        .build()
+        ));
 
         // when
         MenuResponse data = menuService.createMenu(storeId, request);
@@ -178,6 +188,8 @@ class MenuServiceTest {
                 .containsExactly("아메리카노", MenuStatus.ON_SALE);
         assertThat(data.getOptionGroups()).hasSize(1);
         assertThat(data.getOptionGroups().get(0).getOptions()).hasSize(1);
+        assertThat(data.getImages()).hasSize(1)
+                        .contains("s3 link");
         verify(menuRepository).save(any(Menu.class));
     }
 
