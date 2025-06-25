@@ -1,14 +1,12 @@
 package com.idukbaduk.itseats.menu.service;
 
 import com.idukbaduk.itseats.menu.dto.*;
-import com.idukbaduk.itseats.menu.entity.Menu;
-import com.idukbaduk.itseats.menu.entity.MenuGroup;
-import com.idukbaduk.itseats.menu.entity.MenuImage;
-import com.idukbaduk.itseats.menu.entity.MenuOptionGroup;
+import com.idukbaduk.itseats.menu.entity.*;
 import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuGroupRepository;
+import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
@@ -249,6 +247,82 @@ class MenuServiceTest {
         assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.OPTION_GROUP_RANGE_INVALID.getMessage());
+    }
+
+    @Test
+    @DisplayName("기존의 메뉴를 수정한다")
+    void updateMenu_success() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+        when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
+                .thenReturn(Optional.of(MenuGroup.builder().menuGroupName("음료").build()));
+
+        MenuOption option = MenuOption.builder()
+                .optionName("커피번")
+                .optionPrice(3000L)
+                .build();
+        MenuOptionGroup optionGroup = MenuOptionGroup.builder()
+                .optGroupName("사이드")
+                .options(List.of(option))
+                .build();
+        Menu menu = Menu.builder()
+                .menuName("아메리카노")
+                .menuStatus(MenuStatus.ON_SALE)
+                .menuPrice(2000L)
+                .menuOptionGroups(new ArrayList<>(List.of(optionGroup)))
+                .build();
+
+        when(menuRepository.findById(menuId)).thenReturn(Optional.of(menu));
+
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "images", "test.jpg", "image/jpeg", "test image content".getBytes());
+
+        MenuRequest request = MenuRequest.builder()
+                .menuName("카페라떼")
+                .menuPrice(3000L)
+                .menuStatus(MenuStatus.HIDDEN)
+                .menuGroupName("음료")
+                .images(List.of(imageFile))
+                .optionGroups(List.of(
+                        MenuOptionGroupDto.builder()
+                                .optionGroupName("샷 추가")
+                                .isRequired(false)
+                                .minSelect(0)
+                                .maxSelect(1)
+                                .priority(1)
+                                .options(List.of(
+                                        MenuOptionDto.builder()
+                                                .optionName("1번 샷 추가")
+                                                .optionPrice(500L)
+                                                .optionStatus(MenuStatus.ON_SALE)
+                                                .optionPriority(1)
+                                                .build()
+                                ))
+                                .build()
+                ))
+                .build();
+        when(menuRepository.save(any(Menu.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(menuMediaService.updateMenuImages(any(Menu.class), any())).thenReturn(List.of(
+                MenuImage.builder()
+                        .imageUrl("s3 link")
+                        .build()
+        ));
+
+        // when
+        MenuResponse data = menuService.updateMenu(storeId, menuId, request);
+
+        // then
+        assertThat(data).isNotNull()
+                .extracting("menuName", "menuPrice", "menuStatus")
+                .containsExactly("카페라떼", 3000L, MenuStatus.HIDDEN);
+        assertThat(data.getOptionGroups()).hasSize(1);
+        assertThat(data.getOptionGroups().get(0).getOptionGroupName()).isEqualTo("샷 추가");
+        assertThat(data.getOptionGroups().get(0).getOptions()).hasSize(1);
+        assertThat(data.getOptionGroups().get(0).getOptions().get(0).getOptionName()).isEqualTo("1번 샷 추가");
+        assertThat(data.getImages()).hasSize(1)
+                .contains("s3 link");
+        verify(menuRepository).save(any(Menu.class));
     }
 
     @Test
