@@ -60,7 +60,6 @@ class OwnerOrderServiceTest {
 
         Payment payment = Payment.builder()
                 .storeRequest("빨리 주세요")
-                .riderRequest("조심히 운전")
                 .build();
 
         when(orderRepository.findAllWithMenusByStoreId(1L)).thenReturn(List.of(order));
@@ -75,7 +74,6 @@ class OwnerOrderServiceTest {
         assertThat(response.getOrderNumber()).isEqualTo("ORD123");
         assertThat(response.getMenuCount()).isEqualTo(2);
         assertThat(response.getCustomerRequest()).contains("빨리 주세요");
-        assertThat(response.getCustomerRequest()).contains("조심히 운전");
         assertThat(response.getMenuItems()).hasSize(1);
     }
 
@@ -119,7 +117,7 @@ class OwnerOrderServiceTest {
         // then
         assertThat(response.isSuccess()).isTrue();
         assertThat(response.getReason()).isEqualTo(reason);
-        then(order).should().updateStatus(OrderStatus.REJECTED);
+        then(order).should().reject(reason);
     }
 
     @Test
