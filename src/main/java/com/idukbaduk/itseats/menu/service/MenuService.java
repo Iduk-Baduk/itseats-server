@@ -83,14 +83,34 @@ public class MenuService {
     }
 
     public MenuResponse createMenu(Long storeId, MenuRequest request) {
-        MenuGroup menuGroup =
-                menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(request.getMenuGroupName(), storeId)
-                .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_GROUP_NOT_FOUND));
-
-        // 한 메뉴에 대해서 동일한 optGroupName이 존재하면 예외 처리
+        MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
         validateDuplicateOptionGroupNames(request);
 
-        Menu menu = Menu.builder()
+        Menu menu = createBaseMenu(request, menuGroup);
+        createAndAttachOptions(menu, request.getOptionGroups());
+        Menu savedMenu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
+
+        // TODO 이미지 저장
+        return toResponse(savedMenu);
+    }
+
+    private MenuGroup findMenuGroup(Long storeId, String menuGroupName) {
+        return menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(menuGroupName, storeId)
+                .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_GROUP_NOT_FOUND));
+    }
+
+    private void validateDuplicateOptionGroupNames(MenuRequest request) {
+        // 한 메뉴에 대해서 동일한 optGroupName이 존재하면 예외 처리
+        Set<String> nameSet = new HashSet<>();
+        for (MenuOptionGroupDto groupDto : request.getOptionGroups()) {
+            if (!nameSet.add(groupDto.getOptionGroupName())) {
+                throw new MenuException(MenuErrorCode.OPTION_GROUP_NAME_DUPLICATED);
+            }
+        }
+    }
+
+    private Menu createBaseMenu(MenuRequest request, MenuGroup menuGroup) {
+        return Menu.builder()
                 .menuGroup(menuGroup)
                 .menuName(request.getMenuName())
                 .menuPrice(request.getMenuPrice())
@@ -99,8 +119,10 @@ public class MenuService {
                 .menuDescription(request.getMenuDescription())
                 .menuPriority(request.getMenuPriority())
                 .build();
+    }
 
-        for (MenuOptionGroupDto groupDto : request.getOptionGroups()) {
+    private void createAndAttachOptions(Menu menu, List<MenuOptionGroupDto> optionGroups) {
+        for (MenuOptionGroupDto groupDto : optionGroups) {
             MenuOptionGroup optionGroup = MenuOptionGroup.builder()
                     .menu(menu)
                     .optGroupName(groupDto.getOptionGroupName())
@@ -120,21 +142,6 @@ public class MenuService {
                         .optionPriority(optionDto.getOptionPriority())
                         .build();
                 optionGroup.addOption(option);
-            }
-        }
-
-        menu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
-
-        // TODO 이미지 처리
-
-        return toResponse(menu);
-    }
-
-    private void validateDuplicateOptionGroupNames(MenuRequest request) {
-        Set<String> nameSet = new HashSet<>();
-        for (MenuOptionGroupDto groupDto : request.getOptionGroups()) {
-            if (!nameSet.add(groupDto.getOptionGroupName())) {
-                throw new MenuException(MenuErrorCode.OPTION_GROUP_NAME_DUPLICATED);
             }
         }
     }
