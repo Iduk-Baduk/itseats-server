@@ -3,7 +3,6 @@ package com.idukbaduk.itseats.menu.service;
 import com.idukbaduk.itseats.menu.dto.MenuGroupDto;
 import com.idukbaduk.itseats.menu.dto.MenuGroupRequest;
 import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
-import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.entity.MenuGroup;
 import com.idukbaduk.itseats.menu.repository.MenuGroupRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
