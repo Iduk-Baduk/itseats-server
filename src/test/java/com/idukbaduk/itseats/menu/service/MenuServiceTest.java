@@ -250,4 +250,90 @@ class MenuServiceTest {
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.OPTION_GROUP_RANGE_INVALID.getMessage());
     }
+
+    @Test
+    @DisplayName("메뉴 수정시 메뉴가 존재하지 않으면 예외 발생")
+    void updateMenu_notFound() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+        when(menuRepository.findById(menuId))
+                .thenReturn(Optional.empty());
+        MenuRequest menuRequest = MenuRequest.builder()
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("메뉴 수정시 메뉴 그룹이 존재하지 않으면 예외 발생")
+    void updateMenu_menuGroupNotExists() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+        when(menuRepository.findById(menuId))
+                .thenReturn(Optional.of(Menu.builder().build()));
+        when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
+                .thenReturn(Optional.empty());
+        MenuRequest menuRequest = MenuRequest.builder()
+                .menuGroupName("없는그룹")
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.MENU_GROUP_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("메뉴 수정시 옵션 그룹명이 동일한게 있으면 예외 발생")
+    void updateMenu_optionGroupNameDuplicated() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+        when(menuRepository.findById(menuId))
+                .thenReturn(Optional.of(Menu.builder().build()));
+        when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
+                .thenReturn(Optional.of(MenuGroup.builder().menuGroupName("그룹").build()));
+
+        MenuRequest menuRequest = MenuRequest.builder()
+                .menuGroupName("그룹")
+                .optionGroups(List.of(
+                        MenuOptionGroupDto.builder().optionGroupName("사이드").build(),
+                        MenuOptionGroupDto.builder().optionGroupName("사이드").build()
+                ))
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.OPTION_GROUP_NAME_DUPLICATED.getMessage());
+    }
+
+    @Test
+    @DisplayName("메뉴 수정시 옵션 최소 선택이 최대 선택보다 크면 예외 발생")
+    void updateMenu_optionGroupRangeInvalid() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+        when(menuRepository.findById(menuId))
+                .thenReturn(Optional.of(Menu.builder().build()));
+        when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
+                .thenReturn(Optional.of(MenuGroup.builder().menuGroupName("그룹").build()));
+
+        MenuRequest menuRequest = MenuRequest.builder()
+                .menuGroupName("그룹")
+                .optionGroups(List.of(
+                        MenuOptionGroupDto.builder().optionGroupName("사이드").maxSelect(1).minSelect(2).build()
+                ))
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.OPTION_GROUP_RANGE_INVALID.getMessage());
+    }
 }
