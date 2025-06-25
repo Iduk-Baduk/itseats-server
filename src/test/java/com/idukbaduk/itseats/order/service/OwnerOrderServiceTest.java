@@ -112,7 +112,6 @@ class OwnerOrderServiceTest {
         String reason = "재고 부족";
         Order order = mock(Order.class);
         given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
-        given(order.getOrderStatus()).willReturn(OrderStatus.WAITING);
 
         // when
         OrderRejectResponse response = ownerOrderService.rejectOrder(orderId, reason);

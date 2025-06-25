@@ -101,7 +101,7 @@ class OwnerOrderControllerTest {
     }
 
     @Test
-    @DisplayName("주문 거절 시주문이 존재하지 않으면 에러 응답")
+    @DisplayName("주문 거절 시 주문이 존재하지 않으면 에러 응답")
     void rejectOrder_orderNotFound() throws Exception {
         // given
         Long orderId = 2L;
