@@ -151,7 +151,6 @@ class MenuServiceTest {
                 .menuStatus(MenuStatus.ON_SALE)
                 .menuGroupName("음료")
                 .menuPriority(1)
-                .images(List.of(imageFile))
                 .optionGroups(List.of(
                         MenuOptionGroupDto.builder()
                                 .optionGroupName("샷 추가")
@@ -178,7 +177,7 @@ class MenuServiceTest {
         ));
 
         // when
-        MenuResponse data = menuService.createMenu(storeId, request);
+        MenuResponse data = menuService.createMenu(storeId, request, List.of(imageFile));
 
         // then
         assertThat(data).isNotNull()
@@ -203,7 +202,7 @@ class MenuServiceTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest))
+        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest, Collections.emptyList()))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.MENU_GROUP_NOT_FOUND.getMessage());
     }
@@ -224,7 +223,7 @@ class MenuServiceTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest))
+        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest, Collections.emptyList()))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.OPTION_GROUP_NAME_DUPLICATED.getMessage());
     }
@@ -244,7 +243,7 @@ class MenuServiceTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest))
+        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest, Collections.emptyList()))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.OPTION_GROUP_RANGE_INVALID.getMessage());
     }
@@ -283,7 +282,6 @@ class MenuServiceTest {
                 .menuPrice(3000L)
                 .menuStatus(MenuStatus.HIDDEN)
                 .menuGroupName("음료")
-                .images(List.of(imageFile))
                 .optionGroups(List.of(
                         MenuOptionGroupDto.builder()
                                 .optionGroupName("샷 추가")
@@ -310,7 +308,7 @@ class MenuServiceTest {
         ));
 
         // when
-        MenuResponse data = menuService.updateMenu(storeId, menuId, request);
+        MenuResponse data = menuService.updateMenu(storeId, menuId, request, List.of(imageFile));
 
         // then
         assertThat(data).isNotNull()
@@ -337,7 +335,7 @@ class MenuServiceTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest))
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest, Collections.emptyList()))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
     }
@@ -357,7 +355,7 @@ class MenuServiceTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest))
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest, Collections.emptyList()))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.MENU_GROUP_NOT_FOUND.getMessage());
     }
@@ -382,7 +380,7 @@ class MenuServiceTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest))
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest, Collections.emptyList()))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.OPTION_GROUP_NAME_DUPLICATED.getMessage());
     }
@@ -406,7 +404,7 @@ class MenuServiceTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest))
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest, Collections.emptyList()))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.OPTION_GROUP_RANGE_INVALID.getMessage());
     }

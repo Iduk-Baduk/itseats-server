@@ -10,6 +10,7 @@ import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -72,7 +73,7 @@ public class MenuService {
                 .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
     }
 
-    public MenuResponse createMenu(Long storeId, MenuRequest request) {
+    public MenuResponse createMenu(Long storeId, MenuRequest request, List<MultipartFile> imageFiles) {
         MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
         validateDuplicateOptionGroupNames(request.getOptionGroups());
         validateOptionSelectRange(request.getOptionGroups());
@@ -81,12 +82,12 @@ public class MenuService {
         menu.setMenuOptionGroups(createOptionGroups(menu, request.getOptionGroups())); // 옵션 그룹 생성 및 추가
         Menu savedMenu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
 
-        List<MenuImage> images = menuMediaService.createMenuImages(savedMenu, request.getImages());
+        List<MenuImage> images = menuMediaService.createMenuImages(savedMenu, imageFiles);
 
         return toResponse(savedMenu, images);
     }
 
-    public MenuResponse updateMenu(Long storeId, Long menuId, MenuRequest request) {
+    public MenuResponse updateMenu(Long storeId, Long menuId, MenuRequest request, List<MultipartFile> imageFiles) {
         Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
         MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
         validateDuplicateOptionGroupNames(request.getOptionGroups());
@@ -96,7 +97,7 @@ public class MenuService {
         menu.setMenuOptionGroups(createOptionGroups(menu, request.getOptionGroups())); // 옵션 그룹 삭제 후 추가
         Menu savedMenu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
 
-        List<MenuImage> images = menuMediaService.updateMenuImages(savedMenu, request.getImages());
+        List<MenuImage> images = menuMediaService.updateMenuImages(savedMenu, imageFiles);
 
         return toResponse(savedMenu, images);
     }

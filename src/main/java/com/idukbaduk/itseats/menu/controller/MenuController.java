@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/owner")
@@ -36,11 +39,12 @@ public class MenuController {
     @PostMapping(value = "/{storeId}/menus/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BaseResponse> createMenu(
             @PathVariable Long storeId,
-            @Valid @ModelAttribute MenuRequest request
+            @Valid @RequestPart("request") MenuRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         return BaseResponse.toResponseEntity(
                 MenuResponse.CREATE_MENU_SUCCESS,
-                menuService.createMenu(storeId, request)
+                menuService.createMenu(storeId, request, images)
         );
     }
 
@@ -48,11 +52,12 @@ public class MenuController {
     public ResponseEntity<BaseResponse> updateMenu(
             @PathVariable Long storeId,
             @PathVariable Long menuId,
-            @Valid @ModelAttribute MenuRequest request
+            @Valid @RequestPart("request") MenuRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         return BaseResponse.toResponseEntity(
                 MenuResponse.UPDATE_MENU_SUCCESS,
-                menuService.updateMenu(storeId, menuId, request)
+                menuService.updateMenu(storeId, menuId, request, images)
         );
     }
 
