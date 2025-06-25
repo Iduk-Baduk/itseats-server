@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,5 +21,5 @@ public class MenuResponse {
     private String menuGroupName;
     private int menuPriority;
     private List<String> images;
-    List<MenuOptionGroupDto> optionGroups;
+    private List<MenuOptionGroupDto> optionGroups;
 }
