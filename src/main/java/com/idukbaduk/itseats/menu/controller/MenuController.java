@@ -5,6 +5,7 @@ import com.idukbaduk.itseats.menu.dto.*;
 import com.idukbaduk.itseats.menu.dto.enums.MenuResponse;
 import com.idukbaduk.itseats.menu.service.MenuGroupService;
 import com.idukbaduk.itseats.menu.service.MenuService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,9 +36,8 @@ public class MenuController {
     @PostMapping(value = "/{storeId}/menus/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BaseResponse> createMenu(
             @PathVariable Long storeId,
-            @ModelAttribute MenuRequest request
+            @Valid @ModelAttribute MenuRequest request
             ) {
-        // TODO @Valid 검증 넣기
         // TODO 이미지 전송 엔드포인트 분리
 
         return BaseResponse.toResponseEntity(
