@@ -301,6 +301,27 @@ class RiderOrderServiceTest {
     }
 
     @Test
+    @DisplayName("주문 상태를 매장 도착 상태로 변경에 성공")
+    void updateOrderStatus_arrived_success() {
+        // given
+        Order order = Order.builder()
+                .orderId(1L)
+                .orderStatus(OrderStatus.RIDER_READY)
+                .rider(rider)
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
+
+        // when
+        riderOrderService.updateOrderStatus(username, 1L, OrderStatus.ARRIVED);
+
+        // then
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.ARRIVED);
+    }
+
+    @Test
     @DisplayName("주문 상태를 배달 중 상태로 변경에 성공")
     void updateOrderStatus_delivering_success() {
         // given
