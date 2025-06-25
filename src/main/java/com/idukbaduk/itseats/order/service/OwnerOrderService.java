@@ -78,6 +78,11 @@ public class OwnerOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
+
+        if (order.getOrderStatus() != OrderStatus.WAITING) {
+            throw new OrderException(OrderErrorCode.INVALID_ORDER_STATUS);
+        }
+
         order.updateStatus(OrderStatus.ACCEPTED);
 
         return new OrderAcceptResponse(true);
