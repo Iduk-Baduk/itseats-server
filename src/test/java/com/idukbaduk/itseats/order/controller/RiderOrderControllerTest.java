@@ -46,8 +46,7 @@ class RiderOrderControllerTest {
         // when & then
         mockMvc.perform(get("/api/rider/" + orderId + "/details")
                         .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(response)))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.httpStatus")
                         .value(OrderResponse.GET_RIDER_ORDER_DETAILS_SUCCESS.getHttpStatus().value()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message")

@@ -86,7 +86,7 @@ class RiderOrderServiceTest {
                 .menuName("테스트1")
                 .price(10000)
                 .quantity(2)
-                .menuOption("\"optionName\": \"테스트 옵션1\",\n\"optionPrice\": 5000\n}")
+                .menuOption("\"optionName\": \"테스트 옵션1\",\"optionPrice\": 5000}")
                 .build();
 
         menu2 = OrderMenu.builder()
