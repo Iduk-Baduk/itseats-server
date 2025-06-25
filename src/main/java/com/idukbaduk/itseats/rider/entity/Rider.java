@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.geo.Point;
+import org.locationtech.jts.geom.Point;
 
 @Entity
 @Getter
@@ -35,7 +35,7 @@ public class Rider extends BaseEntity {
     @Column(name = "is_working", nullable = false)
     private Boolean isWorking;
 
-    @Column(name = "location")
+    @Column(name = "location", columnDefinition = "POINT")
     private Point location;
 
     @Column(name = "preferred_area", nullable = false)

@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.rider.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.enums.RiderResponse;
 import com.idukbaduk.itseats.rider.service.RiderService;
@@ -37,6 +38,22 @@ public class RiderController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
         riderService.acceptDelivery(userDetails.getUsername(), orderId);
-        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_DELIVERY_STATUS_ACCEPT_SUCCESS);
+        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_ACCEPT_SUCCESS);
+    }
+
+    @PostMapping("/{orderId}/pickup")
+    public ResponseEntity<BaseResponse> updateDeliveryStatusPickup(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("orderId") Long orderId) {
+        riderService.updateOrderStatusAfterAccept(userDetails.getUsername(), orderId, OrderStatus.DELIVERING);
+        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_PICKUP_SUCCESS);
+    }
+
+    @PostMapping("/{orderId}/done")
+    public ResponseEntity<BaseResponse> updateDeliveryStatusDone(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("orderId") Long orderId) {
+        riderService.updateOrderStatusAfterAccept(userDetails.getUsername(), orderId, OrderStatus.DELIVERED);
+        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_DELIVERED_SUCCESS);
     }
 }

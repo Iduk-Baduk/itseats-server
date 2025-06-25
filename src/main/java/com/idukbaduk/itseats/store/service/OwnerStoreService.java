@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.store.service;
 
+import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
@@ -22,7 +23,6 @@ import com.idukbaduk.itseats.store.repository.StoreCategoryRepository;
 import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,7 +77,7 @@ public class OwnerStoreService {
     public StoreCreateResponse createStore(String username, StoreCreateRequest request) {
 
         Member member = memberRepository.findByUsername(username)
-                .orElseThrow(()-> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         StoreCategory storeCategory = storeCategoryRepository.
                 findByCategoryName(request.getCategoryName())
@@ -92,8 +92,6 @@ public class OwnerStoreService {
                     .orElseThrow(() -> new StoreException(StoreErrorCode.FRANCHISE_NOT_FOUND));
         }
 
-        Point point = new Point(request.getLng(), request.getLat());
-
         Store store = Store.builder()
                 .member(member)
                 .storeCategory(storeCategory)
@@ -101,7 +99,7 @@ public class OwnerStoreService {
                 .storeName(request.getName())
                 .description(request.getDescription())
                 .storeAddress(request.getAddress())
-                .location(point)
+                .location(GeoUtil.toPoint(request.getLng(), request.getLat()))
                 .storePhone(request.getPhone())
                 .defaultDeliveryFee(request.getDefaultDeliveryFee())
                 .onlyOneDeliveryFee(request.getOnlyOneDeliveryFee())

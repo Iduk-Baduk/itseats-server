@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.order.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
@@ -32,7 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.geo.Point;
+import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -99,7 +100,7 @@ class OrderServiceTest {
                 .storeName("테스트 구름점")
                 .defaultDeliveryFee(3000)
                 .onlyOneDeliveryFee(3500)
-                .location(new Point(127.0, 37.5))
+                .location(GeoUtil.toPoint(127.0, 37.5))
                 .build();
 
         address = MemberAddress.builder()
@@ -116,8 +117,8 @@ class OrderServiceTest {
                 .orderNumber("A1234B")
                 .orderPrice(10000)
                 .deliveryAddress("서울시 구름구 구름로100번길 10 100호")
-                .destinationLocation(new Point(126.9, 37.4))
-                .storeLocation(new Point(127.0, 37.5))
+                .destinationLocation(GeoUtil.toPoint(126.9, 37.4))
+                .storeLocation(GeoUtil.toPoint(127.0, 37.5))
                 .build();
 
         OrderMenuDTO orderMenuDTO1 = OrderMenuDTO.builder()

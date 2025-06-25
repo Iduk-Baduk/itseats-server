@@ -14,7 +14,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.springframework.data.geo.Point;
+import org.locationtech.jts.geom.Point;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -66,10 +66,10 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_address", nullable = false)
     private String deliveryAddress;
 
-    @Column(name = "destination_location", nullable = false)
+    @Column(name = "destination_location", columnDefinition = "POINT", nullable = false)
     private Point destinationLocation;
 
-    @Column(name = "store_location", nullable = false)
+    @Column(name = "store_location", columnDefinition = "POINT", nullable = false)
     private Point storeLocation;
 
     @Column(name = "order_received_time", nullable = false)
@@ -85,14 +85,17 @@ public class Order extends BaseEntity {
     private List<OrderMenu> orderMenus;
 
     public void updateOrderStatusAccept(Rider rider, OrderStatus orderStatus) {
-      if (this.orderStatus != OrderStatus.COOKED) {
-          throw new OrderException(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL);
-      }
-      if (this.rider != null) {
-          throw new OrderException(OrderErrorCode.ORDER_ALREADY_ASSIGNED);
-      }
+        if (this.rider != null) {
+            throw new OrderException(OrderErrorCode.ORDER_ALREADY_ASSIGNED);
+        }
+        orderStatus.validateTransitionFrom(this.orderStatus);
 
-      this.rider = rider;
-      this.orderStatus = orderStatus;
+        this.rider = rider;
+        this.orderStatus = orderStatus;
+    }
+
+    public void updateStatus(OrderStatus orderStatus) {
+        orderStatus.validateTransitionFrom(this.orderStatus);
+        this.orderStatus = orderStatus;
     }
 }
