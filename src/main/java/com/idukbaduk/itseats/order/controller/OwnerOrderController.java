@@ -24,6 +24,7 @@ public class OwnerOrderController {
     public ResponseEntity<BaseResponse> getOrderDetail(@PathVariable("orderId") Long orderId) {
         OrderDetailResponse response = ownerOrderService.getOrderDetail(orderId);
         return BaseResponse.toResponseEntity(OrderResponse.GET_ORDER_DETAILS_SUCCESS, response);
+    }
 
     @GetMapping("/{storeId}/orders")
     public ResponseEntity<BaseResponse> getOrders(@PathVariable("storeId") Long storeId) {
