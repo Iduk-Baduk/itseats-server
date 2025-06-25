@@ -45,7 +45,7 @@ public class MenuController {
     }
 
     @PutMapping(value = "/{storeId}/menus/{menuId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<BaseResponse> createMenu(
+    public ResponseEntity<BaseResponse> updateMenu(
             @PathVariable Long storeId,
             @PathVariable Long menuId,
             @Valid @ModelAttribute MenuRequest request
