@@ -4,8 +4,10 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.dto.OrderDetailsResponse;
 import com.idukbaduk.itseats.order.dto.OrderItemDTO;
+import com.idukbaduk.itseats.order.dto.RiderImageResponse;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
+import com.idukbaduk.itseats.order.entity.RiderImage;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
@@ -24,6 +26,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -45,6 +49,8 @@ class RiderOrderServiceTest {
     private RiderRepository riderRepository;
     @Mock
     private MemberRepository memberRepository;
+    @Mock
+    private RiderImageService riderImageService;
 
     @InjectMocks
     private RiderOrderService riderOrderService;
@@ -319,5 +325,50 @@ class RiderOrderServiceTest {
 
         // then
         assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.DELIVERING);
+    }
+
+    @Test
+    @DisplayName("라이더 배달 완료 사진 업로드 성공")
+    void uploadRiderImage_success() {
+        // given
+        MultipartFile multipartFile = new MockMultipartFile(
+                "file", "test.jpg", "image/jpeg", "test".getBytes()
+        );
+        RiderImage riderImage = RiderImage.builder()
+                .imageUrl("https://example.com/test.jpg")
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
+        when(riderImageService.saveRiderImage(rider, order, multipartFile)).thenReturn(riderImage);
+
+        // when
+        RiderImageResponse response = riderOrderService.uploadRiderImage(username, 1L, multipartFile);
+
+        // then
+        assertThat(response.getImage()).isEqualTo(riderImage.getImageUrl());
+    }
+
+    @Test
+    @DisplayName("배달 완료 이미지 파일이 null일 경우 예외 발생")
+    void uploadRiderImage_riderImageNull() {
+        assertThatThrownBy(() -> riderOrderService.uploadRiderImage(username, 1L, null))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.REQUIRED_RIDER_IMAGE.getMessage());
+    }
+
+    @Test
+    @DisplayName("배달 완료 이미지 파일이 비어있는 경우 예외 발생")
+    void uploadRiderImage_riderImageEmpty() {
+        // given
+        MockMultipartFile emptyFile = new MockMultipartFile(
+                "image", "", "image/jpeg", new byte[0]
+        );
+
+        // when & then
+        assertThatThrownBy(() -> riderOrderService.uploadRiderImage(username, 1L, emptyFile))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.REQUIRED_RIDER_IMAGE.getMessage());
     }
 }
