@@ -15,8 +15,12 @@ public enum OrderStatus {
     CANCELED(null),
     // 주문 접수 중
     WAITING(null),
-    // 주문 조리 (주문 접수)
-    COOKING(WAITING),
+    // 주문 수락
+    ACCEPTED(WAITING),
+    // 주문 거절
+    REJECTED(WAITING),
+    // 주문 조리
+    COOKING(ACCEPTED),
     // 조리 완료 (라이더 배차 시작)
     COOKED(COOKING),
     // 배차 완료
