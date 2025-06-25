@@ -117,6 +117,15 @@ public class OwnerOrderService {
     }
 
     @Transactional
+    public OrderRejectResponse rejectOrder(Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        order.reject(reason);
+
+        return new OrderRejectResponse(true, reason);
+    }
+  
     public OrderAcceptResponse acceptOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));

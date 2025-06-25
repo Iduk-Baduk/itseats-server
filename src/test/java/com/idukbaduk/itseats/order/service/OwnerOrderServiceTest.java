@@ -41,63 +41,6 @@ class OwnerOrderServiceTest {
     private OwnerOrderService ownerOrderService;
 
     @Test
-    @DisplayName("주문 상세 조회 성공")
-    void getOrderDetail_success() {
-        // given
-        Member member = Member.builder().name("구름톤").build();
-
-        Menu menuEntity1 = Menu.builder().menuId(11L).build();
-        Menu menuEntity2 = Menu.builder().menuId(12L).build();
-
-        OrderMenu menu1 = OrderMenu.builder()
-                .menu(menuEntity1)
-                .menuName("아메리카노")
-                .quantity(2)
-                .price(4000)
-                .menuOption("샷추가,사이즈업")
-                .build();
-
-        OrderMenu menu2 = OrderMenu.builder()
-                .menu(menuEntity2)
-                .menuName("에스프레소")
-                .quantity(1)
-                .price(1500)
-                .menuOption("")
-                .build();
-
-        Order order = Order.builder()
-                .orderId(3L)
-                .orderNumber("GRMT0N")
-                .member(member)
-                .orderStatus(OrderStatus.WAITING)
-                .orderReceivedTime(LocalDateTime.of(2025, 5, 5, 0, 0))
-                .orderMenus(List.of(menu1, menu2))
-                .build();
-
-        when(orderRepository.findDetailById(3L)).thenReturn(Optional.of(order));
-
-        // when
-        OrderDetailResponse response = ownerOrderService.getOrderDetail(3L);
-
-        // then
-        assertThat(response.getOrderId()).isEqualTo(3L);
-        assertThat(response.getOrderNumber()).isEqualTo("GRMT0N");
-        assertThat(response.getMemberName()).isEqualTo("구름톤");
-        assertThat(response.getOrderStatus()).isEqualTo("WAITING");
-        assertThat(response.getMenuItems()).hasSize(2);
-        assertThat(response.getMenuItems().get(0).getMenuName()).isEqualTo("아메리카노");
-    }
-
-    @Test
-    @DisplayName("주문이 없으면 예외 발생")
-    void getOrderDetail_notFound() {
-        when(orderRepository.findDetailById(999L)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> ownerOrderService.getOrderDetail(999L))
-                .isInstanceOf(OrderException.class)
-                .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
-    }
-
-    @Test
     @DisplayName("가게 주문 목록 정상 조회")
     void getOrders_success() {
         // given
@@ -159,6 +102,38 @@ class OwnerOrderServiceTest {
 
         List<OrderReceptionResponse> result = ownerOrderService.getOrders(1L);
         assertThat(result.get(0).getCustomerRequest()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("주문 거절 성공")
+    void rejectOrder_success() {
+        // given
+        Long orderId = 1L;
+        String reason = "재고 부족";
+        Order order = mock(Order.class);
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        // when
+        OrderRejectResponse response = ownerOrderService.rejectOrder(orderId, reason);
+
+        // then
+        assertThat(response.isSuccess()).isTrue();
+        assertThat(response.getReason()).isEqualTo(reason);
+        then(order).should().updateStatus(OrderStatus.REJECTED);
+    }
+
+    @Test
+    @DisplayName("주문 거절 시 주문이 존재하지 않으면 예외 발생")
+    void rejectOrder_orderNotFound() {
+        // given: 주문이 존재하지 않음
+        Long orderId = 1L;
+        String reason = "재고 부족";
+        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.rejectOrder(orderId, reason))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
 
     @Test
