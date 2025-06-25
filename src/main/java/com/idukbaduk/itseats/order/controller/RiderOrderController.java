@@ -33,7 +33,7 @@ public class RiderOrderController {
     }
 
     @PostMapping("/{orderId}/accept")
-    public ResponseEntity<BaseResponse> updateDeliveryStatusAccept(
+    public ResponseEntity<BaseResponse> updateOrderStatusAccept(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
         riderOrderService.acceptDelivery(userDetails.getUsername(), orderId);
@@ -41,7 +41,7 @@ public class RiderOrderController {
     }
 
     @PostMapping("/{orderId}/arrived")
-    public ResponseEntity<BaseResponse> updateDeliveryStatusArrived(
+    public ResponseEntity<BaseResponse> updateOrderStatusArrived(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
         riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.ARRIVED);
@@ -49,7 +49,7 @@ public class RiderOrderController {
     }
 
     @PostMapping("/{orderId}/pickup")
-    public ResponseEntity<BaseResponse> updateDeliveryStatusPickup(
+    public ResponseEntity<BaseResponse> updateOrderStatusPickup(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
         riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.DELIVERING);
@@ -57,7 +57,7 @@ public class RiderOrderController {
     }
 
     @PostMapping("/{orderId}/done")
-    public ResponseEntity<BaseResponse> updateDeliveryStatusDone(
+    public ResponseEntity<BaseResponse> updateOrderStatusDone(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
         riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.DELIVERED);
