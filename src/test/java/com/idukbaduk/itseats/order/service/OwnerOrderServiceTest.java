@@ -1,14 +1,14 @@
 package com.idukbaduk.itseats.order.service;
 
-import com.idukbaduk.itseats.order.dto.OrderReceptionDTO;
-import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
-import com.idukbaduk.itseats.order.dto.OrderRejectResponse;
+import com.idukbaduk.itseats.menu.entity.Menu;
+import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -132,6 +132,64 @@ class OwnerOrderServiceTest {
 
         // when & then
         assertThatThrownBy(() -> ownerOrderService.rejectOrder(orderId, reason))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("주문 수락 성공")
+    void acceptOrder_success() {
+        // given
+        Long orderId = 1L;
+        Order order = mock(Order.class);
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        // when
+        OrderAcceptResponse response = ownerOrderService.acceptOrder(orderId);
+
+        // then
+        assertThat(response.isSuccess()).isTrue();
+        then(order).should().updateStatus(OrderStatus.ACCEPTED);
+    }
+
+    @Test
+    @DisplayName("주문 수락 시 주문이 존재하지 않으면 예외 발생")
+    void acceptOrder_orderNotFound() {
+        // given
+        Long orderId = 1L;
+        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.acceptOrder(orderId))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("조리 완료 성공")
+    void markAsCooked_success() {
+        // given
+        Long orderId = 1L;
+        Order order = mock(Order.class);
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        // when
+        OrderCookedResponse response = ownerOrderService.markAsCooked(orderId);
+
+        // then
+        assertThat(response.isSuccess()).isTrue();
+        then(order).should().updateStatus(OrderStatus.COOKED);
+    }
+
+    @Test
+    @DisplayName("조리 완료 상태 변경 시 주문이 존재하지 않으면 예외 발생")
+    void markAsCooked_orderNotFound() {
+        // given
+        Long orderId = 1L;
+        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.markAsCooked(orderId))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }

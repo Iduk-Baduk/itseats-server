@@ -1,6 +1,9 @@
 package com.idukbaduk.itseats.order.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import com.idukbaduk.itseats.order.dto.OrderCookedResponse;
+import com.idukbaduk.itseats.order.dto.OrderDetailResponse;
+import com.idukbaduk.itseats.order.dto.OrderAcceptResponse;
 import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
 import com.idukbaduk.itseats.order.dto.OrderRejectRequest;
 import com.idukbaduk.itseats.order.dto.OrderRejectResponse;
@@ -13,12 +16,19 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/owner")
 public class OwnerOrderController {
 
     private final OwnerOrderService ownerOrderService;
+
+    @GetMapping("/orders/{orderId}")
+    public ResponseEntity<BaseResponse> getOrderDetail(@PathVariable("orderId") Long orderId) {
+        OrderDetailResponse response = ownerOrderService.getOrderDetail(orderId);
+        return BaseResponse.toResponseEntity(OrderResponse.GET_ORDER_DETAILS_SUCCESS, response);
+    }
 
     @GetMapping("/{storeId}/orders")
     public ResponseEntity<BaseResponse> getOrders(@PathVariable("storeId") Long storeId) {
@@ -32,5 +42,17 @@ public class OwnerOrderController {
             @RequestBody @Valid OrderRejectRequest request) {
         OrderRejectResponse response = ownerOrderService.rejectOrder(orderId, request.getReason());
         return BaseResponse.toResponseEntity(OrderResponse.REJECT_ORDER_SUCCESS, response);
+    }
+  
+    @PostMapping("/orders/{orderId}/accept")
+    public ResponseEntity<BaseResponse> acceptOrder(@PathVariable("orderId") Long orderId) {
+        OrderAcceptResponse response = ownerOrderService.acceptOrder(orderId);
+        return BaseResponse.toResponseEntity(OrderResponse.ACCEPT_ORDER_SUCCESS, response);
+    }
+
+    @PostMapping("/orders/{orderId}/ready")
+    public ResponseEntity<BaseResponse> cookingComplete(@PathVariable("orderId") Long orderId) {
+        OrderCookedResponse response = ownerOrderService.markAsCooked(orderId);
+        return BaseResponse.toResponseEntity(OrderResponse.COOKED_SUCCESS, response);
     }
 }
