@@ -61,7 +61,7 @@ class RiderOrderControllerTest {
     @Test
     @DisplayName("배달 수락 성공")
     @WithMockUser(username = "testuser")
-    void updateDeliveryStatusAccept_success() throws Exception {
+    void updateOrderStatusAccept_success() throws Exception {
         // given
         long orderId = 1L;
 
@@ -78,7 +78,7 @@ class RiderOrderControllerTest {
     @Test
     @DisplayName("매장 도착 성공")
     @WithMockUser(username = "testuser")
-    void updateDeliveryStatusArrived_success() throws Exception {
+    void updateOrderStatusArrived_success() throws Exception {
         // given
         long orderId = 1L;
 
@@ -95,7 +95,7 @@ class RiderOrderControllerTest {
     @Test
     @DisplayName("배달 완료 성공")
     @WithMockUser(username = "testuser")
-    void updateDeliveryStatusDone_success() throws Exception {
+    void updateOrderStatusDone_success() throws Exception {
         // given
         long orderId = 1L;
 
@@ -112,7 +112,7 @@ class RiderOrderControllerTest {
     @Test
     @DisplayName("픽업 완료 성공")
     @WithMockUser(username = "testuser")
-    void updateDeliveryStatusPickup_success() throws Exception {
+    void updateOrderStatusPickup_success() throws Exception {
         // given
         long orderId = 1L;
 
