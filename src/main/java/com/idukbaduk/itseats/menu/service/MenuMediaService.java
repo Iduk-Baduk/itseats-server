@@ -4,6 +4,7 @@ import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.entity.MenuImage;
 import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MenuMediaService {
@@ -23,24 +25,23 @@ public class MenuMediaService {
             return Collections.emptyList();
 
         // 이미지 파일 유효성 검증
-        validateImageFile(images);
+        images = filterValidImages(images);
 
         return saveMenuImages(menu, images);
     }
 
     public List<MenuImage> updateMenuImages(Menu menu, List<MultipartFile> images) {
         List<MenuImage> existingImages = menuImageRepository.findByMenu_MenuIdOrderByDisplayOrderAsc(menu.getMenuId());
-
         if (images == null) {
             // form-data에 images를 추가하지 않았다면 현재 상태 유지
             return existingImages;
         }
 
-        // 이미지 파일 유효성 검증
-        validateImageFile(images);
-
         // 기존 이미지 삭제
         menuImageRepository.deleteAll(existingImages);
+
+        // 이미지 파일 유효성 검증
+        images = filterValidImages(images);
 
         // 빈 배열이면 빈 리스트 반환
         if (images.isEmpty()) {
@@ -51,12 +52,12 @@ public class MenuMediaService {
         return saveMenuImages(menu, images);
     }
 
-    private void validateImageFile(List<MultipartFile> images) {
-        for (MultipartFile image : images) {
-            if (image.isEmpty()) {
-                throw new IllegalArgumentException("Empty image file is not allowed");
-            }
-        }
+    private List<MultipartFile> filterValidImages(List<MultipartFile> images) {
+        if (images == null) return Collections.emptyList();
+
+        return images.stream()
+                .filter(image -> !image.isEmpty())
+                .toList();
     }
 
     private List<MenuImage> saveMenuImages(Menu menu, List<MultipartFile> images) {
