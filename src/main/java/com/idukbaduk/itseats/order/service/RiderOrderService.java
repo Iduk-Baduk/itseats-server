@@ -20,6 +20,7 @@ import com.idukbaduk.itseats.rider.error.enums.RiderErrorCode;
 import com.idukbaduk.itseats.rider.repository.RiderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class RiderOrderService {
     private final RiderRepository riderRepository;
     private final MemberRepository memberRepository;
 
-
+    @Transactional(readOnly = true)
     public OrderDetailsResponse getOrderDetails(String username, Long orderId) {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
