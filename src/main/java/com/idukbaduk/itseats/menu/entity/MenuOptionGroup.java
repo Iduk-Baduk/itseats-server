@@ -2,10 +2,7 @@ package com.idukbaduk.itseats.menu.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +20,7 @@ public class MenuOptionGroup extends BaseEntity {
     @Column(name = "opt_group_id")
     private Long optGroupId;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_id", nullable = false)
     private Menu menu;
@@ -48,5 +46,8 @@ public class MenuOptionGroup extends BaseEntity {
 
     public void addOption(MenuOption menuOption) {
         options.add(menuOption);
+        if (menuOption.getMenuOptionGroup() != this) {
+            menuOption.setMenuOptionGroup(this);
+        }
     }
 }

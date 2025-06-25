@@ -51,7 +51,23 @@ public class Menu extends BaseEntity {
     @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuOptionGroup> menuOptionGroups = new ArrayList<>();
 
-    public void addMenuOptionGroup(MenuOptionGroup menuOptionGroup) {
-        menuOptionGroups.add(menuOptionGroup);
+    public void setMenuOptionGroups(List<MenuOptionGroup> menuOptionGroups) {
+        // 옵션 그룹 변경을 JPA가 감지하고 기존 옵션을 삭제하도록 clear() 호출
+        this.menuOptionGroups.clear();
+        menuOptionGroups.forEach(menuOptionGroup -> {
+            if (menuOptionGroup.getMenu() != this)
+                menuOptionGroup.setMenu(this);
+        });
+        this.menuOptionGroups.addAll(menuOptionGroups);
+    }
+
+    public void updateMenu(MenuGroup menuGroup, String menuName, Long menuPrice,
+                           MenuStatus menuStatus, String menuDescription, int menuPriority) {
+        this.menuGroup = menuGroup;
+        this.menuName = menuName;
+        this.menuPrice = menuPrice;
+        this.menuStatus = menuStatus;
+        this.menuDescription = menuDescription;
+        this.menuPriority = menuPriority;
     }
 }

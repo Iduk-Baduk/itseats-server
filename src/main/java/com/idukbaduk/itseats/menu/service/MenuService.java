@@ -84,10 +84,25 @@ public class MenuService {
         validateOptionSelectRange(request.getOptionGroups());
 
         Menu menu = createBaseMenu(request, menuGroup);
-        createAndAttachOptions(menu, request.getOptionGroups());
+        menu.setMenuOptionGroups(createOptionGroups(menu, request.getOptionGroups())); // 옵션 그룹 생성 및 추가
         Menu savedMenu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
 
         List<MenuImage> images = menuMediaService.createMenuImages(savedMenu, request.getImages());
+
+        return toResponse(savedMenu, images);
+    }
+
+    public MenuResponse updateMenu(Long storeId, Long menuId, MenuRequest request) {
+        Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+        MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
+        validateDuplicateOptionGroupNames(request.getOptionGroups());
+        validateOptionSelectRange(request.getOptionGroups());
+
+        updateMenu(request, menu, menuGroup); // menu 필드 업데이트
+        menu.setMenuOptionGroups(createOptionGroups(menu, request.getOptionGroups())); // 옵션 그룹 삭제 후 추가
+        Menu savedMenu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
+
+        List<MenuImage> images = menuMediaService.updateMenuImages(savedMenu, request.getImages());
 
         return toResponse(savedMenu, images);
     }
@@ -128,7 +143,20 @@ public class MenuService {
                 .build();
     }
 
-    private void createAndAttachOptions(Menu menu, List<MenuOptionGroupDto> optionGroups) {
+    private void updateMenu(MenuRequest request, Menu menu, MenuGroup menuGroup) {
+        menu.updateMenu(
+                menuGroup,
+                request.getMenuName(),
+                request.getMenuPrice(),
+                request.getMenuStatus(),
+                request.getMenuDescription(),
+                request.getMenuPriority()
+        );
+    }
+
+    private List<MenuOptionGroup> createOptionGroups(Menu menu, List<MenuOptionGroupDto> optionGroups) {
+        List<MenuOptionGroup> optionGroupsCreated = new ArrayList<>();
+
         for (MenuOptionGroupDto groupDto : optionGroups) {
             MenuOptionGroup optionGroup = MenuOptionGroup.builder()
                     .menu(menu)
@@ -138,7 +166,7 @@ public class MenuService {
                     .maxSelect(groupDto.getMaxSelect())
                     .optGroupPriority(groupDto.getPriority())
                     .build();
-            menu.addMenuOptionGroup(optionGroup);
+            optionGroupsCreated.add(optionGroup);
 
             for (MenuOptionDto optionDto : groupDto.getOptions()) {
                 MenuOption option = MenuOption.builder()
@@ -151,6 +179,7 @@ public class MenuService {
                 optionGroup.addOption(option);
             }
         }
+        return optionGroupsCreated;
     }
 
     private MenuResponse toResponse(Menu menu, List<MenuImage> images) {
