@@ -44,6 +44,18 @@ public class MenuController {
         );
     }
 
+    @PutMapping(value = "/{storeId}/menus/{menuId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<BaseResponse> createMenu(
+            @PathVariable Long storeId,
+            @PathVariable Long menuId,
+            @Valid @ModelAttribute MenuRequest request
+    ) {
+        return BaseResponse.toResponseEntity(
+                MenuResponse.UPDATE_MENU_SUCCESS,
+                menuService.updateMenu(storeId, menuId, request)
+        );
+    }
+
     @PostMapping("/{storeId}/menu-groups")
     public ResponseEntity<BaseResponse> saveMenuGroup(
             @PathVariable Long storeId,
