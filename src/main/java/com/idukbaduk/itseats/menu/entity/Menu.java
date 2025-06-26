@@ -74,4 +74,8 @@ public class Menu extends BaseEntity {
         this.menuDescription = menuDescription;
         this.menuPriority = menuPriority;
     }
+
+    public void updateMenuPriority(int menuPriority) {
+        this.menuPriority = menuPriority;
+    }
 }
