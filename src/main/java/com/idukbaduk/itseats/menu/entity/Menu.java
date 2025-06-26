@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "menu")
+@SQLDelete(sql = "UPDATE menu SET is_deleted = true WHERE menu_id = ?")
+@Where(clause = "is_deleted = false")
 public class Menu extends BaseEntity {
 
     @Id
