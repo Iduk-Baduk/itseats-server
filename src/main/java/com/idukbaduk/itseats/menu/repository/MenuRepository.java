@@ -21,6 +21,12 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
             @Param("menuGroup") String menuGroup,
             @Param("keyword") String keyword
     );
+
+    @Query("SELECT m FROM Menu m " +
+            "JOIN FETCH m.menuGroup mg " +
+            "WHERE m.menuId = :menuId " +
+            "AND mg.store.storeId = :storeId")
+    Optional<Menu> findByStoreIdAndMenuId(Long storeId, Long menuId);
   
     Optional<Menu> findByMenuIdAndDeletedFalse(Long menuId);
 

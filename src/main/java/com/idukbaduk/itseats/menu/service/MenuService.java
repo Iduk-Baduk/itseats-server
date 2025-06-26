@@ -6,21 +6,16 @@ import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuGroupRepository;
-import com.idukbaduk.itseats.menu.repository.MenuOptionGroupRepository;
-import com.idukbaduk.itseats.menu.repository.MenuOptionRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
-import com.idukbaduk.itseats.store.entity.Store;
-import com.idukbaduk.itseats.store.error.StoreException;
-import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
-import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -99,16 +94,33 @@ public class MenuService {
                 .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
     }
 
-    public MenuResponse createMenu(Long storeId, MenuRequest request) {
+    public MenuResponse createMenu(Long storeId, MenuRequest request, List<MultipartFile> imageFiles) {
         MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
         validateDuplicateOptionGroupNames(request.getOptionGroups());
         validateOptionSelectRange(request.getOptionGroups());
 
         Menu menu = createBaseMenu(request, menuGroup);
-        createAndAttachOptions(menu, request.getOptionGroups());
+        menu.setMenuOptionGroups(createOptionGroups(menu, request.getOptionGroups())); // 옵션 그룹 생성 및 추가
         Menu savedMenu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
 
-        List<MenuImage> images = menuMediaService.createMenuImages(savedMenu, request.getImages());
+        List<MenuImage> images = menuMediaService.createMenuImages(savedMenu, imageFiles);
+
+        return toResponse(savedMenu, images);
+    }
+
+    public MenuResponse updateMenu(Long storeId, Long menuId, MenuRequest request, List<MultipartFile> imageFiles) {
+        Menu menu = menuRepository.findByStoreIdAndMenuId(storeId, menuId).orElseThrow(
+                () -> new MenuException(MenuErrorCode.MENU_NOT_FOUND)
+        );
+        MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
+        validateDuplicateOptionGroupNames(request.getOptionGroups());
+        validateOptionSelectRange(request.getOptionGroups());
+
+        updateMenuFields(request, menu, menuGroup); // menu 필드 업데이트
+        menu.setMenuOptionGroups(createOptionGroups(menu, request.getOptionGroups())); // 옵션 그룹 삭제 후 추가
+        Menu savedMenu = menuRepository.save(menu); // cascade에 의해 옵션도 모두 저장됨
+
+        List<MenuImage> images = menuMediaService.updateMenuImages(savedMenu, imageFiles);
 
         return toResponse(savedMenu, images);
     }
@@ -149,7 +161,20 @@ public class MenuService {
                 .build();
     }
 
-    private void createAndAttachOptions(Menu menu, List<MenuOptionGroupDto> optionGroups) {
+    private void updateMenuFields(MenuRequest request, Menu menu, MenuGroup menuGroup) {
+        menu.updateMenu(
+                menuGroup,
+                request.getMenuName(),
+                request.getMenuPrice(),
+                request.getMenuStatus(),
+                request.getMenuDescription(),
+                request.getMenuPriority()
+        );
+    }
+
+    private List<MenuOptionGroup> createOptionGroups(Menu menu, List<MenuOptionGroupDto> optionGroups) {
+        List<MenuOptionGroup> optionGroupsCreated = new ArrayList<>();
+
         for (MenuOptionGroupDto groupDto : optionGroups) {
             MenuOptionGroup optionGroup = MenuOptionGroup.builder()
                     .menu(menu)
@@ -159,7 +184,7 @@ public class MenuService {
                     .maxSelect(groupDto.getMaxSelect())
                     .optGroupPriority(groupDto.getPriority())
                     .build();
-            menu.addMenuOptionGroup(optionGroup);
+            optionGroupsCreated.add(optionGroup);
 
             for (MenuOptionDto optionDto : groupDto.getOptions()) {
                 MenuOption option = MenuOption.builder()
@@ -172,6 +197,7 @@ public class MenuService {
                 optionGroup.addOption(option);
             }
         }
+        return optionGroupsCreated;
     }
 
     private MenuResponse toResponse(Menu menu, List<MenuImage> images) {

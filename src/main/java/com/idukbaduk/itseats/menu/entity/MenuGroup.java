@@ -3,7 +3,10 @@ package com.idukbaduk.itseats.menu.entity;
 import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.store.entity.Store;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;

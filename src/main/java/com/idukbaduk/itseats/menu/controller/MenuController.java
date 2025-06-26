@@ -1,7 +1,10 @@
 package com.idukbaduk.itseats.menu.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.menu.dto.*;
+import com.idukbaduk.itseats.menu.dto.MenuGroupRequest;
+import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
+import com.idukbaduk.itseats.menu.dto.MenuListRequest;
+import com.idukbaduk.itseats.menu.dto.MenuRequest;
 import com.idukbaduk.itseats.menu.dto.enums.MenuResponse;
 import com.idukbaduk.itseats.menu.service.MenuGroupService;
 import com.idukbaduk.itseats.menu.service.MenuService;
@@ -36,11 +39,25 @@ public class MenuController {
     @PostMapping(value = "/{storeId}/menus/new", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BaseResponse> createMenu(
             @PathVariable Long storeId,
-            @Valid @ModelAttribute MenuRequest request
+            @Valid @RequestPart("request") MenuRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
         return BaseResponse.toResponseEntity(
                 MenuResponse.CREATE_MENU_SUCCESS,
-                menuService.createMenu(storeId, request)
+                menuService.createMenu(storeId, request, images)
+        );
+    }
+
+    @PutMapping(value = "/{storeId}/menus/{menuId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<BaseResponse> updateMenu(
+            @PathVariable Long storeId,
+            @PathVariable Long menuId,
+            @Valid @RequestPart("request") MenuRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) {
+        return BaseResponse.toResponseEntity(
+                MenuResponse.UPDATE_MENU_SUCCESS,
+                menuService.updateMenu(storeId, menuId, request, images)
         );
     }
 

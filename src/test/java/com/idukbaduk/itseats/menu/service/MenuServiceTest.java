@@ -1,14 +1,12 @@
 package com.idukbaduk.itseats.menu.service;
 
 import com.idukbaduk.itseats.menu.dto.*;
-import com.idukbaduk.itseats.menu.entity.Menu;
-import com.idukbaduk.itseats.menu.entity.MenuGroup;
-import com.idukbaduk.itseats.menu.entity.MenuImage;
-import com.idukbaduk.itseats.menu.entity.MenuOptionGroup;
+import com.idukbaduk.itseats.menu.entity.*;
 import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuGroupRepository;
+import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
@@ -153,7 +151,6 @@ class MenuServiceTest {
                 .menuStatus(MenuStatus.ON_SALE)
                 .menuGroupName("음료")
                 .menuPriority(1)
-                .images(List.of(imageFile))
                 .optionGroups(List.of(
                         MenuOptionGroupDto.builder()
                                 .optionGroupName("샷 추가")
@@ -180,7 +177,7 @@ class MenuServiceTest {
         ));
 
         // when
-        MenuResponse data = menuService.createMenu(storeId, request);
+        MenuResponse data = menuService.createMenu(storeId, request, List.of(imageFile));
 
         // then
         assertThat(data).isNotNull()
@@ -205,7 +202,7 @@ class MenuServiceTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest))
+        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest, Collections.emptyList()))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.MENU_GROUP_NOT_FOUND.getMessage());
     }
@@ -226,7 +223,7 @@ class MenuServiceTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest))
+        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest, Collections.emptyList()))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.OPTION_GROUP_NAME_DUPLICATED.getMessage());
     }
@@ -246,7 +243,168 @@ class MenuServiceTest {
                 .build();
 
         // when & then
-        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest))
+        assertThatThrownBy(() -> menuService.createMenu(storeId, menuRequest, Collections.emptyList()))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.OPTION_GROUP_RANGE_INVALID.getMessage());
+    }
+
+    @Test
+    @DisplayName("기존의 메뉴를 수정한다")
+    void updateMenu_success() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+        when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
+                .thenReturn(Optional.of(MenuGroup.builder().menuGroupName("음료").build()));
+
+        MenuOption option = MenuOption.builder()
+                .optionName("커피번")
+                .optionPrice(3000L)
+                .build();
+        MenuOptionGroup optionGroup = MenuOptionGroup.builder()
+                .optGroupName("사이드")
+                .options(List.of(option))
+                .build();
+        Menu menu = Menu.builder()
+                .menuName("아메리카노")
+                .menuStatus(MenuStatus.ON_SALE)
+                .menuPrice(2000L)
+                .menuOptionGroups(new ArrayList<>(List.of(optionGroup)))
+                .build();
+
+        when(menuRepository.findByStoreIdAndMenuId(storeId, menuId)).thenReturn(Optional.of(menu));
+
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "images", "test.jpg", "image/jpeg", "test image content".getBytes());
+
+        MenuRequest request = MenuRequest.builder()
+                .menuName("카페라떼")
+                .menuPrice(3000L)
+                .menuStatus(MenuStatus.HIDDEN)
+                .menuGroupName("음료")
+                .optionGroups(List.of(
+                        MenuOptionGroupDto.builder()
+                                .optionGroupName("샷 추가")
+                                .isRequired(false)
+                                .minSelect(0)
+                                .maxSelect(1)
+                                .priority(1)
+                                .options(List.of(
+                                        MenuOptionDto.builder()
+                                                .optionName("1번 샷 추가")
+                                                .optionPrice(500L)
+                                                .optionStatus(MenuStatus.ON_SALE)
+                                                .optionPriority(1)
+                                                .build()
+                                ))
+                                .build()
+                ))
+                .build();
+        when(menuRepository.save(any(Menu.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(menuMediaService.updateMenuImages(any(Menu.class), any())).thenReturn(List.of(
+                MenuImage.builder()
+                        .imageUrl("s3 link")
+                        .build()
+        ));
+
+        // when
+        MenuResponse data = menuService.updateMenu(storeId, menuId, request, List.of(imageFile));
+
+        // then
+        assertThat(data).isNotNull()
+                .extracting("menuName", "menuPrice", "menuStatus")
+                .containsExactly("카페라떼", 3000L, MenuStatus.HIDDEN);
+        assertThat(data.getOptionGroups()).hasSize(1);
+        assertThat(data.getOptionGroups().get(0).getOptionGroupName()).isEqualTo("샷 추가");
+        assertThat(data.getOptionGroups().get(0).getOptions()).hasSize(1);
+        assertThat(data.getOptionGroups().get(0).getOptions().get(0).getOptionName()).isEqualTo("1번 샷 추가");
+        assertThat(data.getImages()).hasSize(1)
+                .contains("s3 link");
+        verify(menuRepository).save(any(Menu.class));
+    }
+
+    @Test
+    @DisplayName("메뉴 수정시 메뉴가 존재하지 않으면 예외 발생")
+    void updateMenu_notFound() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+        when(menuRepository.findByStoreIdAndMenuId(storeId, menuId))
+                .thenReturn(Optional.empty());
+        MenuRequest menuRequest = MenuRequest.builder()
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest, Collections.emptyList()))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("메뉴 수정시 메뉴 그룹이 존재하지 않으면 예외 발생")
+    void updateMenu_menuGroupNotExists() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+        when(menuRepository.findByStoreIdAndMenuId(storeId, menuId))
+                .thenReturn(Optional.of(Menu.builder().build()));
+        when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
+                .thenReturn(Optional.empty());
+        MenuRequest menuRequest = MenuRequest.builder()
+                .menuGroupName("없는그룹")
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest, Collections.emptyList()))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.MENU_GROUP_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("메뉴 수정시 옵션 그룹명이 동일한게 있으면 예외 발생")
+    void updateMenu_optionGroupNameDuplicated() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+        when(menuRepository.findByStoreIdAndMenuId(storeId, menuId))
+                .thenReturn(Optional.of(Menu.builder().build()));
+        when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
+                .thenReturn(Optional.of(MenuGroup.builder().menuGroupName("그룹").build()));
+
+        MenuRequest menuRequest = MenuRequest.builder()
+                .menuGroupName("그룹")
+                .optionGroups(List.of(
+                        MenuOptionGroupDto.builder().optionGroupName("사이드").build(),
+                        MenuOptionGroupDto.builder().optionGroupName("사이드").build()
+                ))
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest, Collections.emptyList()))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.OPTION_GROUP_NAME_DUPLICATED.getMessage());
+    }
+
+    @Test
+    @DisplayName("메뉴 수정시 옵션 최소 선택이 최대 선택보다 크면 예외 발생")
+    void updateMenu_optionGroupRangeInvalid() {
+        // given
+        Long storeId = 1L;
+        Long menuId = 1L;
+        when(menuRepository.findByStoreIdAndMenuId(storeId, menuId))
+                .thenReturn(Optional.of(Menu.builder().build()));
+        when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
+                .thenReturn(Optional.of(MenuGroup.builder().menuGroupName("그룹").build()));
+
+        MenuRequest menuRequest = MenuRequest.builder()
+                .menuGroupName("그룹")
+                .optionGroups(List.of(
+                        MenuOptionGroupDto.builder().optionGroupName("사이드").maxSelect(1).minSelect(2).build()
+                ))
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> menuService.updateMenu(storeId, menuId, menuRequest, Collections.emptyList()))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.OPTION_GROUP_RANGE_INVALID.getMessage());
     }

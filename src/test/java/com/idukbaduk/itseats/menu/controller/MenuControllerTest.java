@@ -7,7 +7,6 @@ import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
 import com.idukbaduk.itseats.menu.dto.MenuResponse;
 import com.idukbaduk.itseats.menu.service.MenuGroupService;
 import com.idukbaduk.itseats.menu.service.MenuService;
-import com.idukbaduk.itseats.store.dto.enums.StoreResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,23 +56,32 @@ class MenuControllerTest {
                 .menuGroupName("음료")
                 .images(List.of("s3 link"))
                 .build();
-        when(menuService.createMenu(anyLong(), any())).thenReturn(response);
+        when(menuService.createMenu(anyLong(), any(), any())).thenReturn(response);
+
+        String requestJson = """
+            {
+                "menuName": "아메리카노",
+                "menuDescription": "평범한 아메리카노입니다.",
+                "menuPrice": 2000,
+                "menuStatus": "ON_SALE",
+                "menuGroupName": "음료",
+                "menuPriority": 1
+            }
+        """;
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request", "request.json", "application/json", requestJson.getBytes(StandardCharsets.UTF_8)
+        );
 
         MockMultipartFile imageFile = new MockMultipartFile(
                 "images", "test.jpg", "image/jpeg", "test image content".getBytes());
 
         // when & then
         mockMvc.perform(multipart("/api/owner/1/menus/new")
-                .file(imageFile)
-                .param("menuName", "아메리카노")
-                .param("menuDescription", "평범한 아메리카노입니다.")
-                .param("menuPrice", "2000")
-                .param("menuStatus", "ON_SALE")
-                .param("menuGroupName", "음료")
-                .param("menuPriority", "1")
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .accept(MediaType.APPLICATION_JSON)
-                .characterEncoding("UTF-8"))
+                        .file(requestPart)
+                        .file(imageFile)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.httpStatus").value(201))
                 .andExpect(jsonPath("$.message").value(CREATE_MENU_SUCCESS.getMessage()))
@@ -82,19 +92,110 @@ class MenuControllerTest {
     @DisplayName("메뉴 추가 요청 검증 실패 - 메뉴 이름 없음")
     @Test
     void createMenu_notValid() throws Exception {
+        // given
+        String requestJson = """
+            {
+                "menuDescription": "평범한 아메리카노입니다.",
+                "menuPrice": 2000,
+                "menuStatus": "ON_SALE",
+                "menuGroupName": "음료",
+                "menuPriority": 1
+            }
+        """;
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request", "request.json", "application/json", requestJson.getBytes(StandardCharsets.UTF_8)
+        );
+
         // when & then
         mockMvc.perform(multipart("/api/owner/1/menus/new")
-                        .param("menuDescription", "평범한 아메리카노입니다.")
-                        .param("menuPrice", "2000")
-                        .param("menuStatus", "ON_SALE")
-                        .param("menuGroupName", "음료")
-                        .param("menuPriority", "1")
+                        .file(requestPart)
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaType.APPLICATION_JSON)
                         .characterEncoding("UTF-8"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("메뉴 이름은 필수입니다."));
+    }
+
+    @DisplayName("메뉴 수정 성공")
+    @Test
+    void updateMenu_success() throws Exception {
+        // given
+        MenuResponse response = MenuResponse.builder()
+                .menuId(1L)
+                .menuName("카페라떼")
+                .menuPrice(3000L)
+                .menuGroupName("음료")
+                .images(List.of("s3 link"))
+                .build();
+        when(menuService.updateMenu(anyLong(), anyLong(), any(), any())).thenReturn(response);
+
+        String requestJson = """
+            {
+                "menuName": "카페라떼",
+                "menuDescription": "평범한 카페라떼입니다.",
+                "menuPrice": 3000,
+                "menuStatus": "HIDDEN",
+                "menuGroupName": "음료",
+                "menuPriority": 1
+            }
+        """;
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request", "request.json", "application/json", requestJson.getBytes(StandardCharsets.UTF_8)
+        );
+
+        MockMultipartFile imageFile = new MockMultipartFile(
+                "images", "test.jpg", "image/jpeg", "test image content".getBytes());
+
+        // when & then
+        mockMvc.perform(multipart("/api/owner/1/menus/1")
+                        .file(requestPart)
+                        .file(imageFile)
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        })
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8"))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.httpStatus").value(200))
+                .andExpect(jsonPath("$.message").value(UPDATE_MENU_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.data.menuId").value("1"))
+                .andExpect(jsonPath("$.data.menuName").value("카페라떼"));
+    }
+
+    @DisplayName("메뉴 수정 요청 검증 실패 - 가격이 음수")
+    @Test
+    void updateMenu_notValid() throws Exception {
+        // when & then
+        String requestJson = """
+        {
+            "menuName": "카페라떼",
+            "menuDescription": "평범한 카페라떼입니다.",
+            "menuPrice": -3000,
+            "menuStatus": "ON_SALE",
+            "menuGroupName": "음료",
+            "menuPriority": 1
+        }
+        """;
+        MockMultipartFile requestPart = new MockMultipartFile(
+                "request", "request.json", "application/json", requestJson.getBytes(StandardCharsets.UTF_8)
+        );
+
+        mockMvc.perform(multipart("/api/owner/1/menus/1")
+                        .file(requestPart)
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        })
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("메뉴 가격은 0원 이상이어야 합니다."));
     }
 
     @DisplayName("메뉴 그룹 조회 성공")

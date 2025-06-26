@@ -36,6 +36,4 @@ public class MenuRequest {
 
     @Valid
     List<MenuOptionGroupDto> optionGroups;
-
-    List<MultipartFile> images;
 }
