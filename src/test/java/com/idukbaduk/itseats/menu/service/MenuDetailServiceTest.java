@@ -88,6 +88,11 @@ class MenuDetailServiceTest {
         assertThat(opt1.getOptionPrice()).isEqualTo(0L);
         assertThat(opt1.getOptionStatus()).isEqualTo(MenuStatus.ON_SALE);
         assertThat(opt1.getOptionPriority()).isEqualTo(1);
+        MenuOptionDto opt2 = groupDto.getOptions().get(1);
+        assertThat(opt2.getOptionName()).isEqualTo("벤티(Venti)");
+        assertThat(opt2.getOptionPrice()).isEqualTo(1000L);
+        assertThat(opt2.getOptionStatus()).isEqualTo(MenuStatus.HIDDEN);
+        assertThat(opt2.getOptionPriority()).isEqualTo(2);
     }
 
     @Test
