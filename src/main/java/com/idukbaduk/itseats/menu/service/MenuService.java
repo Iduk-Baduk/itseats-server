@@ -109,8 +109,10 @@ public class MenuService {
     }
 
     @Transactional
-    public void deleteMenu(Long menuId) {
-        Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+    public void deleteMenu(Long storeId, Long menuId) {
+        Menu menu = menuRepository.findByStoreIdAndMenuId(storeId, menuId).orElseThrow(
+                () -> new MenuException(MenuErrorCode.MENU_NOT_FOUND)
+        );
         menuRepository.delete(menu); // is_deleted = true 설정 (@SQLDelete 이용)
     }
 
