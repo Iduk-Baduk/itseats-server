@@ -338,8 +338,7 @@ class RiderOrderServiceTest {
                 .imageUrl("https://example.com/test.jpg")
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
         when(riderImageService.saveRiderImage(rider, order, multipartFile)).thenReturn(riderImage);
 
