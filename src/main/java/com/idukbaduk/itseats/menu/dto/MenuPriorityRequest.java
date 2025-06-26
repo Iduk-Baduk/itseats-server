@@ -12,5 +12,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MenuPriorityRequest {
-    List<MenuInfoDto> menus;
+    private List<MenuInfoDto> menus;
 }
