@@ -71,7 +71,7 @@ public class MenuController {
 
     @DeleteMapping(value = "/{storeId}/menus/{menuId}")
     public ResponseEntity<BaseResponse> deleteMenu(@PathVariable Long storeId, @PathVariable Long menuId) {
-        menuService.deleteMenu(menuId);
+        menuService.deleteMenu(storeId, menuId);
         return BaseResponse.toResponseEntity(MenuResponse.DELETE_MENU_SUCCESS);
     }
 
@@ -90,5 +90,14 @@ public class MenuController {
     public ResponseEntity<BaseResponse> getMenuGroup(@PathVariable Long storeId) {
         MenuGroupResponse data = menuGroupService.getMenuGroup(storeId);
         return BaseResponse.toResponseEntity(MenuResponse.GET_MENU_GROUP_SUCCESS, data);
+    }
+
+    @GetMapping("/{storeId}/menus/{menuId}")
+    public ResponseEntity<BaseResponse> getMenuDetail(
+            @PathVariable("storeId") Long storeId,
+            @PathVariable("menuId") Long menuId
+    ) {
+        MenuDetailResponse data = menuService.getMenuDetail(storeId, menuId);
+        return BaseResponse.toResponseEntity(MenuResponse.GET_MENU_DETAIL_SUCCESS, data);
     }
 }

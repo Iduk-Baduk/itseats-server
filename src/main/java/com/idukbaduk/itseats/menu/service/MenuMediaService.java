@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MenuMediaService {
-    // TODO S3에서 이미지 파일 저장 및 삭제
+    // TODO: S3에서 이미지 파일 저장 및 삭제
 
     private final MenuImageRepository menuImageRepository;
 

@@ -272,7 +272,7 @@ class MenuServiceTest {
                 .menuOptionGroups(new ArrayList<>(List.of(optionGroup)))
                 .build();
 
-        when(menuRepository.findById(menuId)).thenReturn(Optional.of(menu));
+        when(menuRepository.findByStoreIdAndMenuId(storeId, menuId)).thenReturn(Optional.of(menu));
 
         MockMultipartFile imageFile = new MockMultipartFile(
                 "images", "test.jpg", "image/jpeg", "test image content".getBytes());
@@ -329,7 +329,7 @@ class MenuServiceTest {
         // given
         Long storeId = 1L;
         Long menuId = 1L;
-        when(menuRepository.findById(menuId))
+        when(menuRepository.findByStoreIdAndMenuId(storeId, menuId))
                 .thenReturn(Optional.empty());
         MenuRequest menuRequest = MenuRequest.builder()
                 .build();
@@ -346,7 +346,7 @@ class MenuServiceTest {
         // given
         Long storeId = 1L;
         Long menuId = 1L;
-        when(menuRepository.findById(menuId))
+        when(menuRepository.findByStoreIdAndMenuId(storeId, menuId))
                 .thenReturn(Optional.of(Menu.builder().build()));
         when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
                 .thenReturn(Optional.empty());
@@ -366,7 +366,7 @@ class MenuServiceTest {
         // given
         Long storeId = 1L;
         Long menuId = 1L;
-        when(menuRepository.findById(menuId))
+        when(menuRepository.findByStoreIdAndMenuId(storeId, menuId))
                 .thenReturn(Optional.of(Menu.builder().build()));
         when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
                 .thenReturn(Optional.of(MenuGroup.builder().menuGroupName("그룹").build()));
@@ -391,7 +391,7 @@ class MenuServiceTest {
         // given
         Long storeId = 1L;
         Long menuId = 1L;
-        when(menuRepository.findById(menuId))
+        when(menuRepository.findByStoreIdAndMenuId(storeId, menuId))
                 .thenReturn(Optional.of(Menu.builder().build()));
         when(menuGroupRepository.findMenuGroupByMenuGroupNameAndStore_StoreId(any(), any()))
                 .thenReturn(Optional.of(MenuGroup.builder().menuGroupName("그룹").build()));
@@ -413,12 +413,12 @@ class MenuServiceTest {
     @DisplayName("기존의 메뉴를 삭제 한다")
     void deleteMenu_success() {
         // given
-        when(menuRepository.findById(any())).thenReturn(Optional.of(
+        when(menuRepository.findByStoreIdAndMenuId(any(), any())).thenReturn(Optional.of(
                 Menu.builder().menuId(1L).build())
         );
 
         // when
-        menuService.deleteMenu(1L);
+        menuService.deleteMenu(1L, 1L);
 
         // then
         verify(menuRepository).delete(any(Menu.class));
@@ -428,10 +428,10 @@ class MenuServiceTest {
     @DisplayName("메뉴 삭제시 메뉴가 존재하지 않으면 예외 발생")
     void deleteMenu_notFound() {
         // given
-        when(menuRepository.findById(any())).thenReturn(Optional.empty());
+        when(menuRepository.findByStoreIdAndMenuId(any(), any())).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() ->menuService.deleteMenu(1L))
+        assertThatThrownBy(() ->menuService.deleteMenu(1L, 1L))
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
     }

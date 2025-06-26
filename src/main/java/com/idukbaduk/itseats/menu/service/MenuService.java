@@ -45,6 +45,26 @@ public class MenuService {
         return toMenuListResponse(menus, totalMenuCount, orderableMenuCount, outOfStockTodayCount, hiddenMenuCount);
     }
 
+    public MenuDetailResponse getMenuDetail(Long storeId, Long menuId) {
+        Menu menu = menuRepository.findDetailById(menuId)
+                .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+
+        if (!menu.getMenuGroup().getStore().getStoreId().equals(storeId)) {
+            throw new MenuException(MenuErrorCode.MENU_ACCESS_DENIED);
+        }
+
+        return MenuDetailResponse.builder()
+                .menuId(menu.getMenuId())
+                .menuName(menu.getMenuName())
+                .menuDescription(menu.getMenuDescription())
+                .menuPrice(menu.getMenuPrice())
+                .menuStatus(menu.getMenuStatus().name())
+                .menuRating(menu.getMenuRating())
+                .menuGroupName(menu.getMenuGroup().getMenuGroupName())
+                .optionGroups(optionGroupsToDto(menu.getMenuOptionGroups()))
+                .build();
+    }
+
     public Menu getMenu(Long menuId) {
         return menuRepository.findById(menuId)
                 .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
@@ -67,7 +87,9 @@ public class MenuService {
 
     @Transactional
     public MenuResponse updateMenu(Long storeId, Long menuId, MenuRequest request, List<MultipartFile> imageFiles) {
-        Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+        Menu menu = menuRepository.findByStoreIdAndMenuId(storeId, menuId).orElseThrow(
+                () -> new MenuException(MenuErrorCode.MENU_NOT_FOUND)
+        );
         MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
         validateDuplicateOptionGroupNames(request.getOptionGroups());
         validateOptionSelectRange(request.getOptionGroups());
@@ -82,8 +104,10 @@ public class MenuService {
     }
 
     @Transactional
-    public void deleteMenu(Long menuId) {
-        Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+    public void deleteMenu(Long storeId, Long menuId) {
+        Menu menu = menuRepository.findByStoreIdAndMenuId(storeId, menuId).orElseThrow(
+                () -> new MenuException(MenuErrorCode.MENU_NOT_FOUND)
+        );
         menuRepository.delete(menu); // is_deleted = true 설정 (@SQLDelete 이용)
     }
 
