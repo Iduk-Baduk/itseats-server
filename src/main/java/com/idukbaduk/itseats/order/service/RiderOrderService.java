@@ -104,6 +104,7 @@ public class RiderOrderService {
         order.updateStatus(orderStatus);
     }
 
+    @Transactional
     public RiderImageResponse uploadRiderImage(String username, Long orderId, MultipartFile image) {
         if (image == null || image.isEmpty()) {
             throw new OrderException(OrderErrorCode.REQUIRED_RIDER_IMAGE);
