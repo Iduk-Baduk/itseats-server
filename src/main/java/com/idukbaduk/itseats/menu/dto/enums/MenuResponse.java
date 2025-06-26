@@ -11,7 +11,8 @@ public enum MenuResponse implements Response {
     GET_MENU_GROUP_SUCCESS(HttpStatus.OK, "메뉴 그룹 조회 성공"),
     SAVE_MENU_GROUP_SUCCESS(HttpStatus.OK, "메뉴 그룹 설정 성공"),
     CREATE_MENU_SUCCESS(HttpStatus.CREATED, "메뉴 추가 성공"),
-    UPDATE_MENU_SUCCESS(HttpStatus.OK, "메뉴 수정 성공")
+    UPDATE_MENU_SUCCESS(HttpStatus.OK, "메뉴 수정 성공"),
+    DELETE_MENU_SUCCESS(HttpStatus.OK, "메뉴 삭제 성공"),
     GET_MENU_DETAIL_SUCCESS(HttpStatus.OK, "메뉴 상세 조회 성공")
     ;
 

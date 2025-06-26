@@ -408,4 +408,31 @@ class MenuServiceTest {
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.OPTION_GROUP_RANGE_INVALID.getMessage());
     }
+
+    @Test
+    @DisplayName("기존의 메뉴를 삭제 한다")
+    void deleteMenu_success() {
+        // given
+        when(menuRepository.findByStoreIdAndMenuId(any(), any())).thenReturn(Optional.of(
+                Menu.builder().menuId(1L).build())
+        );
+
+        // when
+        menuService.deleteMenu(1L, 1L);
+
+        // then
+        verify(menuRepository).delete(any(Menu.class));
+    }
+
+    @Test
+    @DisplayName("메뉴 삭제시 메뉴가 존재하지 않으면 예외 발생")
+    void deleteMenu_notFound() {
+        // given
+        when(menuRepository.findByStoreIdAndMenuId(any(), any())).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() ->menuService.deleteMenu(1L, 1L))
+                .isInstanceOf(MenuException.class)
+                .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
+    }
 }
