@@ -81,6 +81,9 @@ public class Order extends BaseEntity {
     @Column(name = "order_end_time")
     private LocalDateTime orderEndTime;
 
+    @Column(name = "reject_reason")
+    private String rejectReason;
+
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
     private List<OrderMenu> orderMenus;
 
@@ -97,5 +100,11 @@ public class Order extends BaseEntity {
     public void updateStatus(OrderStatus orderStatus) {
         orderStatus.validateTransitionFrom(this.orderStatus);
         this.orderStatus = orderStatus;
+    }
+
+    public void reject(String reason) {
+        OrderStatus.REJECTED.validateTransitionFrom(this.orderStatus);
+        this.orderStatus = OrderStatus.REJECTED;
+        this.rejectReason = reason;
     }
 }

@@ -1,7 +1,6 @@
 package com.idukbaduk.itseats.rider.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.enums.RiderResponse;
 import com.idukbaduk.itseats.rider.service.RiderService;
@@ -10,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,21 +29,5 @@ public class RiderController {
                 RiderResponse.MODIFY_IS_WORKING_SUCCESS,
                 riderService.modifyWorking(userDetails.getUsername(), modifyWorkingRequest)
         );
-    }
-
-    @PostMapping("/{orderId}/accept")
-    public ResponseEntity<BaseResponse> updateDeliveryStatusAccept(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable("orderId") Long orderId) {
-        riderService.acceptDelivery(userDetails.getUsername(), orderId);
-        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_ACCEPT_SUCCESS);
-    }
-
-    @PostMapping("/{orderId}/done")
-    public ResponseEntity<BaseResponse> updateDeliveryStatusDone(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable("orderId") Long orderId) {
-        riderService.updateOrderStatusAfterAccept(userDetails.getUsername(), orderId, OrderStatus.DELIVERED);
-        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_DELIVERED_SUCCESS);
     }
 }
