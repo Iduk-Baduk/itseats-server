@@ -11,7 +11,8 @@ public enum RiderResponse implements Response {
     UPDATE_STATUS_ACCEPT_SUCCESS(HttpStatus.OK, "배달 수락 완료"),
     UPDATE_STATUS_ARRIVED_SUCCESS(HttpStatus.OK, "매장 도착 완료"),
     UPDATE_STATUS_PICKUP_SUCCESS(HttpStatus.OK, "픽업 완료"),
-    UPDATE_STATUS_DELIVERED_SUCCESS(HttpStatus.OK, "배달 완료");
+    UPDATE_STATUS_DELIVERED_SUCCESS(HttpStatus.OK, "배달 완료"),
+    REJECT_DELIVERY_SUCCESS(HttpStatus.OK, "배달 거절 완료");
 
     private final HttpStatus httpStatus;
     private final String message;
