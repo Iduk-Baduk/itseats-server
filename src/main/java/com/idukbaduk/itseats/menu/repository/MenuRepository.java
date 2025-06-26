@@ -31,7 +31,7 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
 
     @Query("SELECT m FROM Menu m " +
             "JOIN FETCH m.menuGroup mg " +
-            "WHERE m.menuId = :menuId")
+            "WHERE mg.store.storeId = :storeId")
     List<Menu> findByStoreId(Long storeId);
   
     Optional<Menu> findByMenuIdAndDeletedFalse(Long menuId);
