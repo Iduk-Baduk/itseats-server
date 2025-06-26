@@ -65,7 +65,7 @@ public class MenuController {
     ) {
         return BaseResponse.toResponseEntity(
                 MenuResponse.SET_MENU_ORDER_SUCCESS,
-                menuService.updateMenuPriority(request)
+                menuService.updateMenuPriority(storeId, request)
         );
     }
 

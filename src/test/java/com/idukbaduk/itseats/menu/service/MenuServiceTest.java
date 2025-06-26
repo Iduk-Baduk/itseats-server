@@ -440,12 +440,13 @@ class MenuServiceTest {
     @DisplayName("메뉴의 우선순위를 변경한다")
     void updateMenuPriority_success() {
         // given
+        Long storeId = 1L;
         MenuGroup menuGroup = MenuGroup.builder().menuGroupId(1L).build();
         List<Menu> menus = new ArrayList<>(List.of(
                 Menu.builder().menuId(1L).menuPriority(1).menuStatus(MenuStatus.ON_SALE).menuGroup(menuGroup).build(),
                 Menu.builder().menuId(2L).menuPriority(2).menuStatus(MenuStatus.ON_SALE).menuGroup(menuGroup).build()
         ));
-        when(menuRepository.findAll()).thenReturn(menus);
+        when(menuRepository.findByStoreId(storeId)).thenReturn(menus);
 
         List<MenuInfoDto> menuInfoDtos = List.of(
                 MenuInfoDto.builder().menuId(1L).menuPriority(2).build(),
@@ -456,7 +457,7 @@ class MenuServiceTest {
                 .build();
 
         // when
-        MenuListResponse data = menuService.updateMenuPriority(request);
+        MenuListResponse data = menuService.updateMenuPriority(storeId, request);
 
         // then
         assertThat(data.getMenus()).hasSize(2)

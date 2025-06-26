@@ -28,6 +28,11 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
             "WHERE m.menuId = :menuId " +
             "AND mg.store.storeId = :storeId")
     Optional<Menu> findByStoreIdAndMenuId(Long storeId, Long menuId);
+
+    @Query("SELECT m FROM Menu m " +
+            "JOIN FETCH m.menuGroup mg " +
+            "WHERE m.menuId = :menuId")
+    List<Menu> findByStoreId(Long storeId);
   
     Optional<Menu> findByMenuIdAndDeletedFalse(Long menuId);
 

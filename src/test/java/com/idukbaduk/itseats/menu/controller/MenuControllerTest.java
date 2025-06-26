@@ -263,7 +263,7 @@ class MenuControllerTest {
                 .hiddenMenuCount(0)
                 .menus(menus)
                 .build();
-        when(menuService.updateMenuPriority(any())).thenReturn(response);
+        when(menuService.updateMenuPriority(any(), any())).thenReturn(response);
 
         Long storeId = 1L;
         List<MenuInfoDto> menuInfoDtos = List.of(

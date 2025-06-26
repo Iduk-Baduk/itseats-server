@@ -112,8 +112,8 @@ public class MenuService {
     }
 
     @Transactional
-    public MenuListResponse updateMenuPriority(MenuPriorityRequest request) {
-        List<Menu> menus = menuRepository.findAll();
+    public MenuListResponse updateMenuPriority(Long storeId, MenuPriorityRequest request) {
+        List<Menu> menus = menuRepository.findByStoreId(storeId);
 
         Map<Long, Integer> priorityMap = new HashMap<>();
         request.getMenus().forEach(m -> {
