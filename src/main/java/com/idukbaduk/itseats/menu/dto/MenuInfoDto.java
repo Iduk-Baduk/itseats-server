@@ -15,4 +15,5 @@ public class MenuInfoDto {
     private String menuPrice;
     private String menuStatus;
     private String menuGroupName;
+    private int menuPriority;
 }

@@ -52,6 +52,7 @@ public class MenuService {
                         .menuPrice(String.valueOf(menu.getMenuPrice()))
                         .menuStatus(menu.getMenuStatus().name())
                         .menuGroupName(menu.getMenuGroup().getMenuGroupName())
+                        .menuPriority(menu.getMenuPriority())
                         .build())
                 .toList();
 
