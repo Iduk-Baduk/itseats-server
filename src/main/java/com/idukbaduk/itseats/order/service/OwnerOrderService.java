@@ -1,9 +1,16 @@
 package com.idukbaduk.itseats.order.service;
 
-import com.idukbaduk.itseats.order.dto.OrderReceptionDTO;
-import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
+import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
+import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.entity.OrderMenu;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
@@ -11,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,6 +30,45 @@ public class OwnerOrderService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
 
+    @Transactional(readOnly = true)
+    public OrderDetailResponse getOrderDetail(Long orderId) {
+
+        Order order = orderRepository.findDetailById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        List<OrderMenuItemDTO> menuItems = order.getOrderMenus().stream()
+                .map(om -> OrderMenuItemDTO.builder()
+                        .menuId(om.getMenu().getMenuId())
+                        .menuName(om.getMenuName())
+                        .quantity(om.getQuantity())
+                        .menuPrice(om.getPrice())
+                        .options(parseOptions(om.getMenuOption()))
+                        .build())
+                .toList();
+
+        int totalPrice = order.getOrderMenus().stream()
+                .mapToInt(om -> om.getPrice() * om.getQuantity())
+                .sum();
+
+        return OrderDetailResponse.builder()
+                .orderId(order.getOrderId())
+                .orderNumber(order.getOrderNumber())
+                .memberName(order.getMember().getName())
+                .orderStatus(order.getOrderStatus().name())
+                .orderTime(order.getOrderReceivedTime().toString())
+                .totalPrice(totalPrice)
+                .menuItems(menuItems)
+                .build();
+    }
+
+    private List<String> parseOptions(String menuOption) {
+        if (menuOption == null || menuOption.trim().isEmpty()) return List.of();
+        return Arrays.stream(menuOption.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
+  
     @Transactional(readOnly = true)
     public List<OrderReceptionResponse> getOrders(Long storeId) {
         List<Order> orders = orderRepository.findAllWithMenusByStoreId(storeId);
@@ -67,5 +114,34 @@ public class OwnerOrderService {
                 .customerRequest(customerRequest)
                 .riderPhone(riderPhone)
                 .build();
+    }
+
+    @Transactional
+    public OrderRejectResponse rejectOrder(Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        order.reject(reason);
+
+        return new OrderRejectResponse(true, reason);
+    }
+  
+    public OrderAcceptResponse acceptOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        order.updateStatus(OrderStatus.ACCEPTED);
+
+        return new OrderAcceptResponse(true);
+    }
+
+    @Transactional
+    public OrderCookedResponse markAsCooked(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        order.updateStatus(OrderStatus.COOKED);
+
+        return new OrderCookedResponse(true);
     }
 }
