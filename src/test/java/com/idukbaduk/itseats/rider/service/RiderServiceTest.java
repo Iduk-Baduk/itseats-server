@@ -2,12 +2,18 @@ package com.idukbaduk.itseats.rider.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
+import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
+import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
+import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
 import com.idukbaduk.itseats.rider.dto.WorkingInfoResponse;
 import com.idukbaduk.itseats.rider.entity.Rider;
+import com.idukbaduk.itseats.rider.entity.RiderAssignment;
+import com.idukbaduk.itseats.rider.entity.enums.AssignmentStatus;
 import com.idukbaduk.itseats.rider.error.RiderException;
 import com.idukbaduk.itseats.rider.error.enums.RiderErrorCode;
+import com.idukbaduk.itseats.rider.repository.RiderAssignmentRepository;
 import com.idukbaduk.itseats.rider.repository.RiderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +35,7 @@ class RiderServiceTest {
     @Mock
     private RiderRepository riderRepository;
     @Mock
-    private MemberRepository memberRepository;
+    private RiderAssignmentRepository riderAssignmentRepository;
 
     @InjectMocks
     private RiderService riderService;
@@ -59,8 +65,7 @@ class RiderServiceTest {
                 .isWorking(true)
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
 
         // when
         WorkingInfoResponse response = riderService.modifyWorking(username, request);
@@ -77,8 +82,7 @@ class RiderServiceTest {
                 .isWorking(false)
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
 
         // when
         WorkingInfoResponse response = riderService.modifyWorking(username, request);
@@ -91,12 +95,78 @@ class RiderServiceTest {
     @DisplayName("존재하지 않는 라이더 조회시 예외 발생")
     void modifyWorking_notExistRider() {
         // given
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.empty());
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> riderService.modifyWorking(username, ModifyWorkingRequest.builder().build()))
                 .isInstanceOf(RiderException.class)
                 .hasMessageContaining(RiderErrorCode.RIDER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("배달 거절 성공")
+    void rejectDelivery_success() {
+        // given
+        RejectReasonRequest request = RejectReasonRequest.builder()
+                .rejectReason("다른 배달 진행 예정입니다.")
+                .build();
+
+        RiderAssignment riderAssignment = RiderAssignment.builder()
+                .assignmentId(1L)
+                .rider(rider)
+                .order(Order.builder()
+                        .orderId(1L)
+                        .build())
+                .assignmentStatus(AssignmentStatus.PENDING)
+                .build();
+
+        when(riderAssignmentRepository.findByUsernameAndOrderId(username, 1L))
+                .thenReturn(Optional.of(riderAssignment));
+
+        // when
+        RejectDeliveryResponse response = riderService.rejectDelivery(username, 1L, request);
+
+        // then
+        assertThat(response.getRejectReason()).isEqualTo(request.getRejectReason());
+        assertThat(riderAssignment.getReason()).isEqualTo(request.getRejectReason());
+        assertThat(riderAssignment.getAssignmentStatus()).isEqualTo(AssignmentStatus.REJECTED);
+    }
+
+    @Test
+        @DisplayName("배차 관리 상태가 직전 단계가 아닌 경우 변경시 예외 발생")
+    void rejectDelivery_rejectStatusFail() {
+        // given
+        RejectReasonRequest request = RejectReasonRequest.builder()
+                .rejectReason("다른 배달 진행 예정입니다.")
+                .build();
+
+        RiderAssignment riderAssignment = RiderAssignment.builder()
+                .assignmentId(1L)
+                .rider(rider)
+                .order(Order.builder()
+                        .orderId(1L)
+                        .build())
+                .assignmentStatus(AssignmentStatus.ACCEPTED)
+                .build();
+
+        when(riderAssignmentRepository.findByUsernameAndOrderId(username, 1L))
+                .thenReturn(Optional.of(riderAssignment));
+
+        // when & then
+        assertThatThrownBy(() -> riderService.rejectDelivery(username, 1L, RejectReasonRequest.builder().build()))
+                .isInstanceOf(RiderException.class)
+                .hasMessageContaining(RiderErrorCode.RIDER_ASSIGNMENT_STATUS_UPDATE_FAIL.getMessage());
+    }
+
+    @Test
+    @DisplayName("라이더 주문 배차 테이블 조회 실패")
+    void rejectDelivery_notExistRiderAssignment() {
+        // given
+        when(riderAssignmentRepository.findByUsernameAndOrderId(username, 1L)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> riderService.rejectDelivery(username, 1L, RejectReasonRequest.builder().build()))
+                .isInstanceOf(RiderException.class)
+                .hasMessageContaining(RiderErrorCode.RIDER_ASSIGNMENT_NOT_FOUND.getMessage());
     }
 }
