@@ -6,6 +6,7 @@ import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.dto.OrderDetailsResponse;
 import com.idukbaduk.itseats.order.dto.OrderItemDTO;
+import com.idukbaduk.itseats.order.dto.RiderImageResponse;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
@@ -22,6 +23,7 @@ import com.idukbaduk.itseats.rider.repository.RiderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -33,6 +35,7 @@ public class RiderOrderService {
     private final PaymentRepository paymentRepository;
     private final RiderRepository riderRepository;
     private final MemberRepository memberRepository;
+    private final RiderImageService riderImageService;
 
     @Transactional(readOnly = true)
     public OrderDetailsResponse getOrderDetails(String username, Long orderId) {
@@ -99,5 +102,27 @@ public class RiderOrderService {
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         order.updateStatus(orderStatus);
+    }
+
+    @Transactional
+    public RiderImageResponse uploadRiderImage(String username, Long orderId, MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            throw new OrderException(OrderErrorCode.REQUIRED_RIDER_IMAGE);
+        }
+
+        Rider rider = riderRepository.findByUsername(username)
+                .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
+        Order order = orderRepository.findByRiderAndOrderId(rider, orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        return buildRiderImageResponse(
+                riderImageService.saveRiderImage(rider, order, image).getImageUrl()
+        );
+    }
+
+    private RiderImageResponse buildRiderImageResponse(String imageUrl) {
+        return RiderImageResponse.builder()
+                .image(imageUrl)
+                .build();
     }
 }
