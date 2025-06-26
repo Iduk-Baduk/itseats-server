@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
@@ -43,7 +44,7 @@ public class MenuMediaService {
 
         try {
             return saveMenuImages(menu, images);
-        } catch (Exception e) {
+        } catch (IOException | SdkException | NullPointerException e) {
             throw new MenuException(MenuErrorCode.MENU_IMAGE_IO_FAILED);
         }
     }
@@ -101,7 +102,7 @@ public class MenuMediaService {
 
     private String uploadFileAndGetUrl(MultipartFile file) throws IOException {
         String fileName = file.getOriginalFilename();
-        String fileExtension = fileName.substring(fileName.lastIndexOf("."));
+        String fileExtension = extractExtension(fileName);
         String objectKey = PATH + UUID.randomUUID().toString().replace("-", "") + fileExtension;
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -112,15 +113,21 @@ public class MenuMediaService {
 
        s3Client.putObject(
                 putObjectRequest,
-                RequestBody.fromInputStream(file.getInputStream(), file.getSize()
-                ));
+                RequestBody.fromInputStream(file.getInputStream(), file.getSize())
+       );
 
        return s3Config.getObjectUrl(objectKey);
     }
 
-    public void deleteFile(String imageUrl) {
-        System.out.println(s3Config.extractObjectKeyFromUrl(imageUrl));
+    private String extractExtension(String fileName) {
+        int lastDotIndex = fileName.lastIndexOf(".");
+        String fileExtension = (lastDotIndex != -1 && lastDotIndex < fileName.length() - 1)
+                ? fileName.substring(lastDotIndex)
+                : "";
+        return fileExtension;
+    }
 
+    public void deleteFile(String imageUrl) {
         DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
                 .bucket(s3Config.getBucketName())
                 .key(s3Config.extractObjectKeyFromUrl(imageUrl))

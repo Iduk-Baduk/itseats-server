@@ -27,7 +27,7 @@ public class S3Config {
     private String region;
 
     @Value("${s3.endpoint:}") // only for MinIO
-    private Optional<String> endpoint;
+    private String endpoint;
 
     @Getter
     @Value("${s3.bucket}")
@@ -41,21 +41,27 @@ public class S3Config {
                         AwsBasicCredentials.create(accessKey, secretKey)
                 ));
 
-        endpoint.ifPresent(url -> builder
-                .endpointOverride(URI.create(url))
-                .serviceConfiguration(S3Configuration.builder()
-                        .pathStyleAccessEnabled(true)
-                        .build()));
+        if (endpoint != null && !endpoint.isEmpty()) {
+            builder
+                    .endpointOverride(URI.create(endpoint))
+                    .serviceConfiguration(S3Configuration.builder()
+                            .pathStyleAccessEnabled(true)
+                            .build());
+        }
 
         return builder.build();
     }
 
     public String getObjectUrl(String objectKey) {
-        String baseUrl = endpoint.orElse("https://s3." + region + ".amazonaws.com");
+        String baseUrl = (endpoint != null && !endpoint.isEmpty()) ? endpoint : "https://s3." + region + ".amazonaws.com";
         return baseUrl + "/" + bucketName + "/" + objectKey;
     }
 
     public String extractObjectKeyFromUrl(String objectUrl) {
+        int bucketIndex = objectUrl.indexOf(bucketName);
+        if (bucketIndex == -1) {
+            throw new IllegalArgumentException("Invalid S3 URL: bucket name not found");
+        }
         return objectUrl.substring(objectUrl.indexOf(bucketName) + bucketName.length() + 1);
     }
 }
