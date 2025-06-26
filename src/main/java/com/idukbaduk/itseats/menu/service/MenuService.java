@@ -67,6 +67,23 @@ public class MenuService {
                 .build();
     }
 
+    public MenuDetailResponse getMenuDetail(Long storeId, Long menuId) {
+        Menu menu = menuRepository.findDetailById(menuId)
+                .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+
+        return MenuDetailResponse.builder()
+                .menuId(menu.getMenuId())
+                .menuName(menu.getMenuName())
+                .menuDescription(menu.getMenuDescription())
+                .menuPrice(menu.getMenuPrice())
+                .menuStatus(menu.getMenuStatus().name())
+                .menuRating(menu.getMenuRating())
+                .menuGroupName(menu.getMenuGroup().getMenuGroupName())
+                .optionGroups(optionGroupsToDto(menu.getMenuOptionGroups()))
+                .build();
+    }
+
+
     private int getMenuCount(List<Menu> menus, MenuStatus menuStatus) {
         return (int) menus.stream()
                 .filter(m -> m.getMenuStatus() == menuStatus)
