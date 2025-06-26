@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -17,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,11 +62,17 @@ class RiderImageServiceTest {
     void saveRiderImage_success() {
         // given
         when(riderImageRepository.save(Mockito.any(RiderImage.class))).thenReturn(riderImage);
+        ArgumentCaptor<RiderImage> captor = ArgumentCaptor.forClass(RiderImage.class);
 
         // when
         RiderImage savedRiderImage = riderImageService.saveRiderImage(rider, order, multipartFile);
 
         // then
+        verify(riderImageRepository).save(captor.capture());
+        RiderImage capturedImage = captor.getValue();
+        assertThat(capturedImage.getRider()).isEqualTo(rider);
+        assertThat(capturedImage.getOrder()).isEqualTo(order);
+        assertThat(capturedImage.getImageUrl()).contains(multipartFile.getOriginalFilename());
         assertThat(savedRiderImage.getImageId()).isEqualTo(riderImage.getImageId());
         assertThat(savedRiderImage.getRider()).isEqualTo(rider);
         assertThat(savedRiderImage.getOrder()).isEqualTo(order);
