@@ -88,7 +88,9 @@ public class MenuService {
     }
 
     public MenuResponse updateMenu(Long storeId, Long menuId, MenuRequest request, List<MultipartFile> imageFiles) {
-        Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
+        Menu menu = menuRepository.findByStoreIdAndMenuId(storeId, menuId).orElseThrow(
+                () -> new MenuException(MenuErrorCode.MENU_NOT_FOUND)
+        );
         MenuGroup menuGroup = findMenuGroup(storeId, request.getMenuGroupName());
         validateDuplicateOptionGroupNames(request.getOptionGroups());
         validateOptionSelectRange(request.getOptionGroups());
