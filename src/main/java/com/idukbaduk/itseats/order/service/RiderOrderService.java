@@ -109,9 +109,7 @@ public class RiderOrderService {
             throw new OrderException(OrderErrorCode.REQUIRED_RIDER_IMAGE);
         }
 
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-        Rider rider = riderRepository.findByMember(member)
+        Rider rider = riderRepository.findByUsername(username)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
         Order order = orderRepository.findByRiderAndOrderId(rider, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
