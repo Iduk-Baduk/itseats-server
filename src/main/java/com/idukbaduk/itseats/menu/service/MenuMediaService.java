@@ -1,24 +1,38 @@
 package com.idukbaduk.itseats.menu.service;
 
+import com.idukbaduk.itseats.global.S3Config;
 import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.entity.MenuImage;
+import com.idukbaduk.itseats.menu.error.MenuErrorCode;
+import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MenuMediaService {
-    // TODO: S3에서 이미지 파일 저장 및 삭제
 
     private final MenuImageRepository menuImageRepository;
+    private final S3Client s3Client;
+    private final S3Config s3Config;
+
+    private static final String PATH = "menu_images/";
 
     public List<MenuImage> createMenuImages(Menu menu, List<MultipartFile> images) {
         if (images == null || images.isEmpty())
@@ -27,7 +41,11 @@ public class MenuMediaService {
         // 이미지 파일 유효성 검증
         images = filterValidImages(images);
 
-        return saveMenuImages(menu, images);
+        try {
+            return saveMenuImages(menu, images);
+        } catch (Exception e) {
+            throw new MenuException(MenuErrorCode.MENU_IMAGE_IO_FAILED);
+        }
     }
 
     public List<MenuImage> updateMenuImages(Menu menu, List<MultipartFile> images) {
@@ -38,6 +56,9 @@ public class MenuMediaService {
         }
 
         // 기존 이미지 삭제
+        existingImages.forEach(image -> {
+            deleteFile(image.getImageUrl());
+        });
         menuImageRepository.deleteAll(existingImages);
 
         // 이미지 파일 유효성 검증
@@ -49,7 +70,11 @@ public class MenuMediaService {
         }
 
         // 새 이미지 저장
-        return saveMenuImages(menu, images);
+        try {
+            return saveMenuImages(menu, images);
+        } catch (Exception e) {
+            throw new MenuException(MenuErrorCode.MENU_IMAGE_IO_FAILED);
+        }
     }
 
     private List<MultipartFile> filterValidImages(List<MultipartFile> images) {
@@ -60,10 +85,10 @@ public class MenuMediaService {
                 .toList();
     }
 
-    private List<MenuImage> saveMenuImages(Menu menu, List<MultipartFile> images) {
+    private List<MenuImage> saveMenuImages(Menu menu, List<MultipartFile> images) throws IOException {
         List<MenuImage> menuImages = new ArrayList<>();
         for (int i = 0; i < images.size(); i++) {
-            String imageUrl = generateImageUrl(images.get(i));
+            String imageUrl = uploadFileAndGetUrl(images.get(i));
             MenuImage menuImage = MenuImage.builder()
                     .menu(menu)
                     .imageUrl(imageUrl)
@@ -74,8 +99,33 @@ public class MenuMediaService {
         return menuImageRepository.saveAll(menuImages);
     }
 
-    private String generateImageUrl(MultipartFile file) {
-        // 임시 파일명 기반 URL
-        return "https://example.com/" + file.getOriginalFilename();
+    private String uploadFileAndGetUrl(MultipartFile file) throws IOException {
+        String fileName = file.getOriginalFilename();
+        String fileExtension = fileName.substring(fileName.lastIndexOf("."));
+        String objectKey = PATH + UUID.randomUUID().toString().replace("-", "") + fileExtension;
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(s3Config.getBucketName())
+                .key(objectKey)
+                .contentType(file.getContentType()) // MIME 타입
+                .build();
+
+       s3Client.putObject(
+                putObjectRequest,
+                RequestBody.fromInputStream(file.getInputStream(), file.getSize()
+                ));
+
+       return s3Config.getObjectUrl(objectKey);
+    }
+
+    public void deleteFile(String imageUrl) {
+        System.out.println(s3Config.extractObjectKeyFromUrl(imageUrl));
+
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                .bucket(s3Config.getBucketName())
+                .key(s3Config.extractObjectKeyFromUrl(imageUrl))
+                .build();
+
+        s3Client.deleteObject(deleteRequest);
     }
 }

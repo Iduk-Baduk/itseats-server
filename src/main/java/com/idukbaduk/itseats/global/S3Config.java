@@ -54,4 +54,8 @@ public class S3Config {
         String baseUrl = endpoint.orElse("https://s3." + region + ".amazonaws.com");
         return baseUrl + "/" + bucketName + "/" + objectKey;
     }
+
+    public String extractObjectKeyFromUrl(String objectUrl) {
+        return objectUrl.substring(objectUrl.indexOf(bucketName) + bucketName.length() + 1);
+    }
 }
