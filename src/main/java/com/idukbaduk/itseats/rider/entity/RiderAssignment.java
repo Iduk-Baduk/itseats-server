@@ -2,7 +2,6 @@ package com.idukbaduk.itseats.rider.entity;
 
 import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
 import com.idukbaduk.itseats.rider.entity.enums.AssignmentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
