@@ -1,11 +1,7 @@
 package com.idukbaduk.itseats.menu.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.menu.dto.MenuDetailResponse;
-import com.idukbaduk.itseats.menu.dto.MenuGroupRequest;
-import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
-import com.idukbaduk.itseats.menu.dto.MenuListRequest;
-import com.idukbaduk.itseats.menu.dto.MenuRequest;
+import com.idukbaduk.itseats.menu.dto.*;
 import com.idukbaduk.itseats.menu.dto.enums.MenuResponse;
 import com.idukbaduk.itseats.menu.service.MenuGroupService;
 import com.idukbaduk.itseats.menu.service.MenuService;
@@ -59,6 +55,17 @@ public class MenuController {
         return BaseResponse.toResponseEntity(
                 MenuResponse.UPDATE_MENU_SUCCESS,
                 menuService.updateMenu(storeId, menuId, request, images)
+        );
+    }
+
+    @PutMapping("/{storeId}/menus/priority")
+    public ResponseEntity<BaseResponse> updateMenuPriority(
+            @PathVariable Long storeId,
+            @RequestBody MenuPriorityRequest request
+    ) {
+        return BaseResponse.toResponseEntity(
+                MenuResponse.SET_MENU_ORDER_SUCCESS,
+                menuService.updateMenuPriority(storeId, request)
         );
     }
 

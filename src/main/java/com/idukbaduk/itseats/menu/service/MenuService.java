@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -45,23 +42,7 @@ public class MenuService {
         int outOfStockTodayCount = getMenuCount(menus, MenuStatus.OUT_OF_STOCK);
         int hiddenMenuCount = getMenuCount(menus, MenuStatus.HIDDEN);
 
-        List<MenuInfoDto> menuInfos = menus.stream()
-                .map(menu -> MenuInfoDto.builder()
-                        .menuId(menu.getMenuId())
-                        .menuName(menu.getMenuName())
-                        .menuPrice(String.valueOf(menu.getMenuPrice()))
-                        .menuStatus(menu.getMenuStatus().name())
-                        .menuGroupName(menu.getMenuGroup().getMenuGroupName())
-                        .build())
-                .toList();
-
-        return MenuListResponse.builder()
-                .totalMenuCount(totalMenuCount)
-                .orderableMenuCount(orderableMenuCount)
-                .outOfStockTodayCount(outOfStockTodayCount)
-                .hiddenMenuCount(hiddenMenuCount)
-                .menus(menuInfos)
-                .build();
+        return toMenuListResponse(menus, totalMenuCount, orderableMenuCount, outOfStockTodayCount, hiddenMenuCount);
     }
 
     public MenuDetailResponse getMenuDetail(Long storeId, Long menuId) {
@@ -82,13 +63,6 @@ public class MenuService {
                 .menuGroupName(menu.getMenuGroup().getMenuGroupName())
                 .optionGroups(optionGroupsToDto(menu.getMenuOptionGroups()))
                 .build();
-    }
-
-
-    private int getMenuCount(List<Menu> menus, MenuStatus menuStatus) {
-        return (int) menus.stream()
-                .filter(m -> m.getMenuStatus() == menuStatus)
-                .count();
     }
 
     public Menu getMenu(Long menuId) {
@@ -135,6 +109,57 @@ public class MenuService {
                 () -> new MenuException(MenuErrorCode.MENU_NOT_FOUND)
         );
         menuRepository.delete(menu); // is_deleted = true 설정 (@SQLDelete 이용)
+    }
+
+    @Transactional
+    public MenuListResponse updateMenuPriority(Long storeId, MenuPriorityRequest request) {
+        List<Menu> menus = menuRepository.findByStoreId(storeId);
+
+        Map<Long, Integer> priorityMap = new HashMap<>();
+        request.getMenus().forEach(m -> {
+            priorityMap.put(m.getMenuId(), m.getMenuPriority());
+        });
+
+        for (Menu m : menus) {
+            if (priorityMap.containsKey(m.getMenuId()))
+                m.updateMenuPriority(priorityMap.get(m.getMenuId()));
+        }
+        menuRepository.saveAll(menus);
+        sortMenusPreservingGroupOrder(menus);
+
+        int totalMenuCount = menus.size();
+        int orderableMenuCount = getMenuCount(menus, MenuStatus.ON_SALE);
+        int outOfStockTodayCount = getMenuCount(menus, MenuStatus.OUT_OF_STOCK);
+        int hiddenMenuCount = getMenuCount(menus, MenuStatus.HIDDEN);
+
+        return toMenuListResponse(menus, totalMenuCount, orderableMenuCount, outOfStockTodayCount, hiddenMenuCount);
+    }
+
+    private int getMenuCount(List<Menu> menus, MenuStatus menuStatus) {
+        return (int) menus.stream()
+                .filter(m -> m.getMenuStatus() == menuStatus)
+                .count();
+    }
+
+    private MenuListResponse toMenuListResponse(List<Menu> menus, int totalMenuCount, int orderableMenuCount, int outOfStockTodayCount, int hiddenMenuCount) {
+        List<MenuInfoDto> menuInfos = menus.stream()
+                .map(menu -> MenuInfoDto.builder()
+                        .menuId(menu.getMenuId())
+                        .menuName(menu.getMenuName())
+                        .menuPrice(String.valueOf(menu.getMenuPrice()))
+                        .menuStatus(menu.getMenuStatus().name())
+                        .menuGroupName(menu.getMenuGroup().getMenuGroupName())
+                        .menuPriority(menu.getMenuPriority())
+                        .build())
+                .toList();
+
+        return MenuListResponse.builder()
+                .totalMenuCount(totalMenuCount)
+                .orderableMenuCount(orderableMenuCount)
+                .outOfStockTodayCount(outOfStockTodayCount)
+                .hiddenMenuCount(hiddenMenuCount)
+                .menus(menuInfos)
+                .build();
     }
 
     private MenuGroup findMenuGroup(Long storeId, String menuGroupName) {
@@ -249,5 +274,21 @@ public class MenuService {
                         .optionPriority(op.getOptionPriority())
                         .build())
                 .toList();
+    }
+
+    private void sortMenusPreservingGroupOrder(List<Menu> menus) {
+        // menuGroup의 순서를 유지하면서 menuPriority로 정렬
+        Map<Long, Integer> groupOrder = new LinkedHashMap<>();
+        int order = 0;
+        for (Menu menu : menus) {
+            Long groupId = menu.getMenuGroup().getMenuGroupId();
+            if (!groupOrder.containsKey(groupId)) {
+                groupOrder.put(groupId, order++);
+            }
+        }
+
+        menus.sort(Comparator
+                .comparing((Menu m) -> groupOrder.get(m.getMenuGroup().getMenuGroupId()))
+                .thenComparing(Menu::getMenuPriority));
     }
 }

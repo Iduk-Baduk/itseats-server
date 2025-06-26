@@ -1,10 +1,7 @@
 package com.idukbaduk.itseats.menu.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.idukbaduk.itseats.menu.dto.MenuGroupDto;
-import com.idukbaduk.itseats.menu.dto.MenuGroupRequest;
-import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
-import com.idukbaduk.itseats.menu.dto.MenuResponse;
+import com.idukbaduk.itseats.menu.dto.*;
 import com.idukbaduk.itseats.menu.service.MenuGroupService;
 import com.idukbaduk.itseats.menu.service.MenuService;
 import org.junit.jupiter.api.DisplayName;
@@ -249,6 +246,44 @@ class MenuControllerTest {
                 .andExpect(jsonPath("$.httpStatus").value(200))
                 .andExpect(jsonPath("$.message").value(SAVE_MENU_GROUP_SUCCESS.getMessage()))
                 .andExpect(jsonPath("$.data.menuGroups[0].menuGroupName").value("음료"));
+    }
+
+    @Test
+    @DisplayName("메뉴 순서 설정 성공")
+    void updateMenuPriority_success() throws Exception {
+        // given
+        List<MenuInfoDto> menus = List.of(
+                MenuInfoDto.builder().menuId(2L).menuPriority(1).build(),
+                MenuInfoDto.builder().menuId(1L).menuPriority(2).build()
+        );
+        MenuListResponse response = MenuListResponse.builder()
+                .totalMenuCount(2)
+                .orderableMenuCount(1)
+                .outOfStockTodayCount(1)
+                .hiddenMenuCount(0)
+                .menus(menus)
+                .build();
+        when(menuService.updateMenuPriority(any(), any())).thenReturn(response);
+
+        Long storeId = 1L;
+        List<MenuInfoDto> menuInfoDtos = List.of(
+                MenuInfoDto.builder().menuId(1L).menuPriority(2).build(),
+                MenuInfoDto.builder().menuId(2L).menuPriority(1).build()
+        );
+        MenuPriorityRequest request = MenuPriorityRequest.builder()
+                .menus(menuInfoDtos)
+                .build();
+
+        // when & then
+        mockMvc.perform(put("/api/owner/" + storeId + "/menus/priority")
+                        .content(objectMapper.writeValueAsString(request))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.httpStatus").value(200))
+                .andExpect(jsonPath("$.message").value(SET_MENU_ORDER_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.data.menus[0].menuId").value("2"))
+                .andExpect(jsonPath("$.data.menus[1].menuId").value("1"));
     }
 
     private MenuGroupDto createMenuGroupDto(String groupName, int priority, boolean isActive) {

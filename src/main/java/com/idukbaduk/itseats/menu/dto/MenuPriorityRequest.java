@@ -5,15 +5,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MenuInfoDto {
-    private Long menuId;
-    private String menuName;
-    private String menuPrice;
-    private String menuStatus;
-    private String menuGroupName;
-    private int menuPriority;
+public class MenuPriorityRequest {
+    private List<MenuInfoDto> menus;
 }

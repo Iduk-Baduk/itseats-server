@@ -15,7 +15,8 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
             "JOIN FETCH m.menuGroup mg " +
             "WHERE mg.store.storeId = :storeId " +
             "AND (:menuGroup IS NULL OR m.menuGroup.menuGroupName = :menuGroup) " +
-            "AND (:keyword IS NULL OR m.menuName LIKE CONCAT('%', :keyword, '%'))")
+            "AND (:keyword IS NULL OR m.menuName LIKE CONCAT('%', :keyword, '%')) " +
+            "ORDER BY mg.menuGroupPriority ASC, m.menuPriority ASC")
     List<Menu> findMenusByStore(
             @Param("storeId") Long storeId,
             @Param("menuGroup") String menuGroup,
@@ -27,6 +28,11 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
             "WHERE m.menuId = :menuId " +
             "AND mg.store.storeId = :storeId")
     Optional<Menu> findByStoreIdAndMenuId(Long storeId, Long menuId);
+
+    @Query("SELECT m FROM Menu m " +
+            "JOIN FETCH m.menuGroup mg " +
+            "WHERE mg.store.storeId = :storeId")
+    List<Menu> findByStoreId(Long storeId);
   
     Optional<Menu> findByMenuIdAndDeletedFalse(Long menuId);
 
