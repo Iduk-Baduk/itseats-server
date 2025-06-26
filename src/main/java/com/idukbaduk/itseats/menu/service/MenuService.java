@@ -71,6 +71,10 @@ public class MenuService {
         Menu menu = menuRepository.findDetailById(menuId)
                 .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
 
+        if (!menu.getMenuGroup().getStore().getStoreId().equals(storeId)) {
+            throw new MenuException(MenuErrorCode.MENU_ACCESS_DENIED);
+        }
+
         return MenuDetailResponse.builder()
                 .menuId(menu.getMenuId())
                 .menuName(menu.getMenuName())
