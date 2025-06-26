@@ -25,7 +25,7 @@ public class RiderImageService {
     }
 
     private String generateImageUrl(MultipartFile image) {
-        // 임시 파일명 기반 URL
+        // TODO: S3 연동 구현 필요
         return "https://example.com/" + image.getOriginalFilename();
     }
 }
