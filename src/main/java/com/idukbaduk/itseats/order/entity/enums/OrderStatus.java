@@ -25,8 +25,10 @@ public enum OrderStatus {
     COOKED(COOKING),
     // 배차 완료
     RIDER_READY(COOKED),
+    // 매장 도착
+    ARRIVED(RIDER_READY),
     // 배달 시작
-    DELIVERING(RIDER_READY),
+    DELIVERING(ARRIVED),
     // 배달 완료
     DELIVERED(DELIVERING),
     // 주문 완료

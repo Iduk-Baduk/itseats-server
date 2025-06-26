@@ -248,7 +248,7 @@ class RiderOrderServiceTest {
 
     @Test
     @DisplayName("주문 상태를 배달 완료 상태로 변경에 성공")
-    void updateOrderStatusAfterAccept_delivered_success() {
+    void updateOrderStatus_delivered_success() {
         // given
         Order order = Order.builder()
                 .orderId(1L)
@@ -261,7 +261,7 @@ class RiderOrderServiceTest {
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
 
         // when
-        riderOrderService.updateOrderStatusAfterAccept(username, 1L, OrderStatus.DELIVERED);
+        riderOrderService.updateOrderStatus(username, 1L, OrderStatus.DELIVERED);
 
         // then
         assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.DELIVERED);
@@ -269,7 +269,7 @@ class RiderOrderServiceTest {
 
     @Test
     @DisplayName("주문이 직전 단계가 아닌 경우 주문 상태를 변경하면 예외 발생")
-    void updateOrderStatusAfterAccept_deliveredFail() {
+    void updateOrderStatus_deliveredFail() {
         // given
         Order order = Order.builder()
                 .orderId(1L)
@@ -281,28 +281,28 @@ class RiderOrderServiceTest {
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
 
         // when
-        assertThatThrownBy(() -> riderOrderService.updateOrderStatusAfterAccept(username, 1L, OrderStatus.DELIVERED))
+        assertThatThrownBy(() -> riderOrderService.updateOrderStatus(username, 1L, OrderStatus.DELIVERED))
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL.getMessage());
     }
 
     @Test
     @DisplayName("배차되지 않은 주문의 상태를 변경하는 경우 예외 발생")
-    void updateOrderStatusAfterAccept_getOrderFail() {
+    void updateOrderStatus_getOrderFail() {
         // given
         when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
         when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> riderOrderService.updateOrderStatusAfterAccept(username, 1L, OrderStatus.DELIVERED))
+        assertThatThrownBy(() -> riderOrderService.updateOrderStatus(username, 1L, OrderStatus.DELIVERED))
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
 
     @Test
-    @DisplayName("주문 상태를 배달 중 상태로 변경에 성공")
-    void updateOrderStatusAfterAccept_delivering_success() {
+    @DisplayName("주문 상태를 매장 도착 상태로 변경에 성공")
+    void updateOrderStatus_arrived_success() {
         // given
         Order order = Order.builder()
                 .orderId(1L)
@@ -315,7 +315,28 @@ class RiderOrderServiceTest {
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
 
         // when
-        riderOrderService.updateOrderStatusAfterAccept(username, 1L, OrderStatus.DELIVERING);
+        riderOrderService.updateOrderStatus(username, 1L, OrderStatus.ARRIVED);
+
+        // then
+        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.ARRIVED);
+    }
+
+    @Test
+    @DisplayName("주문 상태를 배달 중 상태로 변경에 성공")
+    void updateOrderStatus_delivering_success() {
+        // given
+        Order order = Order.builder()
+                .orderId(1L)
+                .orderStatus(OrderStatus.ARRIVED)
+                .rider(rider)
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
+
+        // when
+        riderOrderService.updateOrderStatus(username, 1L, OrderStatus.DELIVERING);
 
         // then
         assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.DELIVERING);

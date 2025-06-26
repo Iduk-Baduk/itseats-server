@@ -33,26 +33,34 @@ public class RiderOrderController {
     }
 
     @PostMapping("/{orderId}/accept")
-    public ResponseEntity<BaseResponse> updateDeliveryStatusAccept(
+    public ResponseEntity<BaseResponse> updateOrderStatusAccept(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
         riderOrderService.acceptDelivery(userDetails.getUsername(), orderId);
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_ACCEPT_SUCCESS);
     }
 
-    @PostMapping("/{orderId}/pickup")
-    public ResponseEntity<BaseResponse> updateDeliveryStatusPickup(
+    @PostMapping("/{orderId}/arrived")
+    public ResponseEntity<BaseResponse> updateOrderStatusArrived(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
-        riderOrderService.updateOrderStatusAfterAccept(userDetails.getUsername(), orderId, OrderStatus.DELIVERING);
+        riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.ARRIVED);
+        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_ARRIVED_SUCCESS);
+    }
+
+    @PostMapping("/{orderId}/pickup")
+    public ResponseEntity<BaseResponse> updateOrderStatusPickup(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("orderId") Long orderId) {
+        riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.DELIVERING);
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_PICKUP_SUCCESS);
     }
 
     @PostMapping("/{orderId}/done")
-    public ResponseEntity<BaseResponse> updateDeliveryStatusDone(
+    public ResponseEntity<BaseResponse> updateOrderStatusDone(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
-        riderOrderService.updateOrderStatusAfterAccept(userDetails.getUsername(), orderId, OrderStatus.DELIVERED);
+        riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.DELIVERED);
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_DELIVERED_SUCCESS);
     }
 }
