@@ -101,6 +101,7 @@ public class MenuService {
                 m.updateMenuPriority(priorityMap.get(m.getMenuId()));
         }
         menuRepository.saveAll(menus);
+        sortMenusPreservingGroupOrder(menus);
 
         int totalMenuCount = menus.size();
         int orderableMenuCount = getMenuCount(menus, MenuStatus.ON_SALE);
@@ -249,5 +250,21 @@ public class MenuService {
                         .optionPriority(op.getOptionPriority())
                         .build())
                 .toList();
+    }
+
+    private void sortMenusPreservingGroupOrder(List<Menu> menus) {
+        // menuGroup의 순서를 유지하면서 menuPriority로 정렬
+        Map<Long, Integer> groupOrder = new LinkedHashMap<>();
+        int order = 0;
+        for (Menu menu : menus) {
+            Long groupId = menu.getMenuGroup().getMenuGroupId();
+            if (!groupOrder.containsKey(groupId)) {
+                groupOrder.put(groupId, order++);
+            }
+        }
+
+        menus.sort(Comparator
+                .comparing((Menu m) -> groupOrder.get(m.getMenuGroup().getMenuGroupId()))
+                .thenComparing(Menu::getMenuPriority));
     }
 }

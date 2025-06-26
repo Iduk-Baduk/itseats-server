@@ -435,4 +435,35 @@ class MenuServiceTest {
                 .isInstanceOf(MenuException.class)
                 .hasMessageContaining(MenuErrorCode.MENU_NOT_FOUND.getMessage());
     }
+
+    @Test
+    @DisplayName("메뉴의 우선순위를 변경한다")
+    void updateMenuPriority_success() {
+        // given
+        MenuGroup menuGroup = MenuGroup.builder().menuGroupId(1L).build();
+        List<Menu> menus = new ArrayList<>(List.of(
+                Menu.builder().menuId(1L).menuPriority(1).menuStatus(MenuStatus.ON_SALE).menuGroup(menuGroup).build(),
+                Menu.builder().menuId(2L).menuPriority(2).menuStatus(MenuStatus.ON_SALE).menuGroup(menuGroup).build()
+        ));
+        when(menuRepository.findAll()).thenReturn(menus);
+
+        List<MenuInfoDto> menuInfoDtos = List.of(
+                MenuInfoDto.builder().menuId(1L).menuPriority(2).build(),
+                MenuInfoDto.builder().menuId(2L).menuPriority(1).build()
+        );
+        MenuPriorityRequest request = MenuPriorityRequest.builder()
+                .menus(menuInfoDtos)
+                .build();
+
+        // when
+        MenuListResponse data = menuService.updateMenuPriority(request);
+
+        // then
+        assertThat(data.getMenus()).hasSize(2)
+                .extracting("menuId", "menuPriority")
+                .containsExactly(
+                        tuple(2L, 1),
+                        tuple(1L, 2)
+                );
+    }
 }
