@@ -13,8 +13,7 @@ public enum MenuResponse implements Response {
     CREATE_MENU_SUCCESS(HttpStatus.CREATED, "메뉴 추가 성공"),
     UPDATE_MENU_SUCCESS(HttpStatus.OK, "메뉴 수정 성공"),
     DELETE_MENU_SUCCESS(HttpStatus.OK, "메뉴 삭제 성공"),
-    GET_MENU_DETAIL_SUCCESS(HttpStatus.OK, "메뉴 상세 조회 성공")
-    ;
+    GET_MENU_DETAIL_SUCCESS(HttpStatus.OK, "메뉴 상세 조회 성공");
 
     private final HttpStatus httpStatus;
     private final String message;

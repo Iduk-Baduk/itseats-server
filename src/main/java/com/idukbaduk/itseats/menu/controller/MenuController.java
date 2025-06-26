@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.menu.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import com.idukbaduk.itseats.menu.dto.MenuDetailResponse;
 import com.idukbaduk.itseats.menu.dto.MenuGroupRequest;
 import com.idukbaduk.itseats.menu.dto.MenuGroupResponse;
 import com.idukbaduk.itseats.menu.dto.MenuListRequest;

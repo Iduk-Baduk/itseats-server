@@ -1,19 +1,15 @@
 package com.idukbaduk.itseats.rider.service;
 
-import com.idukbaduk.itseats.member.entity.Member;
-import com.idukbaduk.itseats.member.error.MemberException;
-import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
-import com.idukbaduk.itseats.member.repository.MemberRepository;
-import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
-import com.idukbaduk.itseats.order.error.OrderException;
-import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
-import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
+import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
+import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
 import com.idukbaduk.itseats.rider.dto.WorkingInfoResponse;
 import com.idukbaduk.itseats.rider.entity.Rider;
+import com.idukbaduk.itseats.rider.entity.RiderAssignment;
+import com.idukbaduk.itseats.rider.entity.enums.AssignmentStatus;
 import com.idukbaduk.itseats.rider.error.RiderException;
 import com.idukbaduk.itseats.rider.error.enums.RiderErrorCode;
+import com.idukbaduk.itseats.rider.repository.RiderAssignmentRepository;
 import com.idukbaduk.itseats.rider.repository.RiderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,21 +20,33 @@ import org.springframework.transaction.annotation.Transactional;
 public class RiderService {
 
     private final RiderRepository riderRepository;
-    private final MemberRepository memberRepository;
-    private final OrderRepository orderRepository;
+    private final RiderAssignmentRepository riderAssignmentRepository;
 
     @Transactional
     public WorkingInfoResponse modifyWorking(String username, ModifyWorkingRequest modifyWorkingRequest) {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-
-        Rider rider = riderRepository.findByMember(member)
+        Rider rider = riderRepository.findByUsername(username)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
 
         rider.modifyIsWorking(modifyWorkingRequest.getIsWorking());
 
         return WorkingInfoResponse.builder()
                 .isWorking(rider.getIsWorking())
+                .build();
+    }
+
+    @Transactional
+    public RejectDeliveryResponse rejectDelivery(String username, Long orderId, RejectReasonRequest reasonRequest) {
+        RiderAssignment riderAssignment = riderAssignmentRepository.findByUsernameAndOrderId(username, orderId)
+                .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_ASSIGNMENT_NOT_FOUND));
+
+        riderAssignment.rejectDelivery(AssignmentStatus.REJECTED, reasonRequest.getRejectReason());
+
+        return buildRejectDeliveryResponse(riderAssignment.getReason());
+    }
+
+    private RejectDeliveryResponse buildRejectDeliveryResponse(String reason) {
+        return RejectDeliveryResponse.builder()
+                .rejectReason(reason)
                 .build();
     }
 }
