@@ -77,4 +77,13 @@ public class RiderOrderController {
         riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.DELIVERED);
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_DELIVERED_SUCCESS);
     }
+
+    @GetMapping("/request")
+    public ResponseEntity<BaseResponse> getOrderRequest(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return BaseResponse.toResponseEntity(
+                OrderResponse.GET_ORDER_REQUEST_SUCCESS,
+                riderOrderService.getOrderRequest(userDetails.getUsername())
+        );
+    }
 }
