@@ -446,7 +446,7 @@ class RiderOrderServiceTest {
     void getOrderRequest_notExistOrder() {
         // given
         when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
-        when(orderRepository.findCookedOrderByRiderLocation(37.7600, 127.0000))
+        when(orderRepository.findCookedOrderByRiderLocation(rider.getLocation().getY(), rider.getLocation().getX()))
                 .thenReturn(Optional.empty());
 
         // when & then
