@@ -1,19 +1,14 @@
 package com.idukbaduk.itseats.member.entity;
 
 import com.idukbaduk.itseats.member.entity.enums.MemberType;
-import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 @Entity
 @Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "member")
-public class Member {
+public class  Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,4 +36,16 @@ public class Member {
     @Enumerated(EnumType.STRING)
     @Column(name = "member_type", nullable = false)
     private MemberType memberType;
+
+    @Builder
+    public Member(String username, String password, String name, String nickname, String email, String phone, MemberType memberType) {
+        this.username = username;
+        this.password = password;
+        this.name = name;
+        this.nickname = nickname;
+        this.email = email;
+        this.phone = phone;
+        this.memberType = memberType;
+    }
+
 }
