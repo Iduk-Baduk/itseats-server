@@ -454,4 +454,21 @@ class RiderOrderServiceTest {
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
+
+    @Test
+    @DisplayName("라이더 위치 정보가 없으면 예외 발생")
+    void getOrderRequest_notExistRiderLocation() {
+        // given
+        Rider noLocationRider = Rider.builder()
+                .riderId(1L)
+                .member(member)
+                .build();
+
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(noLocationRider));
+
+        // when & then
+        assertThatThrownBy(() -> riderOrderService.getOrderRequest(username))
+                .isInstanceOf(RiderException.class)
+                .hasMessageContaining(RiderErrorCode.RIDER_LOCATION_NOT_FOUND.getMessage());
+    }
 }
