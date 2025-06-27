@@ -15,6 +15,7 @@ import com.idukbaduk.itseats.payment.error.PaymentException;
 import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import com.idukbaduk.itseats.rider.entity.Rider;
+import com.idukbaduk.itseats.rider.entity.enums.AssignmentStatus;
 import com.idukbaduk.itseats.rider.error.RiderException;
 import com.idukbaduk.itseats.rider.error.enums.RiderErrorCode;
 import com.idukbaduk.itseats.rider.repository.RiderRepository;
@@ -86,6 +87,7 @@ public class RiderOrderService {
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         order.updateOrderStatusAccept(rider, OrderStatus.RIDER_READY);
+        riderService.updateRiderAssignment(rider, order, AssignmentStatus.ACCEPTED);
     }
 
     @Transactional
