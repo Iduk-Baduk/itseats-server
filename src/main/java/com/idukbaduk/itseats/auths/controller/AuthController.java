@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,13 +21,13 @@ public class AuthController {
 
     @GetMapping("/login")
     public ResponseEntity<BaseResponse> login(
-            @RequestParam("memberId") @NotBlank Long memberId
+            @RequestParam("memberId") @NotBlank String memberId
     ) {
         // todo: 추후 구현
         return null;
     }
 
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public ResponseEntity<BaseResponse> logout(
             @RequestParam("memberId") String memberId
     ) {
