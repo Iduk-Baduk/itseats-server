@@ -9,6 +9,7 @@ import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkException;
 
@@ -48,6 +49,7 @@ public class StoreMediaService {
                 .toList();
     }
 
+    @Transactional
     public List<StoreImage> updateStoreImages(Store store, List<MultipartFile> images) {
         List<StoreImage> existingImages = storeImageRepository.findAllByStoreIdOrderByDisplayOrderAsc(store.getStoreId());
         if (images == null) {
