@@ -104,8 +104,7 @@ public class JwtTokenService {
     }
 
     public String resolveToken(HttpServletRequest request) {
-        String token = request.getHeader(AUTHORIZATION);
-        return Objects.isNull(token) ? null : TOKEN_PREFIX.concat(token);
+        return request.getHeader(AUTHORIZATION);
     }
 
     private String removePrefix(String token) {
