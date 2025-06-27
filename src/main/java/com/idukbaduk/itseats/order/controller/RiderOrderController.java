@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,7 +36,7 @@ public class RiderOrderController {
         );
     }
 
-    @PostMapping("/{orderId}/accept")
+    @PutMapping("/{orderId}/accept")
     public ResponseEntity<BaseResponse> updateOrderStatusAccept(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
@@ -43,7 +44,7 @@ public class RiderOrderController {
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_ACCEPT_SUCCESS);
     }
 
-    @PostMapping("/{orderId}/arrived")
+    @PutMapping("/{orderId}/arrived")
     public ResponseEntity<BaseResponse> updateOrderStatusArrived(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
@@ -51,7 +52,7 @@ public class RiderOrderController {
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_ARRIVED_SUCCESS);
     }
 
-    @PostMapping("/{orderId}/pickup")
+    @PutMapping("/{orderId}/pickup")
     public ResponseEntity<BaseResponse> updateOrderStatusPickup(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
@@ -70,7 +71,7 @@ public class RiderOrderController {
         );
     }
 
-    @PostMapping("/{orderId}/done")
+    @PutMapping("/{orderId}/done")
     public ResponseEntity<BaseResponse> updateOrderStatusDone(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
