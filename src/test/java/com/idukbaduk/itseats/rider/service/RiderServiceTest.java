@@ -194,4 +194,29 @@ class RiderServiceTest {
         assertThat(savedRiderAssignment.getOrder()).isEqualTo(order);
         assertThat(savedRiderAssignment.getAssignmentStatus()).isEqualTo(AssignmentStatus.PENDING);
     }
+
+    @Test
+    @DisplayName("라이더 배차 상태 업데이트 성공")
+    void updateRiderAssignment_success() {
+        // given
+        Order order = Order.builder()
+                .orderId(1L)
+                .rider(rider)
+                .build();
+
+        RiderAssignment assignment = RiderAssignment.builder()
+                .assignmentId(1L)
+                .rider(rider)
+                .order(order)
+                .assignmentStatus(AssignmentStatus.PENDING)
+                .build();
+
+        when(riderAssignmentRepository.findByRiderAndOrder(rider, order)).thenReturn(Optional.of(assignment));
+
+        // when
+        riderService.updateRiderAssignment(rider, order, AssignmentStatus.ACCEPTED);
+
+        // then
+        assertThat(assignment.getAssignmentStatus()).isEqualTo(AssignmentStatus.ACCEPTED);
+    }
 }

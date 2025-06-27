@@ -27,6 +27,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -70,7 +71,7 @@ class RiderOrderControllerTest {
         long orderId = 1L;
 
         // when & then
-        mockMvc.perform(post("/api/rider/" + orderId + "/accept")
+        mockMvc.perform(put("/api/rider/" + orderId + "/accept")
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.httpStatus")
@@ -87,7 +88,7 @@ class RiderOrderControllerTest {
         long orderId = 1L;
 
         // when & then
-        mockMvc.perform(post("/api/rider/" + orderId + "/arrived")
+        mockMvc.perform(put("/api/rider/" + orderId + "/arrived")
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.httpStatus")
@@ -104,7 +105,7 @@ class RiderOrderControllerTest {
         long orderId = 1L;
 
         // when & then
-        mockMvc.perform(post("/api/rider/" + orderId + "/done")
+        mockMvc.perform(put("/api/rider/" + orderId + "/done")
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.httpStatus")
@@ -121,7 +122,7 @@ class RiderOrderControllerTest {
         long orderId = 1L;
 
         // when & then
-        mockMvc.perform(post("/api/rider/" + orderId + "/pickup")
+        mockMvc.perform(put("/api/rider/" + orderId + "/pickup")
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.httpStatus")
