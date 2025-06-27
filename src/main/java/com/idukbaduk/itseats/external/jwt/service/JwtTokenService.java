@@ -117,7 +117,7 @@ public class JwtTokenService {
         return token.replace(TOKEN_PREFIX, "");
     }
 
-    public boolean isValid(String token) throws JwtException {
+    public boolean isValid(String token) throws JwtTokenException {
         if (Objects.isNull(token)) {
             return false;
         }
