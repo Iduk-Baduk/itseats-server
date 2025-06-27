@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.rider.service;
 
+import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
 import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
@@ -47,6 +48,18 @@ public class RiderService {
     private RejectDeliveryResponse buildRejectDeliveryResponse(String reason) {
         return RejectDeliveryResponse.builder()
                 .rejectReason(reason)
+                .build();
+    }
+
+    public void createRiderAssignment(Rider rider, Order order) {
+        riderAssignmentRepository.save(buildRiderAssignment(rider, order));
+    }
+
+    private RiderAssignment buildRiderAssignment(Rider rider, Order order) {
+        return RiderAssignment.builder()
+                .rider(rider)
+                .order(order)
+                .assignmentStatus(AssignmentStatus.PENDING)
                 .build();
     }
 }
