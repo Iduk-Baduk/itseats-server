@@ -8,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum JwtTokenType {
 
-    ACCESS_TOKEN("access-Token"),
-    REFRESH_TOKEN("refresh-Token");
+    ACCESS_TOKEN("access-token"),
+    REFRESH_TOKEN("refresh-token");
 
     private final String value;
 
