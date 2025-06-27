@@ -48,11 +48,19 @@ public class MenuMediaService {
             return existingImages;
         }
 
-        // 기존 이미지 삭제
-        existingImages.forEach(image -> {
-            s3Utils.deleteFile(image.getImageUrl());
-        });
+        List<String> existingImageUrls = existingImages.stream()
+                .map(MenuImage::getImageUrl)
+                .toList();
+
+        // 기존 이미지 정보를 DB에서 삭제
         menuImageRepository.deleteAll(existingImages);
+
+        try {
+            existingImageUrls.forEach(s3Utils::deleteFile);
+        } catch (Exception e) {
+            // S3 삭제 실패는 로그만 남기고 진행 (DB에서 이미 전체 삭제됨)
+            log.error("S3 파일 삭제 실패", e);
+        }
 
         // 이미지 파일 유효성 검증
         images = filterValidImages(images);

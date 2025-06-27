@@ -7,6 +7,7 @@ import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StoreMediaService {
@@ -53,11 +55,19 @@ public class StoreMediaService {
             return existingImages;
         }
 
-        // 기존 이미지 삭제
-        existingImages.forEach(image -> {
-            s3Utils.deleteFile(image.getImageUrl());
-        });
+        List<String> existingImageUrls = existingImages.stream()
+                .map(StoreImage::getImageUrl)
+                .toList();
+
+        // 기존 이미지 정로를 DB에서 삭제
         storeImageRepository.deleteAll(existingImages);
+
+        try {
+            existingImageUrls.forEach(s3Utils::deleteFile);
+        } catch (Exception e) {
+            // S3 삭제 실패는 로그만 남기고 진행 (DB에서 이미 전체 삭제됨)
+            log.error("S3 파일 삭제 실패", e);
+        }
 
         // 이미지 파일 유효성 검증
         images = filterValidImages(images);
