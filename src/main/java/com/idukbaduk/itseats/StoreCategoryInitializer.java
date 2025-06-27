@@ -43,11 +43,15 @@ public class StoreCategoryInitializer implements CommandLineRunner {
     private final StoreCategoryRepository storeCategoryRepository;
 
     @Override
-    public void run(String... args) throws Exception {
-        long count = storeCategoryRepository.count();
+    public void run(String... args) {
+        try {
+            long count = storeCategoryRepository.count();
 
-        if (count < CATEGORIES.length) {
-            insertStoreCategory();
+            if (count < CATEGORIES.length) {
+                insertStoreCategory();
+            }
+        } catch (Exception e) {
+            // 초기화 실패해도 애플리케이션은 계속 실행
         }
     }
 
