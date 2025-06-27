@@ -1,13 +1,16 @@
 package com.idukbaduk.itseats.order.service;
 
+import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.dto.OrderDetailsResponse;
 import com.idukbaduk.itseats.order.dto.OrderItemDTO;
+import com.idukbaduk.itseats.order.dto.OrderRequestResponse;
 import com.idukbaduk.itseats.order.dto.RiderImageResponse;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.RiderImage;
+import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
@@ -18,6 +21,7 @@ import com.idukbaduk.itseats.rider.entity.Rider;
 import com.idukbaduk.itseats.rider.error.RiderException;
 import com.idukbaduk.itseats.rider.error.enums.RiderErrorCode;
 import com.idukbaduk.itseats.rider.repository.RiderRepository;
+import com.idukbaduk.itseats.rider.service.RiderService;
 import com.idukbaduk.itseats.store.entity.Store;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +40,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,6 +57,8 @@ class RiderOrderServiceTest {
     private MemberRepository memberRepository;
     @Mock
     private RiderImageService riderImageService;
+    @Mock
+    private RiderService riderService;
 
     @InjectMocks
     private RiderOrderService riderOrderService;
@@ -79,11 +87,14 @@ class RiderOrderServiceTest {
         rider = Rider.builder()
                 .riderId(1L)
                 .member(member)
+                .location(GeoUtil.toPoint(127.0000, 37.7600))
                 .build();
 
         store = Store.builder()
                 .storeId(1L)
                 .storePhone("010-1111-2222")
+                .storeAddress("서울시 구름구 구름동100번길 10 1층")
+                .location(GeoUtil.toPoint(126.0005, 37.7601))
                 .build();
 
         menu1 = OrderMenu.builder()
@@ -114,6 +125,7 @@ class RiderOrderServiceTest {
                 .orderStatus(OrderStatus.COOKING)
                 .orderMenus(List.of(menu1, menu2))
                 .build();
+
         setCreatedAt();
     }
 
@@ -390,5 +402,56 @@ class RiderOrderServiceTest {
         assertThatThrownBy(() -> riderOrderService.uploadRiderImage(username, 1L, emptyFile))
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.REQUIRED_RIDER_IMAGE.getMessage());
+    }
+
+    @Test
+    @DisplayName("라이더 근처 배달 요청 조회 성공")
+    void getOrderRequest_success() {
+        // given
+        Order order = Order.builder()
+                .orderId(1L)
+                .member(customer)
+                .store(store)
+                .orderNumber("A1234B")
+                .orderPrice(45000)
+                .deliveryType(DeliveryType.DEFAULT)
+                .deliveryFee(3000)
+                .orderStatus(OrderStatus.COOKED)
+                .orderMenus(List.of(menu1, menu2))
+                .build();
+
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
+        when(orderRepository.findCookedOrderByRiderLocation(rider.getLocation().getY(), rider.getLocation().getX()))
+                .thenReturn(Optional.of(order));
+        doNothing().when(riderService).createRiderAssignment(any(Rider.class), any(Order.class));
+
+        // when
+        OrderRequestResponse response = riderOrderService.getOrderRequest(username);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getOrderId()).isEqualTo(order.getOrderId());
+        assertThat(response.getDeliveryType()).isEqualTo(order.getDeliveryType().name());
+        assertThat(response.getDeliveryFee()).isEqualTo(order.getDeliveryFee());
+        assertThat(response.getStoreName()).isEqualTo(order.getStore().getStoreName());
+        assertThat(response.getMyLocation().getLat()).isEqualTo(rider.getLocation().getY());
+        assertThat(response.getMyLocation().getLng()).isEqualTo(rider.getLocation().getX());
+        assertThat(response.getStoreLocation().getLat()).isEqualTo(store.getLocation().getY());
+        assertThat(response.getStoreLocation().getLng()).isEqualTo(store.getLocation().getX());
+        assertThat(response.getStoreAddress()).isEqualTo(store.getStoreAddress());
+    }
+
+    @Test
+    @DisplayName("조건에 맞는 주문이 없는 경우 예외 발생")
+    void getOrderRequest_notExistOrder() {
+        // given
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
+        when(orderRepository.findCookedOrderByRiderLocation(37.7600, 127.0000))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> riderOrderService.getOrderRequest(username))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
 }
