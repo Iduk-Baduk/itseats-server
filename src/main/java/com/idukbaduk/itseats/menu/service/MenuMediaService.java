@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.menu.service;
 
 import com.idukbaduk.itseats.global.S3Config;
+import com.idukbaduk.itseats.global.util.S3Utils;
 import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.entity.MenuImage;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
@@ -28,8 +29,7 @@ import java.util.UUID;
 public class MenuMediaService {
 
     private final MenuImageRepository menuImageRepository;
-    private final S3Client s3Client;
-    private final S3Config s3Config;
+    private final S3Utils s3Utils;
 
     private static final String PATH = "menu_images/";
 
@@ -56,7 +56,7 @@ public class MenuMediaService {
 
         // 기존 이미지 삭제
         existingImages.forEach(image -> {
-            deleteFile(image.getImageUrl());
+            s3Utils.deleteFile(image.getImageUrl());
         });
         menuImageRepository.deleteAll(existingImages);
 
@@ -87,7 +87,7 @@ public class MenuMediaService {
     private List<MenuImage> saveMenuImages(Menu menu, List<MultipartFile> images) throws IOException {
         List<MenuImage> menuImages = new ArrayList<>();
         for (int i = 0; i < images.size(); i++) {
-            String imageUrl = uploadFileAndGetUrl(images.get(i));
+            String imageUrl = s3Utils.uploadFileAndGetUrl(PATH, images.get(i));
             MenuImage menuImage = MenuImage.builder()
                     .menu(menu)
                     .imageUrl(imageUrl)
@@ -96,41 +96,5 @@ public class MenuMediaService {
             menuImages.add(menuImage);
         }
         return menuImageRepository.saveAll(menuImages);
-    }
-
-    private String uploadFileAndGetUrl(MultipartFile file) throws IOException {
-        String fileName = file.getOriginalFilename();
-        String fileExtension = extractExtension(fileName);
-        String objectKey = PATH + UUID.randomUUID().toString().replace("-", "") + fileExtension;
-
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(s3Config.getBucketName())
-                .key(objectKey)
-                .contentType(file.getContentType()) // MIME 타입
-                .build();
-
-       s3Client.putObject(
-                putObjectRequest,
-                RequestBody.fromInputStream(file.getInputStream(), file.getSize())
-       );
-
-       return s3Config.getObjectUrl(objectKey);
-    }
-
-    private String extractExtension(String fileName) {
-        int lastDotIndex = fileName.lastIndexOf(".");
-        String fileExtension = (lastDotIndex != -1 && lastDotIndex < fileName.length() - 1)
-                ? fileName.substring(lastDotIndex)
-                : "";
-        return fileExtension;
-    }
-
-    public void deleteFile(String imageUrl) {
-        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                .bucket(s3Config.getBucketName())
-                .key(s3Config.extractObjectKeyFromUrl(imageUrl))
-                .build();
-
-        s3Client.deleteObject(deleteRequest);
     }
 }
