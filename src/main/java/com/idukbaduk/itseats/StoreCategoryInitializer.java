@@ -46,7 +46,7 @@ public class StoreCategoryInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         long count = storeCategoryRepository.count();
 
-        if (count < 24) {
+        if (count < CATEGORIES.length) {
             insertStoreCategory();
         }
     }
