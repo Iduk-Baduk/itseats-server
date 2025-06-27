@@ -14,8 +14,8 @@ public enum OrderResponse implements Response {
     ACCEPT_ORDER_SUCCESS(HttpStatus.OK, "주문 수락 성공"),
     GET_RIDER_ORDER_DETAILS_SUCCESS(HttpStatus.OK, "주문 정보 조회 성공"),
     COOKED_SUCCESS(HttpStatus.OK,"조리완료"),
-    UPLOAD_RIDER_IMAGE_SUCCESS(HttpStatus.CREATED,"배달 상태 촬영 업로드 성공");
-
+    UPLOAD_RIDER_IMAGE_SUCCESS(HttpStatus.CREATED,"배달 상태 촬영 업로드 성공"),
+    GET_ORDER_REQUEST_SUCCESS(HttpStatus.OK, "배달 요청 조회 성공");
 
     private final HttpStatus httpStatus;
     private final String message;
