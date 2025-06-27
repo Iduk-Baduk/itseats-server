@@ -30,7 +30,7 @@ public class JwtTokenRepositoryImpl implements JwtTokenRepository {
 
     @Override
     public Optional<String> findByKey(String key) {
-        return Optional.of((String) redisTemplate.opsForValue().get(String.format(REFRESH_TOKEN_KEY_PREFIX, key)));
+        return Optional.ofNullable((String) redisTemplate.opsForValue().get(String.format(REFRESH_TOKEN_KEY_PREFIX, key)));
     }
 
     @Override
