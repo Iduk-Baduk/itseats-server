@@ -5,7 +5,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ClockUtil {
 
     private static final String TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss";
