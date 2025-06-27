@@ -107,7 +107,7 @@ public class OwnerStoreService {
                 .defaultDeliveryFee(request.getDefaultDeliveryFee())
                 .onlyOneDeliveryFee(request.getOnlyOneDeliveryFee())
                 .businessStatus(BusinessStatus.OPEN)
-                .storeStatus(StoreStatus.PENDING)
+                .storeStatus(StoreStatus.ACCEPTED) // 관리자 기능 개발전 임시로 ACCEPTED 설정
                 .orderable(false)
                 .build();
 
