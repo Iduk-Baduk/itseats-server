@@ -71,18 +71,15 @@ public class JwtTokenService {
 
     private String createToken(String memberId, long expirationTime, JwtTokenType type) {
         LocalDateTime now = ClockUtil.getLocalDateTime();
-        return TOKEN_PREFIX.concat(
-                Jwts.builder()
-                        .header()
-                        .add("type", type.getValue())
-                        .and()
-                        .subject(memberId)
-                        .issuedAt(ClockUtil.convertToDate(now))
-                        .expiration(ClockUtil.getExpirationDate(now, expirationTime))
-                        .signWith(
-                                Keys.hmacShaKeyFor(jwtTokenProperties.secret().getBytes(StandardCharsets.UTF_8)))
-                        .compact()
-        );
+        return Jwts.builder()
+                .header()
+                .add("type", type.getValue())
+                .and()
+                .subject(memberId)
+                .issuedAt(ClockUtil.convertToDate(now))
+                .expiration(ClockUtil.getExpirationDate(now, expirationTime))
+                .signWith(Keys.hmacShaKeyFor(jwtTokenProperties.secret().getBytes(StandardCharsets.UTF_8)))
+                .compact();
     }
 
     public Boolean discardRefreshToken(String memberId) {
@@ -107,7 +104,8 @@ public class JwtTokenService {
     }
 
     public String resolveToken(HttpServletRequest request) {
-        return request.getHeader(AUTHORIZATION);
+        String token = request.getHeader(AUTHORIZATION);
+        return Objects.isNull(token) ? null : TOKEN_PREFIX.concat(token);
     }
 
     private String removePrefix(String token) {
