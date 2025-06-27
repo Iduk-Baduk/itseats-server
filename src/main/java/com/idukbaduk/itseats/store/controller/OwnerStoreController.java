@@ -1,25 +1,18 @@
 package com.idukbaduk.itseats.store.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.store.dto.StoreDashboardResponse;
+import com.idukbaduk.itseats.store.dto.*;
 import com.idukbaduk.itseats.store.service.OwnerStoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import com.idukbaduk.itseats.store.dto.StoreCreateRequest;
-import com.idukbaduk.itseats.store.dto.StoreCreateResponse;
+import org.springframework.web.bind.annotation.*;
 import com.idukbaduk.itseats.store.dto.enums.StoreResponse;
 import com.idukbaduk.itseats.store.service.OwnerStoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,5 +34,14 @@ public class OwnerStoreController {
     ) {
         StoreCreateResponse response = ownerStoreService.createStore(userDetails.getUsername(), request);
         return BaseResponse.toResponseEntity(StoreResponse.CREATE_STORE_SUCCESS, response);
+    }
+
+    @PostMapping("/stores/{storeId}/status")
+    public ResponseEntity<BaseResponse> updateStatus(
+            @PathVariable("storeId") Long storeId,
+            @RequestBody StoreStatusUpdateRequest request
+    ) {
+        StoreStatusUpdateResponse response = ownerStoreService.updateStatus(storeId, request);
+        return BaseResponse.toResponseEntity(StoreResponse.UPDATE_STATUS_SUCCESS, response);
     }
 }
