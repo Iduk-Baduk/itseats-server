@@ -16,6 +16,8 @@ import com.idukbaduk.itseats.store.dto.StoreCreateResponse;
 import com.idukbaduk.itseats.store.entity.Franchise;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
+import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
+import com.idukbaduk.itseats.store.entity.enums.StoreStatus;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.FranchiseRepository;
@@ -103,6 +105,9 @@ public class OwnerStoreService {
                 .storePhone(request.getPhone())
                 .defaultDeliveryFee(request.getDefaultDeliveryFee())
                 .onlyOneDeliveryFee(request.getOnlyOneDeliveryFee())
+                .businessStatus(BusinessStatus.OPEN)
+                .storeStatus(StoreStatus.PENDING)
+                .orderable(false)
                 .build();
 
         Store savedStore = storeRepository.save(store);
