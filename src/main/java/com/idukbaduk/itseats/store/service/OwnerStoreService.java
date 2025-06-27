@@ -27,6 +27,7 @@ import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 import java.util.List;
@@ -76,7 +77,7 @@ public class OwnerStoreService {
     }
 
     @Transactional
-    public StoreCreateResponse createStore(String username, StoreCreateRequest request) {
+    public StoreCreateResponse createStore(String username, StoreCreateRequest request, List<MultipartFile> images) {
 
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
@@ -112,7 +113,7 @@ public class OwnerStoreService {
 
         Store savedStore = storeRepository.save(store);
 
-        storeMediaService.createStoreImages(savedStore, request.getImages());
+        storeMediaService.createStoreImages(savedStore, images);
 
         return StoreCreateResponse.builder()
                 .storeId(savedStore.getStoreId())

@@ -17,7 +17,6 @@ public class StoreCreateRequest {
     private double lng; // 경도
     private double lat; // 위도
     private String phone;
-    private List<MultipartFile> images;
     private boolean isFranchise;
     private String categoryName;
     private Long franchiseId;
