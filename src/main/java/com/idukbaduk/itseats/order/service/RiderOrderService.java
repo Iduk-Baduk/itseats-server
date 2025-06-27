@@ -138,6 +138,10 @@ public class RiderOrderService {
     public OrderRequestResponse getOrderRequest(String username) {
         Rider rider = riderRepository.findByUsername(username)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
+        if (rider.getLocation() == null) {
+            throw new RiderException(RiderErrorCode.RIDER_LOCATION_NOT_FOUND);
+        }
+
         Order order = orderRepository
                 .findCookedOrderByRiderLocation(rider.getLocation().getY(), rider.getLocation().getX())
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
