@@ -11,6 +11,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.Keys;
@@ -83,19 +84,20 @@ public class JwtTokenService {
     public Boolean discardRefreshToken(String memberId) {
         return redisTokenService.deleteByKey(memberId);
     }
-
-    public Header parseHeader(String token) {
+    private JwtParser getParser() {
         return Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(jwtTokenProperties.secret().getBytes(StandardCharsets.UTF_8)))
-                .build()
+                .build();
+    }
+
+    public Header parseHeader(String token) {
+        return getParser()
                 .parseSignedClaims(removePrefix(token))
                 .getHeader();
     }
 
     public Claims parseClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(jwtTokenProperties.secret().getBytes(StandardCharsets.UTF_8)))
-                .build()
+        return getParser()
                 .parseSignedClaims(removePrefix(token))
                 .getPayload();
     }
