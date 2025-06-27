@@ -99,14 +99,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByRiderAndOrderId(Rider rider, Long orderId);
 
     @Query(value = """
-        SELECT o
+        SELECT o.*
         FROM orders o
-        JOIN store s ON o.store_id = s.id
-        WHERE o.status = "COOKED"
+        JOIN store s ON o.store_id = s.store_id
+        WHERE o.order_status = "COOKED"
         ORDER BY ST_Distance_Sphere(
             s.location,
             ST_GeomFromText(CONCAT('POINT(', :riderLng, ' ', :riderLat, ')'))
-        ), o.id
+        ), o.order_id
         LIMIT 1
     """, nativeQuery = true)
     Optional<Order> findCookedOrderByRiderLocation(
