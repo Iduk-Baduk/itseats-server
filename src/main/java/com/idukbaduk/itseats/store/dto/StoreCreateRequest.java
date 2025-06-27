@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.store.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,7 @@ public class StoreCreateRequest {
     private double lng; // 경도
     private double lat; // 위도
     private String phone;
+    @JsonProperty("isFranchise")
     private boolean isFranchise;
     private String categoryName;
     private Long franchiseId;
