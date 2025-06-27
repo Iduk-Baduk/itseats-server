@@ -1,9 +1,5 @@
 package com.idukbaduk.itseats.order.service;
 
-import com.idukbaduk.itseats.member.entity.Member;
-import com.idukbaduk.itseats.member.error.MemberException;
-import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
-import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
 import com.idukbaduk.itseats.order.dto.OrderDetailsResponse;
 import com.idukbaduk.itseats.order.dto.OrderItemDTO;
@@ -40,18 +36,14 @@ public class RiderOrderService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final RiderRepository riderRepository;
-    private final MemberRepository memberRepository;
 
     private final RiderImageService riderImageService;
     private final RiderService riderService;
 
     @Transactional(readOnly = true)
     public OrderDetailsResponse getOrderDetails(String username, Long orderId) {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-        Rider rider = riderRepository.findByMember(member)
+        Rider rider = riderRepository.findByUsername(username)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
-
         Order order = orderRepository.findByRiderAndOrderId(rider, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
@@ -88,11 +80,8 @@ public class RiderOrderService {
 
     @Transactional
     public void acceptDelivery(String username, Long orderId) {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-        Rider rider = riderRepository.findByMember(member)
+        Rider rider = riderRepository.findByUsername(username)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
-
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
@@ -101,11 +90,8 @@ public class RiderOrderService {
 
     @Transactional
     public void updateOrderStatus(String username, Long orderId, OrderStatus orderStatus) {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-        Rider rider = riderRepository.findByMember(member)
+        Rider rider = riderRepository.findByUsername(username)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
-
         Order order = orderRepository.findByRiderAndOrderId(rider, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
