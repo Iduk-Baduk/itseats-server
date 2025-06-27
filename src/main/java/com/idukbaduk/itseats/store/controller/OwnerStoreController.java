@@ -38,7 +38,7 @@ public class OwnerStoreController {
             @RequestPart StoreCreateRequest request,
             @RequestPart(required = false) List<MultipartFile> images
     ) {
-        StoreCreateResponse response = ownerStoreService.createStore("test", request, images);
+        StoreCreateResponse response = ownerStoreService.createStore(userDetails.getUsername(), request, images);
         return BaseResponse.toResponseEntity(StoreResponse.CREATE_STORE_SUCCESS, response);
     }
 }
