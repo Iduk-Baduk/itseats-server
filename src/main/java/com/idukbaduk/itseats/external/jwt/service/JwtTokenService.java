@@ -18,6 +18,7 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,7 +59,10 @@ public class JwtTokenService {
             throw new JwtTokenException(JwtTokenErrorCode.TOKEN_EXPIRED);
         }
 
-        if (!savedRefreshToken.get().equals(token))  {
+        if (!MessageDigest.isEqual(
+                savedRefreshToken.get().getBytes(StandardCharsets.UTF_8),
+                token.getBytes(StandardCharsets.UTF_8))
+        ) {
             throw new JwtTokenException(JwtTokenErrorCode.TOKEN_UNTRUSTWORTHY);
         }
 
