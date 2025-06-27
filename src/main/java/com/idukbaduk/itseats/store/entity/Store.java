@@ -67,4 +67,16 @@ public class Store extends BaseEntity {
 
     @Column(name = "only_one_delivery_fee", nullable = false)
     private int onlyOneDeliveryFee;
+
+    public void updateBusinessStatus(BusinessStatus newBusinessStatus) {
+        this.businessStatus = newBusinessStatus;
+    }
+
+    public void updateStoreStatus(StoreStatus newStoreStatus) {
+        this.storeStatus = newStoreStatus;
+    }
+
+    public void updateOrderable(Boolean orderable) {
+        this.orderable = orderable;
+    }
 }
