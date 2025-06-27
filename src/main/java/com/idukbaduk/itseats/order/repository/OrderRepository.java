@@ -2,7 +2,6 @@ package com.idukbaduk.itseats.order.repository;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.rider.entity.Rider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -46,7 +45,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query(value = """
             SELECT AVG(TIMESTAMPDIFF(MINUTE, cook_start_time, order_end_time))
             FROM orders
-            WHERE store_id = :storeId 
+            WHERE store_id = :storeId
             AND cook_start_time IS NOT NULL
             AND order_end_time IS NOT NULL
             """, nativeQuery = true)
@@ -55,18 +54,18 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query(value = """ 
             SELECT COUNT(*)
             FROM orders
-            WHERE store_id = :storeId 
-            AND order_end_time IS NOT NULL 
-            AND delivery_eta IS NOT NULL 
+            WHERE store_id = :storeId
+            AND order_end_time IS NOT NULL
+            AND delivery_eta IS NOT NULL
             AND ABS(TIMESTAMPDIFF(MINUTE, delivery_eta, order_end_time)) <= 5
             """, nativeQuery = true)
     Long countAccurateOrdersByStoreId(@Param("storeId") Long storeId);
 
     @Query(value = """
             SELECT AVG(TIMESTAMPDIFF(MINUTE, order_received_time, order_end_time))
-            FROM orders 
-            WHERE store_id = :storeId 
-            AND order_received_time IS NOT NULL 
+            FROM orders
+            WHERE store_id = :storeId
+            AND order_received_time IS NOT NULL
             AND order_end_time IS NOT NULL
             """ , nativeQuery = true)
     Double findAveragePickupTimeByStoreId(@Param("storeId") Long storeId);
@@ -75,9 +74,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             nativeQuery = true)
     Long countTotalOrdersByStoreId(@Param("storeId") Long storeId);
 
-    @Query(value = """ 
-            SELECT COUNT(*) 
-            FROM orders WHERE store_id = :storeId AND order_status 
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM orders WHERE store_id = :storeId AND order_status
             IN ('COOKING', 'RIDER_READY', 'DELIVERING', 'DELIVERED', 'COMPLETED')
             """, nativeQuery = true)
     Long countAcceptedOrdersByStoreId(@Param("storeId") Long storeId);
@@ -98,4 +97,20 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllWithMenusByStoreId(@Param("storeId") Long storeId);
 
     Optional<Order> findByRiderAndOrderId(Rider rider, Long orderId);
+
+    @Query(value = """
+        SELECT o.*
+        FROM orders o
+        JOIN store s ON o.store_id = s.store_id
+        WHERE o.order_status = "COOKED"
+        ORDER BY ST_Distance_Sphere(
+            s.location,
+            ST_GeomFromText(CONCAT('POINT(', :riderLng, ' ', :riderLat, ')'))
+        ), o.order_id
+        LIMIT 1
+    """, nativeQuery = true)
+    Optional<Order> findCookedOrderByRiderLocation(
+            @Param("riderLat") double riderLat,
+            @Param("riderLng") double riderLng
+    );
 }

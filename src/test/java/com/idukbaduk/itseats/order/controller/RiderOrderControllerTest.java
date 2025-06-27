@@ -1,7 +1,8 @@
 package com.idukbaduk.itseats.order.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
 import com.idukbaduk.itseats.order.dto.OrderDetailsResponse;
+import com.idukbaduk.itseats.order.dto.OrderRequestResponse;
 import com.idukbaduk.itseats.order.dto.RiderImageResponse;
 import com.idukbaduk.itseats.order.dto.enums.OrderResponse;
 import com.idukbaduk.itseats.order.service.RiderOrderService;
@@ -17,6 +18,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -35,9 +38,6 @@ class RiderOrderControllerTest {
 
     @MockitoBean
     private RiderOrderService riderOrderService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Test
     @DisplayName("주문 정보 조회 성공")
@@ -155,5 +155,41 @@ class RiderOrderControllerTest {
                         .value(OrderResponse.UPLOAD_RIDER_IMAGE_SUCCESS.getHttpStatus().value()))
                 .andExpect(jsonPath("$.message")
                         .value(OrderResponse.UPLOAD_RIDER_IMAGE_SUCCESS.getMessage()));
+    }
+
+    @Test
+    @DisplayName("주문 요청 조회 성공")
+    @WithMockUser(username = "testuser")
+    void getOrderRequest_success() throws Exception {
+        // given
+        OrderRequestResponse mockResponse = OrderRequestResponse.builder()
+                .orderId(1L)
+                .deliveryType("DEFAULT")
+                .storeName("스타벅스 구름점")
+                .myLocation(AddressInfoDTO.builder().lat(37.5665).lng(126.9780).build())
+                .storeLocation(AddressInfoDTO.builder().lat(37.5670).lng(126.9770).build())
+                .deliveryFee(3000)
+                .storeAddress("서울특별시 구름구 구름동100번길 10 1층")
+                .validTime(LocalDateTime.now().plusMinutes(1))
+                .build();
+
+        when(riderOrderService.getOrderRequest("testuser")).thenReturn(mockResponse);
+
+        // when & then
+        mockMvc.perform(get("/api/rider/request")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(OrderResponse.GET_ORDER_REQUEST_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.httpStatus").value(OrderResponse.GET_ORDER_REQUEST_SUCCESS.getHttpStatus().value()))
+                .andExpect(jsonPath("$.data.orderId").value(1))
+                .andExpect(jsonPath("$.data.deliveryType").value("DEFAULT"))
+                .andExpect(jsonPath("$.data.storeName").value("스타벅스 구름점"))
+                .andExpect(jsonPath("$.data.myLocation.lat").value(37.5665))
+                .andExpect(jsonPath("$.data.myLocation.lng").value(126.9780))
+                .andExpect(jsonPath("$.data.storeLocation.lat").value(37.5670))
+                .andExpect(jsonPath("$.data.storeLocation.lng").value(126.9770))
+                .andExpect(jsonPath("$.data.deliveryFee").value(3000))
+                .andExpect(jsonPath("$.data.storeAddress").value("서울특별시 구름구 구름동100번길 10 1층"));
     }
 }
