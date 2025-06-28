@@ -12,7 +12,7 @@ public class PasswordUtil {
         private static final PasswordEncoder encoder = new BCryptPasswordEncoder();
     }
 
-    public static String hashing(String rawPassword) {
+    public static String encrypt(String rawPassword) {
         return PasswordEncoderInstanceHolder.encoder.encode(rawPassword);
     }
 

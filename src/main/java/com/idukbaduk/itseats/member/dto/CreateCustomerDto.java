@@ -34,7 +34,7 @@ public class CreateCustomerDto {
     public Member toEntity() {
         return Member.builder()
                 .username(this.username)
-                .password(PasswordUtil.hashing(this.password))
+                .password(PasswordUtil.encrypt(this.password))
                 .nickname(this.nickname)
                 .email(this.email)
                 .phone(this.phone)

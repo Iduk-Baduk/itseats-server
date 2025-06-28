@@ -24,7 +24,7 @@ public class MemberService {
 
     @Transactional
     public CustomerCreateResponse createCustomer(CustomerDto customerDto) {
-        String encryptedPassword = PasswordUtil.hashing(customerDto.getPassword());
+        String encryptedPassword = PasswordUtil.encrypt(customerDto.getPassword());
         Member newCustomer = memberRepository.save(customerDto.toEntity(encryptedPassword));
         return CustomerCreateResponse.of(newCustomer.getMemberId(), Boolean.TRUE);
     }
