@@ -15,6 +15,8 @@ public class CustomerDto {
 
     private String password;
 
+    private String name;
+
     private String nickname;
 
     private String email;
@@ -22,9 +24,10 @@ public class CustomerDto {
     private String phone;
 
     @Builder
-    public CustomerDto(String username, String password, String nickname, String email, String phone) {
+    public CustomerDto(String username, String password, String name, String nickname, String email, String phone) {
         this.username = username;
         this.password = password;
+        this.name = name;
         this.nickname = nickname;
         this.email = email;
         this.phone = phone;
@@ -34,6 +37,7 @@ public class CustomerDto {
         return Member.builder()
                 .username(this.username)
                 .password(encryptedPassword)
+                .name(this.name)
                 .nickname(this.nickname)
                 .email(this.email)
                 .phone(this.phone)

@@ -15,6 +15,8 @@ public record CustomerCreateRequest(
                 message = "비밀번호는 최소 8자리, 영문, 숫자, 특수문자를 포함해야 합니다"
         ) String password,
 
+        @NotBlank String name,
+
         @NotBlank String nickname,
 
         @Email String email,
@@ -28,6 +30,7 @@ public record CustomerCreateRequest(
         return CustomerDto.builder()
                 .username(this.username)
                 .password(this.password)
+                .name(this.name)
                 .nickname(this.nickname)
                 .email(this.email)
                 .phone(this.phone)
