@@ -37,11 +37,11 @@ public class OwnerStoreController {
     }
 
     @PostMapping("/stores/{storeId}/status")
-    public ResponseEntity<BaseResponse> updateStatus(
+    public ResponseEntity<Void> updateStatus(
             @PathVariable("storeId") Long storeId,
             @RequestBody StoreStatusUpdateRequest request
     ) {
-        StoreStatusUpdateResponse response = ownerStoreService.updateStatus(storeId, request);
-        return BaseResponse.toResponseEntity(StoreResponse.UPDATE_STATUS_SUCCESS, response);
+        ownerStoreService.updateStatus(storeId, request);
+        return ResponseEntity.ok().build();
     }
 }

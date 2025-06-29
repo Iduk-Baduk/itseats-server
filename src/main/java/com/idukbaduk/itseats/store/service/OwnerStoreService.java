@@ -119,27 +119,18 @@ public class OwnerStoreService {
     }
 
     @Transactional
-    public StoreStatusUpdateResponse updateStatus(Long storeId, StoreStatusUpdateRequest request) {
+    public void updateStatus(Long storeId, StoreStatusUpdateRequest request) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
 
-        boolean updated = false;
-
         if (request.getBusinessStatus() != null) {
             store.updateBusinessStatus(request.getBusinessStatus());
-            updated = true;
         }
-
         if (request.getStoreStatus() != null) {
             store.updateStoreStatus(request.getStoreStatus());
-            updated = true;
         }
-
         if (request.getOrderable() != null) {
             store.updateOrderable(request.getOrderable());
-            updated = true;
         }
-
-        return new StoreStatusUpdateResponse(updated);
     }
 }
