@@ -3,12 +3,13 @@ package com.idukbaduk.itseats.member.entity;
 import com.idukbaduk.itseats.member.entity.enums.MemberType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.assertj.core.util.VisibleForTesting;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "member")
-public class  Member {
+public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +39,8 @@ public class  Member {
     private MemberType memberType;
 
     @Builder
-    public Member(String username, String password, String name, String nickname, String email, String phone, MemberType memberType) {
+    public Member(Long memberId, String username, String password, String name, String nickname, String email, String phone, MemberType memberType) {
+        this.memberId = memberId;
         this.username = username;
         this.password = password;
         this.name = name;
@@ -46,6 +48,15 @@ public class  Member {
         this.email = email;
         this.phone = phone;
         this.memberType = memberType;
+    }
+
+    /**
+     * 테스트 전용 메서드
+     * @param memberId
+     */
+    @VisibleForTesting
+    public void setMemberId(Long memberId) {
+        this.memberId = memberId;
     }
 
 }
