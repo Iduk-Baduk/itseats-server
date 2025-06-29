@@ -52,4 +52,9 @@ public class RiderAssignment extends BaseEntity {
         this.assignmentStatus = assignmentStatus;
         this.reason = rejectReason;
     }
+
+    public void updateAssignmentStatus(AssignmentStatus assignmentStatus) {
+        assignmentStatus.validateTransitionFrom(this.assignmentStatus);
+        this.assignmentStatus = assignmentStatus;
+    }
 }

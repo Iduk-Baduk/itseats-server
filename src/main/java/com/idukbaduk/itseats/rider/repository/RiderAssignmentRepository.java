@@ -1,5 +1,7 @@
 package com.idukbaduk.itseats.rider.repository;
 
+import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.rider.entity.Rider;
 import com.idukbaduk.itseats.rider.entity.RiderAssignment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +24,5 @@ public interface RiderAssignmentRepository extends JpaRepository<RiderAssignment
             @Param("orderId") Long orderId
     );
 
+    Optional<RiderAssignment> findByRiderAndOrder(Rider rider, Order order);
 }

@@ -2,7 +2,6 @@ package com.idukbaduk.itseats.order.service;
 
 import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
-import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.dto.OrderDetailsResponse;
 import com.idukbaduk.itseats.order.dto.OrderItemDTO;
 import com.idukbaduk.itseats.order.dto.OrderRequestResponse;
@@ -53,8 +52,6 @@ class RiderOrderServiceTest {
     private PaymentRepository paymentRepository;
     @Mock
     private RiderRepository riderRepository;
-    @Mock
-    private MemberRepository memberRepository;
     @Mock
     private RiderImageService riderImageService;
     @Mock
@@ -149,8 +146,7 @@ class RiderOrderServiceTest {
                 .riderRequest("문 앞에 두고 가주세요")
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
         when(paymentRepository.findByOrder(order)).thenReturn(Optional.of(payment));
 
@@ -180,8 +176,7 @@ class RiderOrderServiceTest {
     @DisplayName("존재하지 않는 라이더 조회시 예외 발생")
     void getOrderDetails_notExistRider(){
         // given
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.empty());
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> riderOrderService.getOrderDetails(username, 1L))
@@ -193,8 +188,7 @@ class RiderOrderServiceTest {
     @DisplayName("배차되지 않은 주문을 조회하는 경우 예외 발생")
     void getOrderDetails_notAssignOrder() {
         // given
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.empty());
 
         // when & then
@@ -212,8 +206,7 @@ class RiderOrderServiceTest {
                 .orderStatus(OrderStatus.COOKED)
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         // when
@@ -234,8 +227,7 @@ class RiderOrderServiceTest {
                 .orderStatus(OrderStatus.COOKING)
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         // when
@@ -254,8 +246,7 @@ class RiderOrderServiceTest {
                 .rider(rider)
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
         // when
@@ -274,8 +265,7 @@ class RiderOrderServiceTest {
                 .rider(rider)
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
 
         // when
@@ -294,8 +284,7 @@ class RiderOrderServiceTest {
                 .orderStatus(OrderStatus.COOKING)
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
 
         // when
@@ -308,8 +297,7 @@ class RiderOrderServiceTest {
     @DisplayName("배차되지 않은 주문의 상태를 변경하는 경우 예외 발생")
     void updateOrderStatus_getOrderFail() {
         // given
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.empty());
 
         // when & then
@@ -328,8 +316,7 @@ class RiderOrderServiceTest {
                 .rider(rider)
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
 
         // when
@@ -349,8 +336,7 @@ class RiderOrderServiceTest {
                 .rider(rider)
                 .build();
 
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
+        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
         when(orderRepository.findByRiderAndOrderId(rider, 1L)).thenReturn(Optional.of(order));
 
         // when
