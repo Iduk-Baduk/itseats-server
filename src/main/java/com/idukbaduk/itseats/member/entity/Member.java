@@ -3,7 +3,6 @@ package com.idukbaduk.itseats.member.entity;
 import com.idukbaduk.itseats.member.entity.enums.MemberType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.assertj.core.util.VisibleForTesting;
 
 @Entity
 @Getter
@@ -48,15 +47,6 @@ public class Member {
         this.email = email;
         this.phone = phone;
         this.memberType = memberType;
-    }
-
-    /**
-     * 테스트 전용 메서드
-     * @param memberId
-     */
-    @VisibleForTesting
-    public void setMemberId(Long memberId) {
-        this.memberId = memberId;
     }
 
 }

@@ -2,12 +2,13 @@ package com.idukbaduk.itseats.member.factory;
 
 import com.idukbaduk.itseats.member.dto.CustomerDto;
 import com.idukbaduk.itseats.member.entity.Member;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class MemberTestFactory {
 
     public static Member createFromDto(CustomerDto dto, Long id, String encodedPassword) {
         Member member = dto.toEntity(encodedPassword);
-        member.setMemberId(id);
+        ReflectionTestUtils.setField(member, "memberId", id);
         return member;
     }
 
