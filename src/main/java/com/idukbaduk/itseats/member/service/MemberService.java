@@ -40,7 +40,7 @@ public class MemberService {
 
         String encryptedPassword = PasswordUtil.encrypt(customerDto.getPassword());
         Member newCustomer = memberRepository.save(customerDto.toEntity(encryptedPassword));
-        return CustomerCreateResponse.of(newCustomer.getMemberId(), Objects.nonNull(newCustomer.getMemberId()));
+        return CustomerCreateResponse.of(newCustomer.getMemberId());
     }
 
 }

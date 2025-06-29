@@ -5,14 +5,12 @@ import lombok.Builder;
 
 @Builder(access = AccessLevel.PRIVATE)
 public record CustomerCreateResponse(
-        Long memberId,
-        Boolean isSucceed
+        Long memberId
 )
 {
-    public static CustomerCreateResponse of(Long memberId, Boolean isSucceed) {
+    public static CustomerCreateResponse of(Long memberId) {
         return CustomerCreateResponse.builder()
                 .memberId(memberId)
-                .isSucceed(isSucceed)
                 .build();
     }
 }
