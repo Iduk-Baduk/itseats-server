@@ -155,8 +155,8 @@ class OwnerStoreServiceTest {
     }
 
     @Test
-    @DisplayName("매장 상태 변경 성공 - 변경된 값 있음")
-    void updateStatus_successWithChanges() {
+    @DisplayName("가게 상태 변경 성공 - 모든 필드 변경")
+    void updateStatus_successAllFields() {
         // given
         Long storeId = 1L;
         StoreStatusUpdateRequest request = new StoreStatusUpdateRequest(
@@ -164,46 +164,49 @@ class OwnerStoreServiceTest {
                 StoreStatus.REJECTED,
                 true
         );
-
         Store store = mock(Store.class);
+
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
 
         // when
-        StoreStatusUpdateResponse response = ownerStoreService.updateStatus(storeId, request);
+        ownerStoreService.updateStatus(storeId, request);
 
         // then
-        assertThat(response.isUpdated()).isTrue();
         verify(store).updateBusinessStatus(BusinessStatus.CLOSE);
         verify(store).updateStoreStatus(StoreStatus.REJECTED);
         verify(store).updateOrderable(true);
     }
 
     @Test
-    @DisplayName("매장 상태 변경 성공 - 변경된 값 없음")
-    void updateStatus_successNoChanges() {
+    @DisplayName("가게 상태 변경 성공 - 일부 필드만 변경")
+    void updateStatus_successPartialFields() {
         // given
         Long storeId = 1L;
-        StoreStatusUpdateRequest request = new StoreStatusUpdateRequest(null, null, null);
-
+        StoreStatusUpdateRequest request = new StoreStatusUpdateRequest(
+                BusinessStatus.CLOSE,
+                null,
+                null
+        );
         Store store = mock(Store.class);
+
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
 
         // when
-        StoreStatusUpdateResponse response = ownerStoreService.updateStatus(storeId, request);
+        ownerStoreService.updateStatus(storeId, request);
 
         // then
-        assertThat(response.isUpdated()).isFalse();
-        verify(store, never()).updateBusinessStatus(any());
+        verify(store).updateBusinessStatus(BusinessStatus.CLOSE);
         verify(store, never()).updateStoreStatus(any());
         verify(store, never()).updateOrderable(any());
     }
 
     @Test
-    @DisplayName("매장 상태 변경 실패 - 존재하지 않는 매장")
+    @DisplayName("가게 상태 변경 실패 - 매장 없음")
     void updateStatus_storeNotFound() {
         // given
         Long storeId = 99L;
         StoreStatusUpdateRequest request = new StoreStatusUpdateRequest(null, null, null);
+
         when(storeRepository.findById(storeId)).thenReturn(Optional.empty());
 
         // when & then

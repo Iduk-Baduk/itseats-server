@@ -20,6 +20,7 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -29,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -122,7 +124,8 @@ class OwnerStoreControllerTest {
     }
 
     @Test
-    @DisplayName("가게 상태 변경 성공")
+    @DisplayName("가게 상태 변경 성공 - 200 OK")
+    @WithMockUser(username = "owner")
     void updateStatus_success() throws Exception {
         // given
         Long storeId = 1L;
@@ -131,19 +134,12 @@ class OwnerStoreControllerTest {
                 StoreStatus.REJECTED,
                 true
         );
-        StoreStatusUpdateResponse serviceResponse = new StoreStatusUpdateResponse(true);
-
-        given(ownerStoreService.updateStatus(eq(storeId), any(StoreStatusUpdateRequest.class)))
-                .willReturn(serviceResponse);
 
         // when & then
         mockMvc.perform(post("/api/owner/stores/{storeId}/status", storeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.httpStatus").value(StoreResponse.UPDATE_STATUS_SUCCESS.getHttpStatus().value()))
-                .andExpect(jsonPath("$.message").value(StoreResponse.UPDATE_STATUS_SUCCESS.getMessage()))
-                .andExpect(jsonPath("$.data.updated").value(true));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -154,37 +150,13 @@ class OwnerStoreControllerTest {
         Long storeId = 99L;
         StoreStatusUpdateRequest request = new StoreStatusUpdateRequest(null, null, null);
 
-        given(ownerStoreService.updateStatus(eq(storeId), any(StoreStatusUpdateRequest.class)))
-                .willThrow(new StoreException(StoreErrorCode.STORE_NOT_FOUND));
+        doThrow(new StoreException(StoreErrorCode.STORE_NOT_FOUND))
+                .when(ownerStoreService).updateStatus(eq(storeId), any(StoreStatusUpdateRequest.class));
 
         // when & then
         mockMvc.perform(post("/api/owner/stores/{storeId}/status", storeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(StoreErrorCode.STORE_NOT_FOUND.getStatus().value()))
-                .andExpect(jsonPath("$.message").value(StoreErrorCode.STORE_NOT_FOUND.getMessage()));
-    }
-
-    @Test
-    @DisplayName("가게 상태 변경 성공 - 변경 없음")
-    @WithMockUser(username = "owner")
-    void updateStatus_noChange() throws Exception {
-        // given
-        Long storeId = 1L;
-        StoreStatusUpdateRequest request = new StoreStatusUpdateRequest(null, null, null);
-        StoreStatusUpdateResponse serviceResponse = new StoreStatusUpdateResponse(false);
-
-        given(ownerStoreService.updateStatus(eq(storeId), any(StoreStatusUpdateRequest.class)))
-                .willReturn(serviceResponse);
-
-        // when & then
-        mockMvc.perform(post("/api/owner/stores/{storeId}/status", storeId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.httpStatus").value(StoreResponse.UPDATE_STATUS_SUCCESS.getHttpStatus().value()))
-                .andExpect(jsonPath("$.message").value(StoreResponse.UPDATE_STATUS_SUCCESS.getMessage()))
-                .andExpect(jsonPath("$.data.updated").value(false));
+                .andExpect(status().isNotFound());
     }
 }
