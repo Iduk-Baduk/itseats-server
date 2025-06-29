@@ -4,9 +4,7 @@ import com.idukbaduk.itseats.member.dto.CustomerDto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.Getter;
 
-@Getter
 public record CustomerCreateRequest(
         @NotBlank String username,
 

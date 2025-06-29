@@ -2,9 +2,7 @@ package com.idukbaduk.itseats.member.dto.response;
 
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.Getter;
 
-@Getter
 @Builder(access = AccessLevel.PRIVATE)
 public record CustomerCreateResponse(
         Long memberId,
