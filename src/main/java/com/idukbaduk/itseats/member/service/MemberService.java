@@ -7,6 +7,7 @@ import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.member.util.PasswordUtil;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +25,22 @@ public class MemberService {
 
     @Transactional
     public CustomerCreateResponse createCustomer(CustomerDto customerDto) {
+
+        if (memberRepository.existsByUsername(customerDto.getUsername())) {
+            throw new MemberException(MemberErrorCode.MEMBER_USERNAME_DUPLICATED);
+        }
+
+        if (memberRepository.existsByNickname(customerDto.getNickname())) {
+            throw new MemberException(MemberErrorCode.MEMBER_NICKNAME_DUPLICATED);
+        }
+
+        if (memberRepository.existsByEmail(customerDto.getEmail())) {
+            throw new MemberException(MemberErrorCode.MEMBER_EMAIL_DUPLICATED);
+        }
+
         String encryptedPassword = PasswordUtil.encrypt(customerDto.getPassword());
         Member newCustomer = memberRepository.save(customerDto.toEntity(encryptedPassword));
-        return CustomerCreateResponse.of(newCustomer.getMemberId(), Boolean.TRUE);
+        return CustomerCreateResponse.of(newCustomer.getMemberId(), Objects.nonNull(newCustomer.getMemberId()));
     }
 
 }
