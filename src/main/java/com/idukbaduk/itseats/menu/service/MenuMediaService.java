@@ -1,6 +1,6 @@
 package com.idukbaduk.itseats.menu.service;
 
-import com.idukbaduk.itseats.global.S3Config;
+import com.idukbaduk.itseats.global.util.S3Utils;
 import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.entity.MenuImage;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
@@ -9,18 +9,14 @@ import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -28,8 +24,7 @@ import java.util.UUID;
 public class MenuMediaService {
 
     private final MenuImageRepository menuImageRepository;
-    private final S3Client s3Client;
-    private final S3Config s3Config;
+    private final S3Utils s3Utils;
 
     private static final String PATH = "menu_images/";
 
@@ -47,6 +42,7 @@ public class MenuMediaService {
         }
     }
 
+    @Transactional
     public List<MenuImage> updateMenuImages(Menu menu, List<MultipartFile> images) {
         List<MenuImage> existingImages = menuImageRepository.findByMenu_MenuIdOrderByDisplayOrderAsc(menu.getMenuId());
         if (images == null) {
@@ -54,11 +50,19 @@ public class MenuMediaService {
             return existingImages;
         }
 
-        // 기존 이미지 삭제
-        existingImages.forEach(image -> {
-            deleteFile(image.getImageUrl());
-        });
+        List<String> existingImageUrls = existingImages.stream()
+                .map(MenuImage::getImageUrl)
+                .toList();
+
+        // 기존 이미지 정보를 DB에서 삭제
         menuImageRepository.deleteAll(existingImages);
+
+        try {
+            existingImageUrls.forEach(s3Utils::deleteFile);
+        } catch (Exception e) {
+            // S3 삭제 실패는 로그만 남기고 진행 (DB에서 이미 전체 삭제됨)
+            log.error("S3 파일 삭제 실패", e);
+        }
 
         // 이미지 파일 유효성 검증
         images = filterValidImages(images);
@@ -87,7 +91,7 @@ public class MenuMediaService {
     private List<MenuImage> saveMenuImages(Menu menu, List<MultipartFile> images) throws IOException {
         List<MenuImage> menuImages = new ArrayList<>();
         for (int i = 0; i < images.size(); i++) {
-            String imageUrl = uploadFileAndGetUrl(images.get(i));
+            String imageUrl = s3Utils.uploadFileAndGetUrl(PATH, images.get(i));
             MenuImage menuImage = MenuImage.builder()
                     .menu(menu)
                     .imageUrl(imageUrl)
@@ -96,41 +100,5 @@ public class MenuMediaService {
             menuImages.add(menuImage);
         }
         return menuImageRepository.saveAll(menuImages);
-    }
-
-    private String uploadFileAndGetUrl(MultipartFile file) throws IOException {
-        String fileName = file.getOriginalFilename();
-        String fileExtension = extractExtension(fileName);
-        String objectKey = PATH + UUID.randomUUID().toString().replace("-", "") + fileExtension;
-
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(s3Config.getBucketName())
-                .key(objectKey)
-                .contentType(file.getContentType()) // MIME 타입
-                .build();
-
-       s3Client.putObject(
-                putObjectRequest,
-                RequestBody.fromInputStream(file.getInputStream(), file.getSize())
-       );
-
-       return s3Config.getObjectUrl(objectKey);
-    }
-
-    private String extractExtension(String fileName) {
-        int lastDotIndex = fileName.lastIndexOf(".");
-        String fileExtension = (lastDotIndex != -1 && lastDotIndex < fileName.length() - 1)
-                ? fileName.substring(lastDotIndex)
-                : "";
-        return fileExtension;
-    }
-
-    public void deleteFile(String imageUrl) {
-        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                .bucket(s3Config.getBucketName())
-                .key(s3Config.extractObjectKeyFromUrl(imageUrl))
-                .build();
-
-        s3Client.deleteObject(deleteRequest);
     }
 }
