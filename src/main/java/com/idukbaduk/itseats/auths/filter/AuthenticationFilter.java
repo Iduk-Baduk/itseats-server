@@ -2,6 +2,8 @@ package com.idukbaduk.itseats.auths.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idukbaduk.itseats.auths.dto.request.LoginRequest;
+import com.idukbaduk.itseats.auths.error.AuthException;
+import com.idukbaduk.itseats.auths.error.enums.AuthErrorCode;
 import com.idukbaduk.itseats.auths.service.AuthService;
 import com.idukbaduk.itseats.external.jwt.service.JwtTokenService;
 import com.idukbaduk.itseats.member.entity.Member;
@@ -11,10 +13,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -37,16 +42,23 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthException {
         try {
             LoginRequest credential = objectMapper.readValue(request.getInputStream(), LoginRequest.class);
+
+            if (Objects.isNull(credential.username()) || credential.username().isBlank()) {
+                throw new AuthException(AuthErrorCode.AUTHORIZATION_USERNAME_EMPTY);
+            }
+            if (Objects.isNull(credential.password()) || credential.password().isBlank()) {
+                throw new AuthException(AuthErrorCode.AUTHORIZATION_PASSWORD_EMPTY);
+            }
+
             return getAuthenticationManager().authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            credential.username(), credential.password(), new ArrayList<>()
-                    ));
+                            credential.username(), credential.password(), new ArrayList<>())
+            );
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new AuthException(AuthErrorCode.AUTHORIZATION_PARSE_FAILED);
         }
     }
 
