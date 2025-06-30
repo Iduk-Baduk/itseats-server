@@ -4,7 +4,6 @@ import static com.idukbaduk.itseats.member.error.enums.MemberErrorCode.MEMBER_NO
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
-import javax.swing.text.html.Option;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
