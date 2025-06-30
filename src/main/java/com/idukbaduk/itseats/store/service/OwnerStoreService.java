@@ -5,14 +5,12 @@ import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
-import com.idukbaduk.itseats.store.dto.StoreDashboardResponse;
+import com.idukbaduk.itseats.store.dto.*;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.member.service.MemberService;
-import com.idukbaduk.itseats.store.dto.StoreCreateRequest;
-import com.idukbaduk.itseats.store.dto.StoreCreateResponse;
 import com.idukbaduk.itseats.store.entity.Franchise;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
@@ -124,5 +122,21 @@ public class OwnerStoreService {
                 .address(savedStore.getStoreAddress())
                 .phone(savedStore.getStorePhone())
                 .build();
+    }
+
+    @Transactional
+    public void updateStatus(Long storeId, StoreStatusUpdateRequest request) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
+
+        if (request.getBusinessStatus() != null) {
+            store.updateBusinessStatus(request.getBusinessStatus());
+        }
+        if (request.getStoreStatus() != null) {
+            store.updateStoreStatus(request.getStoreStatus());
+        }
+        if (request.getOrderable() != null) {
+            store.updateOrderable(request.getOrderable());
+        }
     }
 }

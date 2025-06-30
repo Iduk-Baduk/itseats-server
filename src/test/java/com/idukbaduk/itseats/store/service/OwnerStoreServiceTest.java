@@ -4,9 +4,13 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.store.dto.StoreCreateRequest;
 import com.idukbaduk.itseats.store.dto.StoreCreateResponse;
+import com.idukbaduk.itseats.store.dto.StoreStatusUpdateRequest;
+import com.idukbaduk.itseats.store.dto.StoreStatusUpdateResponse;
 import com.idukbaduk.itseats.store.entity.Franchise;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
+import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
+import com.idukbaduk.itseats.store.entity.enums.StoreStatus;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.FranchiseRepository;
@@ -149,5 +153,66 @@ class OwnerStoreServiceTest {
         assertThatThrownBy(() -> ownerStoreService.createStore(username, request, Collections.emptyList()))
                 .isInstanceOf(StoreException.class)
                 .hasMessageContaining(StoreErrorCode.FRANCHISE_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("가게 상태 변경 성공 - 모든 필드 변경")
+    void updateStatus_successAllFields() {
+        // given
+        Long storeId = 1L;
+        StoreStatusUpdateRequest request = new StoreStatusUpdateRequest(
+                BusinessStatus.CLOSE,
+                StoreStatus.REJECTED,
+                true
+        );
+        Store store = mock(Store.class);
+
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+
+        // when
+        ownerStoreService.updateStatus(storeId, request);
+
+        // then
+        verify(store).updateBusinessStatus(BusinessStatus.CLOSE);
+        verify(store).updateStoreStatus(StoreStatus.REJECTED);
+        verify(store).updateOrderable(true);
+    }
+
+    @Test
+    @DisplayName("가게 상태 변경 성공 - 일부 필드만 변경")
+    void updateStatus_successPartialFields() {
+        // given
+        Long storeId = 1L;
+        StoreStatusUpdateRequest request = new StoreStatusUpdateRequest(
+                BusinessStatus.CLOSE,
+                null,
+                null
+        );
+        Store store = mock(Store.class);
+
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+
+        // when
+        ownerStoreService.updateStatus(storeId, request);
+
+        // then
+        verify(store).updateBusinessStatus(BusinessStatus.CLOSE);
+        verify(store, never()).updateStoreStatus(any());
+        verify(store, never()).updateOrderable(any());
+    }
+
+    @Test
+    @DisplayName("가게 상태 변경 실패 - 매장 없음")
+    void updateStatus_storeNotFound() {
+        // given
+        Long storeId = 99L;
+        StoreStatusUpdateRequest request = new StoreStatusUpdateRequest(null, null, null);
+
+        when(storeRepository.findById(storeId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ownerStoreService.updateStatus(storeId, request))
+                .isInstanceOf(StoreException.class)
+                .hasMessageContaining(StoreErrorCode.STORE_NOT_FOUND.getMessage());
     }
 }

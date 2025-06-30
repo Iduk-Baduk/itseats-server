@@ -1,7 +1,7 @@
 package com.idukbaduk.itseats.store.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.store.dto.StoreDashboardResponse;
+import com.idukbaduk.itseats.store.dto.*;
 import com.idukbaduk.itseats.store.service.OwnerStoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,7 +13,6 @@ import com.idukbaduk.itseats.store.dto.enums.StoreResponse;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 
 @RestController
@@ -37,5 +36,14 @@ public class OwnerStoreController {
     ) {
         StoreCreateResponse response = ownerStoreService.createStore(userDetails.getUsername(), request, images);
         return BaseResponse.toResponseEntity(StoreResponse.CREATE_STORE_SUCCESS, response);
+    }
+
+    @PostMapping("/stores/{storeId}/status")
+    public ResponseEntity<Void> updateStatus(
+            @PathVariable("storeId") Long storeId,
+            @RequestBody StoreStatusUpdateRequest request
+    ) {
+        ownerStoreService.updateStatus(storeId, request);
+        return ResponseEntity.ok().build();
     }
 }
