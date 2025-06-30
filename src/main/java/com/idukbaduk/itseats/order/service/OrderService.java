@@ -16,12 +16,7 @@ import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import com.idukbaduk.itseats.menu.service.MenuService;
-import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
-import com.idukbaduk.itseats.order.dto.MenuOptionDTO;
-import com.idukbaduk.itseats.order.dto.OrderMenuDTO;
-import com.idukbaduk.itseats.order.dto.OrderNewRequest;
-import com.idukbaduk.itseats.order.dto.OrderNewResponse;
-import com.idukbaduk.itseats.order.dto.OrderStatusResponse;
+import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
@@ -49,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -213,5 +209,26 @@ public class OrderService {
     public Order getOrder(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+    }
+
+    public List<OrderHistoryDto> getOrders(String username) {
+        List<Order> orders = orderRepository.findOrderByMember_Username(username);
+
+        return orders.stream()
+                .map(order -> OrderHistoryDto.builder()
+                        .orderId(order.getOrderId())
+                        .storeId(order.getStore().getStoreId())
+                        .orderNumber(order.getOrderNumber())
+                        .createdAt(order.getCreatedAt())
+                        .status(order.getOrderStatus().name())
+                        .orderPrice(order.getOrderPrice())
+                        .deliveryAddress(order.getDeliveryAddress())
+                        .deliveryRequest("구현 예정")
+                        .menuSummary(order.getOrderMenus().stream()
+                                .map(OrderMenu::getMenuName)
+                                .collect(Collectors.joining(", "))
+                        )
+                        .build())
+                .toList();
     }
 }

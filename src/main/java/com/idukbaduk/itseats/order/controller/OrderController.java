@@ -34,6 +34,15 @@ public class OrderController {
         );
     }
 
+    /* 1차 프로젝트 발표용으로 임시로 작성 */
+    @GetMapping
+    public ResponseEntity<BaseResponse> getOrders(@AuthenticationPrincipal UserDetails userDetails) {
+        return BaseResponse.toResponseEntity(
+                OrderResponse.GET_ORDERS_SUCCESS,
+                orderService.getOrders("test")
+        );
+    }
+
     @GetMapping("/{orderId}/status")
     public ResponseEntity<BaseResponse> getOrderStatus(
             @AuthenticationPrincipal UserDetails userDetails,
