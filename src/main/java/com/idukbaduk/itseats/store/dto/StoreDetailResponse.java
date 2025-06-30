@@ -13,4 +13,12 @@ public class StoreDetailResponse {
     private double review;
     private int reviewCount;
     private List<String> images;
+    private String description;
+    private String address;
+    private String phone;
+    private int defaultDeliveryFee;
+    private int onlyOneDeliveryFee;
+    private boolean isOpen;
+    private boolean orderable;
+    private PointDto location;
 }
