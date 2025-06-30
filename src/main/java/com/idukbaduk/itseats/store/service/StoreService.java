@@ -6,14 +6,14 @@ import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.FavoriteRepository;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.member.service.MemberService;
+import com.idukbaduk.itseats.menu.entity.MenuImage;
+import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
-import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
-import com.idukbaduk.itseats.store.dto.StoreCategoryListResponse;
-import com.idukbaduk.itseats.store.dto.StoreDto;
-import com.idukbaduk.itseats.store.dto.StoreListResponse;
+import com.idukbaduk.itseats.store.dto.*;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
 import com.idukbaduk.itseats.store.entity.StoreImage;
+import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.StoreCategoryRepository;
@@ -23,10 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,9 +31,9 @@ public class StoreService {
 
     private final StoreRepository storeRepository;
     private final StoreImageRepository storeImageRepository;
+    private final MenuImageRepository menuImageRepository;
     private final ReviewRepository reviewRepository;
     private final FavoriteRepository favoriteRepository;
-    private final MemberService memberService;
     private final MemberRepository memberRepository;
     private final StoreCategoryRepository storeCategoryRepository;
 
@@ -53,13 +50,13 @@ public class StoreService {
 
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
 
-        Map<Long, String> storeIdToImageUrl = buildStoreImageMap(storeIds);
+        Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
 
         Map<Long, Double> storeIdToAvg = new HashMap<>();
         Map<Long, Integer> storeIdToCount = new HashMap<>();
         buildReviewStatsMap(storeIds, storeIdToAvg, storeIdToCount);
 
-        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImageUrl, storeIdToAvg, storeIdToCount);
+        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImages, storeIdToAvg, storeIdToCount);
 
         return StoreListResponse.builder()
                 .stores(storeDtos)
@@ -84,13 +81,13 @@ public class StoreService {
 
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
 
-        Map<Long, String> storeIdToImageUrl = buildStoreImageMap(storeIds);
+        Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
 
         Map<Long, Double> storeIdToAvg = new HashMap<>();
         Map<Long, Integer> storeIdToCount = new HashMap<>();
         buildReviewStatsMap(storeIds, storeIdToAvg, storeIdToCount);
 
-        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImageUrl, storeIdToAvg, storeIdToCount);
+        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImages, storeIdToAvg, storeIdToCount);
 
         return StoreCategoryListResponse.builder()
                 .category(categoryCode)
@@ -99,16 +96,24 @@ public class StoreService {
                 .build();
     }
 
-    private Map<Long, String> buildStoreImageMap(List<Long> storeIds) {
+    private Map<Long, List<String>> buildStoreImageMap(List<Long> storeIds) {
         List<StoreImage> images = storeImageRepository.findImagesByStoreIds(storeIds);
-        Map<Long, String> storeIdToImageUrl = new HashMap<>();
+        List<MenuImageWithStoreId> menuImages = menuImageRepository.findTop2ImagesPerStoreIds(storeIds);
+
+        Map<Long, List<String>> storeIdToImages = new HashMap<>();
         for (StoreImage image : images) {
             Long storeId = image.getStore().getStoreId();
-            if (!storeIdToImageUrl.containsKey(storeId)) {
-                storeIdToImageUrl.put(storeId, image.getImageUrl());
-            }
+            storeIdToImages
+                    .computeIfAbsent(storeId, k -> new ArrayList<>())
+                    .add(image.getImageUrl());
         }
-        return storeIdToImageUrl;
+        for (MenuImageWithStoreId image : menuImages) {
+            storeIdToImages
+                    .computeIfAbsent(image.getStoreId(), k -> new ArrayList<>())
+                    .add(image.getImageUrl());
+        }
+
+        return storeIdToImages;
     }
 
     private void buildReviewStatsMap(List<Long> storeIds,
@@ -125,15 +130,16 @@ public class StoreService {
     }
 
     private List<StoreDto> buildStoreDtos(List<Store> stores,
-                                          Map<Long, String> imageMap,
+                                          Map<Long, List<String>> imageMap,
                                           Map<Long, Double> avgMap,
                                           Map<Long, Integer> countMap) {
         return stores.stream()
                 .map(store -> StoreDto.builder()
-                        .imageUrl(imageMap.get(store.getStoreId()))
+                        .storeId(store.getStoreId())
                         .name(store.getStoreName())
                         .review(avgMap.getOrDefault(store.getStoreId(), 0.0))
                         .reviewCount(countMap.getOrDefault(store.getStoreId(), 0))
+                        .images(imageMap.get(store.getStoreId()))
                         .build())
                 .toList();
     }
@@ -164,7 +170,14 @@ public class StoreService {
                 .review(avgRating != null ? Math.round(avgRating * 10) / 10.0 : 0.0)
                 .reviewCount(reviewCount)
                 .images(images)
+                .description(store.getDescription())
+                .address(store.getStoreAddress())
+                .phone(store.getStorePhone())
+                .defaultDeliveryFee(store.getDefaultDeliveryFee())
+                .onlyOneDeliveryFee(store.getOnlyOneDeliveryFee())
+                .isOpen(store.getBusinessStatus() == BusinessStatus.OPEN)
+                .orderable(store.getOrderable())
+                .location(new PointDto(store.getLocation()))
                 .build();
     }
-
 }
