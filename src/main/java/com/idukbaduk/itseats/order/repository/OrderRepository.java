@@ -114,5 +114,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("riderLng") double riderLng
     );
 
-    List<Order> findOrderByMember_Username(String username);
+    List<Order> findOrderByMember_UsernameOrderByCreatedAtDesc(String username);
 }

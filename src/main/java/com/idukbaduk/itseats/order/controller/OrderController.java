@@ -49,7 +49,7 @@ public class OrderController {
             @PathVariable("orderId") Long orderId) {
         return BaseResponse.toResponseEntity(
                 OrderResponse.GET_ORDER_STATUS_SUCCESS,
-                orderService.getOrderStatus(userDetails.getUsername(), orderId)
+                orderService.getOrderStatus("test", orderId)
         );
     }
 }

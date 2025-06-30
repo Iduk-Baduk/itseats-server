@@ -15,7 +15,5 @@ public class OrderHistoryDto {
     LocalDateTime createdAt;
     String status;
     Integer orderPrice;
-    String deliveryAddress;
-    String deliveryRequest;
     String menuSummary;
 }

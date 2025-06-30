@@ -183,8 +183,8 @@ public class OrderService {
         Order order = orderRepository.findByMemberAndOrderId(member, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
         Store store = order.getStore();
-        Payment payment = paymentRepository.findByOrder(order)
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+//        Payment payment = paymentRepository.findByOrder(order)
+//                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         return OrderStatusResponse.builder()
                 .deliveryEta(order.getDeliveryEta().toString())
@@ -202,7 +202,8 @@ public class OrderService {
                         .lat(store.getLocation().getY())
                         .lng(store.getLocation().getX())
                         .build())
-                .riderRequest(payment.getRiderRequest())
+//                .riderRequest(payment.getRiderRequest())
+                .riderRequest("구현 예정")
                 .build();
     }
 
@@ -212,7 +213,7 @@ public class OrderService {
     }
 
     public List<OrderHistoryDto> getOrders(String username) {
-        List<Order> orders = orderRepository.findOrderByMember_Username(username);
+        List<Order> orders = orderRepository.findOrderByMember_UsernameOrderByCreatedAtDesc(username);
 
         return orders.stream()
                 .map(order -> OrderHistoryDto.builder()
@@ -223,8 +224,6 @@ public class OrderService {
                         .createdAt(order.getCreatedAt())
                         .status(order.getOrderStatus().name())
                         .orderPrice(order.getOrderPrice())
-                        .deliveryAddress(order.getDeliveryAddress())
-                        .deliveryRequest("구현 예정")
                         .menuSummary(order.getOrderMenus().stream()
                                 .map(OrderMenu::getMenuName)
                                 .collect(Collectors.joining(", "))
