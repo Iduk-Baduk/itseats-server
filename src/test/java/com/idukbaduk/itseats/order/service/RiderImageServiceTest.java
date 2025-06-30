@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.order.service;
 
+import com.idukbaduk.itseats.global.util.S3Utils;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.RiderImage;
 import com.idukbaduk.itseats.order.repository.RiderImageRepository;
@@ -16,8 +17,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +31,9 @@ class RiderImageServiceTest {
 
     @Mock
     private RiderImageRepository riderImageRepository;
+
+    @Mock
+    private S3Utils s3Utils;
 
     @InjectMocks
     private RiderImageService riderImageService;
@@ -59,15 +67,18 @@ class RiderImageServiceTest {
 
     @Test
     @DisplayName("배달 상태 사진 저장 성공")
-    void saveRiderImage_success() {
+    void saveRiderImage_success() throws IOException {
         // given
-        when(riderImageRepository.save(Mockito.any(RiderImage.class))).thenReturn(riderImage);
+        when(riderImageRepository.save(any(RiderImage.class))).thenReturn(riderImage);
         ArgumentCaptor<RiderImage> captor = ArgumentCaptor.forClass(RiderImage.class);
+
+        when(s3Utils.uploadFileAndGetUrl(anyString(), any())).thenReturn(multipartFile.getOriginalFilename());
 
         // when
         RiderImage savedRiderImage = riderImageService.saveRiderImage(rider, order, multipartFile);
 
         // then
+        verify(s3Utils).uploadFileAndGetUrl(anyString(), any());
         verify(riderImageRepository).save(captor.capture());
         RiderImage capturedImage = captor.getValue();
         assertThat(capturedImage.getRider()).isEqualTo(rider);
