@@ -1,9 +1,11 @@
 package com.idukbaduk.itseats.store.service;
 
+import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.FavoriteRepository;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.member.service.MemberService;
+import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
 import com.idukbaduk.itseats.store.dto.StoreCategoryListResponse;
@@ -40,6 +42,9 @@ class StoreServiceTest {
 
     @Mock
     private StoreImageRepository storeImageRepository;
+
+    @Mock
+    private MenuImageRepository menuImageRepository;
 
     @Mock
     private ReviewRepository reviewRepository;
@@ -126,19 +131,19 @@ class StoreServiceTest {
         assertThat(response.getStores()).hasSize(3);
 
         StoreDto dto1 = response.getStores().get(0);
-        assertThat(dto1.getImageUrl()).isEqualTo("s3 url 1");
+        assertThat(dto1.getImages().get(0)).isEqualTo("s3 url 1");
         assertThat(dto1.getName()).isEqualTo("버커킹 구름점");
         assertThat(dto1.getReview()).isEqualTo(4.9);
         assertThat(dto1.getReviewCount()).isEqualTo(1742);
 
         StoreDto dto2 = response.getStores().get(1);
-        assertThat(dto2.getImageUrl()).isEqualTo("s3 url 2");
+        assertThat(dto2.getImages().get(0)).isEqualTo("s3 url 2");
         assertThat(dto2.getName()).isEqualTo("맥도날드 구름점");
         assertThat(dto2.getReview()).isEqualTo(4.7);
         assertThat(dto2.getReviewCount()).isEqualTo(2847);
 
         StoreDto dto3 = response.getStores().get(2);
-        assertThat(dto3.getImageUrl()).isEqualTo("s3 url 3");
+        assertThat(dto3.getImages().get(0)).isEqualTo("s3 url 3");
         assertThat(dto3.getName()).isEqualTo("롯데리아 구름점");
         assertThat(dto3.getReview()).isEqualTo(4.5);
         assertThat(dto3.getReviewCount()).isEqualTo(3715);
@@ -163,7 +168,7 @@ class StoreServiceTest {
         assertThat(response.getStores()).hasSize(1);
 
         StoreDto dto = response.getStores().get(0);
-        assertThat(dto.getImageUrl()).isEqualTo("s3 url");
+        assertThat(dto.getImages().get(0)).isEqualTo("s3 url");
         assertThat(dto.getName()).isEqualTo("신규 가게");
         assertThat(dto.getReview()).isEqualTo(0.0);
         assertThat(dto.getReviewCount()).isEqualTo(0);
@@ -197,6 +202,8 @@ class StoreServiceTest {
         Store store = Store.builder()
                 .storeId(storeId)
                 .storeName("스타벅스 구름점")
+                .orderable(true)
+                .location(GeoUtil.toPoint(127.0276, 37.4979))
                 .build();
 
         List<StoreImage> images = List.of(
@@ -281,13 +288,13 @@ class StoreServiceTest {
         assertThat(response.getStores()).hasSize(2);
 
         StoreDto dto1 = response.getStores().get(0);
-        assertThat(dto1.getImageUrl()).isEqualTo("s3 url 1");
+        assertThat(dto1.getImages().get(0)).isEqualTo("s3 url 1");
         assertThat(dto1.getName()).isEqualTo("버커킹 구름점");
         assertThat(dto1.getReview()).isEqualTo(4.9);
         assertThat(dto1.getReviewCount()).isEqualTo(1742);
 
         StoreDto dto2 = response.getStores().get(1);
-        assertThat(dto2.getImageUrl()).isEqualTo("s3 url 2");
+        assertThat(dto2.getImages().get(0)).isEqualTo("s3 url 2");
         assertThat(dto2.getName()).isEqualTo("맥도날드 구름점");
         assertThat(dto2.getReview()).isEqualTo(4.7);
         assertThat(dto2.getReviewCount()).isEqualTo(2847);
