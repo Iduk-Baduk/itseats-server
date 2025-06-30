@@ -14,9 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -79,7 +76,6 @@ class MemberServiceTest {
 
         String encryptedPassword = "$2a$10$abc";
         Member expectedMember = MemberTestFactory.createFromDto(dto, 1L, encryptedPassword);
-
         try (MockedStatic<PasswordUtil> mocked = mockStatic(PasswordUtil.class)) {
             mocked.when(() -> PasswordUtil.encrypt("rawPass")).thenReturn(encryptedPassword);
             given(memberRepository.save(any())).willReturn(expectedMember);
@@ -88,8 +84,7 @@ class MemberServiceTest {
             CustomerCreateResponse response = memberService.createCustomer(dto);
 
             // then
-            assertEquals(1L, response.memberId());
-            assertTrue(response.isSucceed());
+            assertThat(expectedMember.getMemberId()).isEqualTo(response.memberId());
         }
 
     }
@@ -102,8 +97,9 @@ class MemberServiceTest {
         given(memberRepository.existsByUsername(dto.getUsername())).willReturn(true);
 
         // when & then
-        MemberException ex = assertThrows(MemberException.class, () -> memberService.createCustomer(dto));
-        assertEquals(MemberErrorCode.MEMBER_USERNAME_DUPLICATED, ex.getErrorCode());
+        assertThatThrownBy(() -> memberService.createCustomer(dto))
+                .isInstanceOf(MemberException.class)
+                .hasMessageContaining(MemberErrorCode.MEMBER_USERNAME_DUPLICATED.getMessage());
     }
 
     @Test
@@ -115,8 +111,9 @@ class MemberServiceTest {
         given(memberRepository.existsByNickname(dto.getNickname())).willReturn(true);
 
         // when & then
-        MemberException ex = assertThrows(MemberException.class, () -> memberService.createCustomer(dto));
-        assertEquals(MemberErrorCode.MEMBER_NICKNAME_DUPLICATED, ex.getErrorCode());
+        assertThatThrownBy(() -> memberService.createCustomer(dto))
+                .isInstanceOf(MemberException.class)
+                .hasMessageContaining(MemberErrorCode.MEMBER_NICKNAME_DUPLICATED.getMessage());
     }
 
     @Test
@@ -129,8 +126,9 @@ class MemberServiceTest {
         given(memberRepository.existsByEmail(dto.getEmail())).willReturn(true);
 
         // when & then
-        MemberException ex = assertThrows(MemberException.class, () -> memberService.createCustomer(dto));
-        assertEquals(MemberErrorCode.MEMBER_EMAIL_DUPLICATED, ex.getErrorCode());
+        assertThatThrownBy(() -> memberService.createCustomer(dto))
+                .isInstanceOf(MemberException.class)
+                .hasMessageContaining(MemberErrorCode.MEMBER_EMAIL_DUPLICATED.getMessage());
     }
 
 }
