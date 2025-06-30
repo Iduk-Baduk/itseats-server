@@ -7,6 +7,7 @@ import lombok.Getter;
 @Builder
 public class OrderNewResponse {
 
+    private Long orderId;
     private int defaultTimeMin;
     private int defaultTimeMax;
     private int onlyOneTimeMin;

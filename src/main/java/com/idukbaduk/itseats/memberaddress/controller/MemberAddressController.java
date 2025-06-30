@@ -26,7 +26,7 @@ public class MemberAddressController {
             @RequestBody AddressCreateRequest addressCreateRequest) {
         return BaseResponse.toResponseEntity(
                 AddressResponse.CREATE_ADDRESS_SUCCESS,
-                memberAddressService.createAddress(userDetails.getUsername(), addressCreateRequest)
+                memberAddressService.createAddress("test", addressCreateRequest)
         );
     }
 }

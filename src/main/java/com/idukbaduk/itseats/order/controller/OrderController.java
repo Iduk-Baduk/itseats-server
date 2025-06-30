@@ -26,9 +26,11 @@ public class OrderController {
     public ResponseEntity<BaseResponse> getOrderNew(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody OrderNewRequest orderNewRequest) {
+        orderNewRequest.setAddrId(1L);
+
         return BaseResponse.toResponseEntity(
                 OrderResponse.GET_ORDER_DETAILS_SUCCESS,
-                orderService.getOrderNew(userDetails.getUsername(), orderNewRequest)
+                orderService.getOrderNew("test", orderNewRequest)
         );
     }
 

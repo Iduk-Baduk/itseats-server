@@ -34,7 +34,7 @@ public class StoreController {
             @PathVariable Long storeId,
             @AuthenticationPrincipal UserDetails userDetails
             ) {
-        StoreDetailResponse response = storeService.getStoreDetail(userDetails.getUsername(), storeId);
+        StoreDetailResponse response = storeService.getStoreDetail("test", storeId);
         return BaseResponse.toResponseEntity(HttpStatus.OK, "가게 상세 조회 성공", response);
     }
 
