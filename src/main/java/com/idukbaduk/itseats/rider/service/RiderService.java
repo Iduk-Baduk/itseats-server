@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.rider.service;
 
+import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
 import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
@@ -34,6 +35,18 @@ public class RiderService {
                 .build();
     }
 
+    public void createRiderAssignment(Rider rider, Order order) {
+        riderAssignmentRepository.save(buildRiderAssignment(rider, order));
+    }
+
+    private RiderAssignment buildRiderAssignment(Rider rider, Order order) {
+        return RiderAssignment.builder()
+                .rider(rider)
+                .order(order)
+                .assignmentStatus(AssignmentStatus.PENDING)
+                .build();
+    }
+
     @Transactional
     public RejectDeliveryResponse rejectDelivery(String username, Long orderId, RejectReasonRequest reasonRequest) {
         RiderAssignment riderAssignment = riderAssignmentRepository.findByUsernameAndOrderId(username, orderId)
@@ -48,5 +61,12 @@ public class RiderService {
         return RejectDeliveryResponse.builder()
                 .rejectReason(reason)
                 .build();
+    }
+
+    public void updateRiderAssignment(Rider rider, Order order, AssignmentStatus assignmentStatus) {
+        RiderAssignment riderAssignment = riderAssignmentRepository.findByRiderAndOrder(rider, order)
+                .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_ASSIGNMENT_NOT_FOUND));
+
+        riderAssignment.updateAssignmentStatus(assignmentStatus);
     }
 }

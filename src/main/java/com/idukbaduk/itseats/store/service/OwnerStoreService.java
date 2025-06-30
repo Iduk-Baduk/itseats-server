@@ -14,6 +14,8 @@ import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.store.entity.Franchise;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
+import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
+import com.idukbaduk.itseats.store.entity.enums.StoreStatus;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.FranchiseRepository;
@@ -23,6 +25,7 @@ import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 import java.util.List;
@@ -72,7 +75,7 @@ public class OwnerStoreService {
     }
 
     @Transactional
-    public StoreCreateResponse createStore(String username, StoreCreateRequest request) {
+    public StoreCreateResponse createStore(String username, StoreCreateRequest request, List<MultipartFile> images) {
 
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
@@ -101,11 +104,14 @@ public class OwnerStoreService {
                 .storePhone(request.getPhone())
                 .defaultDeliveryFee(request.getDefaultDeliveryFee())
                 .onlyOneDeliveryFee(request.getOnlyOneDeliveryFee())
+                .businessStatus(BusinessStatus.OPEN)
+                .storeStatus(StoreStatus.ACCEPTED) // 관리자 기능 개발전 임시로 ACCEPTED 설정
+                .orderable(false)
                 .build();
 
         Store savedStore = storeRepository.save(store);
 
-        storeMediaService.createStoreImages(savedStore, request.getImages());
+        storeMediaService.createStoreImages(savedStore, images);
 
         return StoreCreateResponse.builder()
                 .storeId(savedStore.getStoreId())
