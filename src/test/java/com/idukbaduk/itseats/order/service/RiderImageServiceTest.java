@@ -72,12 +72,13 @@ class RiderImageServiceTest {
         when(riderImageRepository.save(any(RiderImage.class))).thenReturn(riderImage);
         ArgumentCaptor<RiderImage> captor = ArgumentCaptor.forClass(RiderImage.class);
 
-        when(s3Utils.uploadFileAndGetUrl(anyString(), any())).thenReturn("test.jpg");
+        when(s3Utils.uploadFileAndGetUrl(anyString(), any())).thenReturn(multipartFile.getOriginalFilename());
 
         // when
         RiderImage savedRiderImage = riderImageService.saveRiderImage(rider, order, multipartFile);
 
         // then
+        verify(s3Utils).uploadFileAndGetUrl(anyString(), any());
         verify(riderImageRepository).save(captor.capture());
         RiderImage capturedImage = captor.getValue();
         assertThat(capturedImage.getRider()).isEqualTo(rider);

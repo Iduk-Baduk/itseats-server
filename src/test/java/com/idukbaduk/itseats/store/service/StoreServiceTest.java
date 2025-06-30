@@ -131,19 +131,22 @@ class StoreServiceTest {
         assertThat(response.getStores()).hasSize(3);
 
         StoreDto dto1 = response.getStores().get(0);
-        assertThat(dto1.getImages().get(0)).isEqualTo("s3 url 1");
+        assertThat(dto1.getImages()).hasSize(1)
+                .contains("s3 url 1");
         assertThat(dto1.getName()).isEqualTo("버커킹 구름점");
         assertThat(dto1.getReview()).isEqualTo(4.9);
         assertThat(dto1.getReviewCount()).isEqualTo(1742);
 
         StoreDto dto2 = response.getStores().get(1);
-        assertThat(dto2.getImages().get(0)).isEqualTo("s3 url 2");
+        assertThat(dto2.getImages()).hasSize(1)
+                .contains("s3 url 2");
         assertThat(dto2.getName()).isEqualTo("맥도날드 구름점");
         assertThat(dto2.getReview()).isEqualTo(4.7);
         assertThat(dto2.getReviewCount()).isEqualTo(2847);
 
         StoreDto dto3 = response.getStores().get(2);
-        assertThat(dto3.getImages().get(0)).isEqualTo("s3 url 3");
+        assertThat(dto3.getImages()).hasSize(1)
+                .contains("s3 url 3");
         assertThat(dto3.getName()).isEqualTo("롯데리아 구름점");
         assertThat(dto3.getReview()).isEqualTo(4.5);
         assertThat(dto3.getReviewCount()).isEqualTo(3715);
@@ -168,7 +171,8 @@ class StoreServiceTest {
         assertThat(response.getStores()).hasSize(1);
 
         StoreDto dto = response.getStores().get(0);
-        assertThat(dto.getImages().get(0)).isEqualTo("s3 url");
+        assertThat(dto.getImages()).hasSize(1)
+                .contains("s3 url");
         assertThat(dto.getName()).isEqualTo("신규 가게");
         assertThat(dto.getReview()).isEqualTo(0.0);
         assertThat(dto.getReviewCount()).isEqualTo(0);
@@ -288,13 +292,15 @@ class StoreServiceTest {
         assertThat(response.getStores()).hasSize(2);
 
         StoreDto dto1 = response.getStores().get(0);
-        assertThat(dto1.getImages().get(0)).isEqualTo("s3 url 1");
+        assertThat(dto1.getImages()).hasSize(1)
+                .contains("s3 url 1");
         assertThat(dto1.getName()).isEqualTo("버커킹 구름점");
         assertThat(dto1.getReview()).isEqualTo(4.9);
         assertThat(dto1.getReviewCount()).isEqualTo(1742);
 
         StoreDto dto2 = response.getStores().get(1);
-        assertThat(dto2.getImages().get(0)).isEqualTo("s3 url 2");
+        assertThat(dto2.getImages()).hasSize(1)
+                .contains("s3 url 2");
         assertThat(dto2.getName()).isEqualTo("맥도날드 구름점");
         assertThat(dto2.getReview()).isEqualTo(4.7);
         assertThat(dto2.getReviewCount()).isEqualTo(2847);

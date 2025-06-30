@@ -139,7 +139,7 @@ public class StoreService {
                         .name(store.getStoreName())
                         .review(avgMap.getOrDefault(store.getStoreId(), 0.0))
                         .reviewCount(countMap.getOrDefault(store.getStoreId(), 0))
-                        .images(imageMap.get(store.getStoreId()))
+                        .images(imageMap.getOrDefault(store.getStoreId(), Collections.emptyList()))
                         .build())
                 .toList();
     }
@@ -170,7 +170,7 @@ public class StoreService {
                 .review(avgRating != null ? Math.round(avgRating * 10) / 10.0 : 0.0)
                 .reviewCount(reviewCount)
                 .images(images)
-                .description(store.getDescription())
+                .description(store.getDescription() != null ? store.getDescription() : "")
                 .address(store.getStoreAddress())
                 .phone(store.getStorePhone())
                 .defaultDeliveryFee(store.getDefaultDeliveryFee())
