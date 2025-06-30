@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 @Builder
 public class OrderHistoryDto {
     Long orderId;
-    Long storeId;
     String orderNumber;
+    Long storeId;
     String storeName;
     LocalDateTime createdAt;
     String status;
