@@ -7,7 +7,6 @@ import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,7 +16,7 @@ public class CustomMemberDetailService implements UserDetailsService {
     private final MemberRepository memberRepository;
 
     @Override
-    public CustomMemberDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public CustomMemberDetails loadUserByUsername(String username) throws MemberException {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
         return new CustomMemberDetails(member);
