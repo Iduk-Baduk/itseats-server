@@ -7,7 +7,6 @@ import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.factory.MemberTestFactory;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
-import com.idukbaduk.itseats.member.util.PasswordUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,16 +18,19 @@ import static org.mockito.Mockito.*;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
 
     @InjectMocks
     private MemberService memberService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Mock
     private MemberRepository memberRepository;
@@ -69,23 +71,20 @@ class MemberServiceTest {
     void createCustomer() {
         // given
         CustomerDto dto = MemberTestFactory.validUser();
+        String encryptedPassword = "$2a$10$abc";
+        Member expectedMember = MemberTestFactory.createFromDto(dto, 1L, encryptedPassword);
 
         given(memberRepository.existsByUsername(dto.getUsername())).willReturn(false);
         given(memberRepository.existsByNickname(dto.getNickname())).willReturn(false);
         given(memberRepository.existsByEmail(dto.getEmail())).willReturn(false);
+        given(memberRepository.save(any())).willReturn(expectedMember);
 
-        String encryptedPassword = "$2a$10$abc";
-        Member expectedMember = MemberTestFactory.createFromDto(dto, 1L, encryptedPassword);
-        try (MockedStatic<PasswordUtil> mocked = mockStatic(PasswordUtil.class)) {
-            mocked.when(() -> PasswordUtil.encrypt("rawPass")).thenReturn(encryptedPassword);
-            given(memberRepository.save(any())).willReturn(expectedMember);
+        // when
+        when(passwordEncoder.encode("rawPass")).thenReturn(encryptedPassword);
+        CustomerCreateResponse response = memberService.createCustomer(dto);
 
-            // when
-            CustomerCreateResponse response = memberService.createCustomer(dto);
-
-            // then
-            assertThat(expectedMember.getMemberId()).isEqualTo(response.memberId());
-        }
+        // then
+        assertThat(expectedMember.getMemberId()).isEqualTo(response.memberId());
 
     }
 

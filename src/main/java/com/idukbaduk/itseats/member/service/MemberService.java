@@ -6,9 +6,8 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
-import com.idukbaduk.itseats.member.util.PasswordUtil;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberService {
 
+    private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
 
     public Member getMemberByUsername(String username) {
@@ -38,7 +38,7 @@ public class MemberService {
             throw new MemberException(MemberErrorCode.MEMBER_EMAIL_DUPLICATED);
         }
 
-        String encryptedPassword = PasswordUtil.encrypt(customerDto.getPassword());
+        String encryptedPassword = passwordEncoder.encode(customerDto.getPassword());
         Member newCustomer = memberRepository.save(customerDto.toEntity(encryptedPassword));
         return CustomerCreateResponse.of(newCustomer.getMemberId());
     }
