@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.order.dto.OrderCookedResponse;
 import com.idukbaduk.itseats.order.dto.enums.OrderResponse;
-import com.idukbaduk.itseats.store.dto.StoreCreateRequest;
-import com.idukbaduk.itseats.store.dto.StoreCreateResponse;
-import com.idukbaduk.itseats.store.dto.StoreStatusUpdateRequest;
-import com.idukbaduk.itseats.store.dto.StoreStatusUpdateResponse;
+import com.idukbaduk.itseats.store.dto.*;
 import com.idukbaduk.itseats.store.dto.enums.StoreResponse;
 import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
 import com.idukbaduk.itseats.store.entity.enums.StoreStatus;
@@ -26,6 +23,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -169,5 +167,39 @@ class OwnerStoreControllerTest {
                 "request", "request.json", "application/json", requestJson.getBytes(StandardCharsets.UTF_8)
         );
         return requestPart;
+    }
+
+    @Test
+    @DisplayName("주문 일시정지 성공 응답")
+    void pauseOrder_success() throws Exception {
+        // given
+        Long storeId = 12L;
+        int pauseTime = 15;
+        StorePauseRequest request = new StorePauseRequest();
+
+        Field field = StorePauseRequest.class.getDeclaredField("pauseTime");
+        field.setAccessible(true);
+        field.set(request, pauseTime);
+
+        StorePauseResponse response = StorePauseResponse.builder()
+                .storeId(storeId)
+                .orderable(false)
+                .pauseTime(pauseTime)
+                .restartTime("06.10 15:19")
+                .build();
+
+        given(ownerStoreService.pauseOrder(storeId, pauseTime)).willReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/api/owner/{store_id}/pause", storeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.httpStatus").value(StoreResponse.PAUSE_ORDER_SUCCESS.getHttpStatus().value()))
+                .andExpect(jsonPath("$.message").value(StoreResponse.PAUSE_ORDER_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.data.storeId").value(storeId))
+                .andExpect(jsonPath("$.data.orderable").value(false))
+                .andExpect(jsonPath("$.data.pauseTime").value(pauseTime))
+                .andExpect(jsonPath("$.data.restartTime").value("06.10 15:19"));
     }
 }

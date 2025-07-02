@@ -2,10 +2,7 @@ package com.idukbaduk.itseats.store.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
-import com.idukbaduk.itseats.store.dto.StoreCreateRequest;
-import com.idukbaduk.itseats.store.dto.StoreCreateResponse;
-import com.idukbaduk.itseats.store.dto.StoreStatusUpdateRequest;
-import com.idukbaduk.itseats.store.dto.StoreStatusUpdateResponse;
+import com.idukbaduk.itseats.store.dto.*;
 import com.idukbaduk.itseats.store.entity.Franchise;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
@@ -30,6 +27,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -214,5 +212,27 @@ class OwnerStoreServiceTest {
         assertThatThrownBy(() -> ownerStoreService.updateStatus(storeId, request))
                 .isInstanceOf(StoreException.class)
                 .hasMessageContaining(StoreErrorCode.STORE_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("주문 일시정지 성공")
+    void pauseOrder_success() {
+        // given
+        Long storeId = 12L;
+        int pauseTime = 15;
+        Store store = Store.builder()
+                .storeId(storeId)
+                .orderable(true)
+                .build();
+        given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+
+        // when
+        StorePauseResponse response = ownerStoreService.pauseOrder(storeId, pauseTime);
+
+        // then
+        assertThat(response.getStoreId()).isEqualTo(storeId);
+        assertThat(response.isOrderable()).isFalse();
+        assertThat(response.getPauseTime()).isEqualTo(pauseTime);
+        assertThat(response.getRestartTime()).isNotNull();
     }
 }
