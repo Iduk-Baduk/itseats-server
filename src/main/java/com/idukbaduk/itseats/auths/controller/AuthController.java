@@ -28,7 +28,7 @@ public class AuthController {
 
     @GetMapping("/reissue")
     public ResponseEntity<BaseResponse> reissueAccessToken(
-            @RequestHeader("refresh-token") String refreshToken,
+            @RequestHeader("Refresh-Token") String refreshToken,
             @RequestParam("memberId") String memberId
     ) {
         // todo: 추후 구현
