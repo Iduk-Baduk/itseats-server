@@ -55,7 +55,9 @@ public class SecurityConfig {
     }
 
     private AuthenticationFilter getAuthenticationFilter(AuthenticationManager authenticationManager) {
-        return new AuthenticationFilter(authenticationManager, authUseCase);
+        AuthenticationFilter filter = new AuthenticationFilter(authenticationManager, authUseCase);
+        filter.setFilterProcessesUrl("/api/login");
+        return filter;
     }
 
 }
