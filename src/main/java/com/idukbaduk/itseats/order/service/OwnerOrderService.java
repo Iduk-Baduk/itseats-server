@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -143,5 +145,21 @@ public class OwnerOrderService {
         order.updateStatus(OrderStatus.COOKED);
 
         return new OrderCookedResponse(true);
+    }
+
+    @Transactional
+    public CookTimeResponse setCookTime(Long orderId, int cookTime) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        LocalDateTime deliveryEta = LocalDateTime.now().plusMinutes(cookTime);
+        order.updateDeliveryEta(deliveryEta);
+
+        String etaStr = deliveryEta.format(DateTimeFormatter.ofPattern("MM.dd HH:mm"));
+
+        return CookTimeResponse.builder()
+                .orderId(order.getOrderId())
+                .deliveryEta(etaStr)
+                .build();
     }
 }

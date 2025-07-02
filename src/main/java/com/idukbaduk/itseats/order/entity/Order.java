@@ -107,4 +107,8 @@ public class Order extends BaseEntity {
         this.orderStatus = OrderStatus.REJECTED;
         this.rejectReason = reason;
     }
+
+    public void updateDeliveryEta(LocalDateTime deliveryEta) {
+        this.deliveryEta = deliveryEta;
+    }
 }
