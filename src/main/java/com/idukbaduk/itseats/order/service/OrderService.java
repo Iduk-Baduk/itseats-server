@@ -5,23 +5,15 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
-import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import com.idukbaduk.itseats.memberaddress.error.MemberAddressException;
 import com.idukbaduk.itseats.memberaddress.error.enums.MemberAddressErrorCode;
 import com.idukbaduk.itseats.memberaddress.repository.MemberAddressRepository;
-import com.idukbaduk.itseats.memberaddress.service.MemberAddressService;
 import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
-import com.idukbaduk.itseats.menu.service.MenuService;
-import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
-import com.idukbaduk.itseats.order.dto.MenuOptionDTO;
-import com.idukbaduk.itseats.order.dto.OrderMenuDTO;
-import com.idukbaduk.itseats.order.dto.OrderNewRequest;
-import com.idukbaduk.itseats.order.dto.OrderNewResponse;
-import com.idukbaduk.itseats.order.dto.OrderStatusResponse;
+import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
@@ -34,13 +26,13 @@ import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.error.PaymentException;
 import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
-import com.idukbaduk.itseats.payment.service.PaymentService;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
-import com.idukbaduk.itseats.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -160,6 +152,15 @@ public class OrderService {
         } catch (Exception e) {
             throw new OrderException(OrderErrorCode.MENU_OPTION_SERIALIZATION_FAIL);
         }
+    }
+
+    @Transactional
+    public OrderHistoryResponse getOrders(String username, String keyword, Pageable pageable) {
+        Slice<Order> orders = orderRepository.findOrdersByUsernameWithKeyword(username, keyword, pageable);
+        return OrderHistoryResponse.builder()
+                .orders(orders.stream().map(OrderHistoryDto::of).toList())
+                .hasNext(orders.hasNext())
+                .build();
     }
 
     @Transactional(readOnly = true)
