@@ -22,12 +22,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up JDK 17
+
+    - name: Restore application yml files
+      run: |
+        mkdir -p src/main/resources
+        echo "${{ secrets.APP_YML }}" > src/main/resources/application.yml
+        echo "${{ secrets.APP_LOCAL_YML }}" > src/main/resources/application-local.yml
+        echo "${{ secrets.APP_JWT_YML }}" > src/main/resources/application-jwt.yml
+        echo "${{ secrets.APP_OAUTH_YML }}" > src/main/resources/application-oauth.yml
+
+    - name: Set up JDK
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Build
+      run: ./gradlew build --no-daemon
     # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
     - name: Setup Gradle
