@@ -11,16 +11,16 @@ import java.util.stream.Collectors;
 @Getter
 @Builder
 public class OrderHistoryDto {
-    Long orderId;
-    Long storeId;
-    String orderNumber;
-    String storeName;
-    LocalDateTime createdAt;
-    String orderStatus;
-    Integer orderPrice;
-    String deliveryAddress;
-    String deliveryRequest;
-    String menuSummary;
+    private Long orderId;
+    private Long storeId;
+    private String orderNumber;
+    private String storeName;
+    private LocalDateTime createdAt;
+    private String orderStatus;
+    private Integer orderPrice;
+    private String deliveryAddress;
+    private String deliveryRequest;
+    private String menuSummary;
 
     public static OrderHistoryDto of(Order order) {
         if (order == null)
@@ -34,7 +34,7 @@ public class OrderHistoryDto {
                 .orderNumber(order.getOrderNumber())
                 .storeName(order.getStore().getStoreName())
                 .createdAt(order.getCreatedAt())
-                .orderStatus(order.getOrderStatus().toString())
+                .orderStatus(order.getOrderStatus().name())
                 .orderPrice(order.getOrderPrice())
                 .deliveryAddress(order.getDeliveryAddress())
                 .deliveryRequest("") // TODO: 배송 요청사항 필드 구현 필요
