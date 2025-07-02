@@ -316,7 +316,7 @@ class OrderServiceTest {
         // then
         assertThat(data).isNotNull();
         assertThat(data.getOrders()).hasSize(1)
-                .extracting("orderId", "storeId", "storeName", "status", "menuSummary")
+                .extracting("orderId", "storeId", "storeName", "orderStatus", "menuSummary")
                 .containsExactly(tuple(1L, 1L, "치킨집", "COOKING", "양념치킨, 간장치킨"));
     }
 }
