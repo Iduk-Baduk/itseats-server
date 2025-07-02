@@ -1,4 +1,4 @@
-package com.idukbaduk.itseats.global;
+package com.idukbaduk.itseats.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
