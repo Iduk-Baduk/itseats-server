@@ -1,6 +1,7 @@
-package com.idukbaduk.itseats.external.jwt.service;
+package com.idukbaduk.itseats.external.jwt.repository;
 
 import com.idukbaduk.itseats.external.jwt.config.JwtTokenProperties;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
@@ -14,18 +15,18 @@ import org.springframework.stereotype.Repository;
 public class JwtTokenRepositoryImpl implements JwtTokenRepository {
 
     private static final String REFRESH_TOKEN_KEY_PREFIX = "member:%s:refresh_token:";
-
     private final RedisTemplate<String, Object> redisTemplate;
-    private final JwtTokenProperties jwtTokenProperties;
 
     @Override
     public void save(String key, String value) {
         redisTemplate.opsForValue().set(
-                String.format(REFRESH_TOKEN_KEY_PREFIX, key),
-                value,
-                jwtTokenProperties.expiration().refresh(),
-                TimeUnit.SECONDS
+                String.format(REFRESH_TOKEN_KEY_PREFIX, key), value
         );
+    }
+
+    @Override
+    public void saveWithTTL(String key, String value, Duration duration) {
+        redisTemplate.opsForValue().set(String.format(REFRESH_TOKEN_KEY_PREFIX, key), value, duration);
     }
 
     @Override

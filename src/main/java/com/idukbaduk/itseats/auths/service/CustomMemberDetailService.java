@@ -1,9 +1,7 @@
 package com.idukbaduk.itseats.auths.service;
 
 import com.idukbaduk.itseats.auths.dto.CustomMemberDetails;
-import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
-import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,9 +15,9 @@ public class CustomMemberDetailService implements UserDetailsService {
 
     @Override
     public CustomMemberDetails loadUserByUsername(String username) throws MemberException {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-        return new CustomMemberDetails(member);
+        return new CustomMemberDetails(
+                memberRepository.getOrThrowByUsername(username)
+        );
     }
 
 }
