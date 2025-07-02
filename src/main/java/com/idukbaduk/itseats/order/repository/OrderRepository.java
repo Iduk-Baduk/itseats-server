@@ -117,7 +117,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("riderLng") double riderLng
     );
 
-    @EntityGraph(attributePaths = {"orderMenus", "store"})
+    @EntityGraph(attributePaths = {"orderMenus", "store", "payment"})
     @Query("""
         SELECT o
         FROM Order o
