@@ -3,6 +3,7 @@ package com.idukbaduk.itseats.store.controller;
 import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.store.dto.*;
 import com.idukbaduk.itseats.store.service.OwnerStoreService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,5 +46,13 @@ public class OwnerStoreController {
     ) {
         ownerStoreService.updateStatus(storeId, request);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{storeId}/pause")
+    public ResponseEntity<BaseResponse> pauseOrder(
+            @PathVariable("storeId") Long storeId,
+            @RequestBody @Valid StorePauseRequest request) {
+        StorePauseResponse response = ownerStoreService.pauseOrder(storeId, request.getPauseTime());
+        return BaseResponse.toResponseEntity(StoreResponse.PAUSE_ORDER_SUCCESS, response);
     }
 }
