@@ -41,7 +41,7 @@ public class OrderHistoryDto {
                 .orderStatus(order.getOrderStatus().name())
                 .orderPrice(order.getOrderPrice())
                 .deliveryAddress(order.getDeliveryAddress())
-                .deliveryRequest("") // TODO: 배송 요청사항 필드 구현 필요
+                .deliveryRequest(order.getPayment() != null ? order.getPayment().getRiderRequest() : "")
                 .menuSummary(
                         order.getOrderMenus() != null ?
                         order.getOrderMenus().stream()
