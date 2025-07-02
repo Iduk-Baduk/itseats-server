@@ -26,10 +26,10 @@ jobs:
     - name: Restore application yml files
       run: |
         mkdir -p src/main/resources
-        echo "${{ secrets.APP_YML }}" | base64 --decode > src/main/resources/application.yml
-        echo "${{ secrets.APP_LOCAL_YML }}" | base64 --decode > src/main/resources/application-local.yml
-        echo "${{ secrets.APP_JWT_YML }}" | base64 --decode > src/main/resources/application-jwt.yml
-        echo "${{ secrets.APP_OAUTH_YML }}" | base64 --decode > src/main/resources/application-oauth.yml
+        echo "${{ secrets.APP_YML }}" | > src/main/resources/application.yml
+        echo "${{ secrets.APP_LOCAL_YML }}" | > src/main/resources/application-local.yml
+        echo "${{ secrets.APP_JWT_YML }}" | > src/main/resources/application-jwt.yml
+        echo "${{ secrets.APP_OAUTH_YML }}" | > src/main/resources/application-oauth.yml
 
     - name: Set up JDK
       uses: actions/setup-java@v4
