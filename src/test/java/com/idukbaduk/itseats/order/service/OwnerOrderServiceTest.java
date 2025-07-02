@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -188,6 +189,43 @@ class OwnerOrderServiceTest {
 
         // when & then
         assertThatThrownBy(() -> ownerOrderService.markAsCooked(orderId))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("예상 조리 시간 설정 성공")
+    void setCookTime_success() {
+        // given
+        Long orderId = 12L;
+        int cookTime = 15;
+        Order order = Order.builder()
+                .orderId(orderId)
+                .build();
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        // when
+        CookTimeResponse response = ownerOrderService.setCookTime(orderId, cookTime);
+
+        // then
+        assertThat(response.getOrderId()).isEqualTo(orderId);
+        assertThat(response.getDeliveryEta()).isNotNull();
+
+        String expectedEtaStr = LocalDateTime.now().plusMinutes(cookTime)
+                .format(DateTimeFormatter.ofPattern("MM.dd HH:mm"));
+        assertThat(response.getDeliveryEta()).isEqualTo(expectedEtaStr);
+    }
+
+    @Test
+    @DisplayName("주문이 없으면 예외 발생")
+    void setCookTime_orderNotFound() {
+        // given
+        Long orderId = 99L;
+        int cookTime = 10;
+        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.setCookTime(orderId, cookTime))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
