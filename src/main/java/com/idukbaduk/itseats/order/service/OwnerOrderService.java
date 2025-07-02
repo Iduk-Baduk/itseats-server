@@ -152,6 +152,10 @@ public class OwnerOrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
+        if (order.getOrderStatus() == OrderStatus.COMPLETED || order.getOrderStatus() == OrderStatus.REJECTED) {
+            throw new OrderException(OrderErrorCode.INVALID_ORDER_STATUS);
+        }
+
         LocalDateTime deliveryEta = LocalDateTime.now().plusMinutes(cookTime);
         order.updateDeliveryEta(deliveryEta);
 
