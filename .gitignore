@@ -7,7 +7,6 @@
 
 HELP.md
 build/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -153,6 +152,9 @@ fabric.properties
 *.zip
 *.tar.gz
 *.rar
+
+# Gradle Wrapper JAR (needed for ./gradlew and CI builds)
+!gradle/wrapper/gradle-wrapper.jar
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
