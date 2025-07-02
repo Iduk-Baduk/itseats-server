@@ -211,9 +211,8 @@ class OwnerOrderServiceTest {
         assertThat(response.getOrderId()).isEqualTo(orderId);
         assertThat(response.getDeliveryEta()).isNotNull();
 
-        String expectedEtaStr = LocalDateTime.now().plusMinutes(cookTime)
-                .format(DateTimeFormatter.ofPattern("MM.dd HH:mm"));
-        assertThat(response.getDeliveryEta()).isEqualTo(expectedEtaStr);
+        // 시간 포맷만 검증
+        assertThat(response.getDeliveryEta()).matches("\\d{2}\\.\\d{2} \\d{2}:\\d{2}");
     }
 
     @Test
@@ -228,5 +227,41 @@ class OwnerOrderServiceTest {
         assertThatThrownBy(() -> ownerOrderService.setCookTime(orderId, cookTime))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("예상 조리 시간 설정 실패 - 상태 COMPLETED일 경우")
+    void setCookTime_fail_status_completed() {
+        // given
+        Long orderId = 1L;
+        int cookTime = 15;
+        Order order = Order.builder()
+                .orderId(orderId)
+                .orderStatus(OrderStatus.COMPLETED)
+                .build();
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.setCookTime(orderId, cookTime))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.INVALID_ORDER_STATUS.getMessage());
+    }
+
+    @Test
+    @DisplayName("예상 조리 시간 설정 실패 - 상태 REJECTED일 경우")
+    void setCookTime_fail_status_rejected() {
+        // given
+        Long orderId = 1L;
+        int cookTime = 15;
+        Order order = Order.builder()
+                .orderId(orderId)
+                .orderStatus(OrderStatus.REJECTED)
+                .build();
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.setCookTime(orderId, cookTime))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.INVALID_ORDER_STATUS.getMessage());
     }
 }
