@@ -1,10 +1,3 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
-
 name: Java CI with Gradle
 
 on:
@@ -23,13 +16,33 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # Docker Compose 설치 (Ubuntu 22.04에는 기본 포함, 혹시 모르니 명시)
+    - name: Set up Docker Compose
+      run: sudo apt-get update && sudo apt-get install -y docker-compose
+
+    # docker-compose up (백그라운드로 실행)
+    - name: Start docker-compose services
+      run: docker-compose -f docker-compose.local.yml up -d
+
+    # MySQL/Redis가 완전히 뜰 때까지 대기 (특히 MySQL은 느릴 수 있음)
+    - name: Wait for MySQL to be ready
+      run: |
+        for i in {1..30}; do
+          if docker exec mysql mysqladmin ping -u root -p1234 --silent
+            echo "MySQL is up!"
+            break
+          fi
+          echo "Waiting for MySQL..."
+          sleep 2
+        done
+
     - name: Restore application yml files
       run: |
         mkdir -p src/main/resources
-        echo "${{ secrets.APP_YML }}" | > src/main/resources/application.yml
-        echo "${{ secrets.APP_LOCAL_YML }}" | > src/main/resources/application-local.yml
-        echo "${{ secrets.APP_JWT_YML }}" | > src/main/resources/application-jwt.yml
-        echo "${{ secrets.APP_OAUTH_YML }}" | > src/main/resources/application-oauth.yml
+        echo "${{ secrets.APP_YML }}" > src/main/resources/application.yml
+        echo "${{ secrets.APP_LOCAL_YML }}" > src/main/resources/application-local.yml
+        echo "${{ secrets.APP_JWT_YML }}" > src/main/resources/application-jwt.yml
+        echo "${{ secrets.APP_OAUTH_YML }}" > src/main/resources/application-oauth.yml
 
     - name: Set up JDK
       uses: actions/setup-java@v4
@@ -37,8 +50,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Build
-      run: ./gradlew build --no-daemon
     # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
     - name: Setup Gradle
