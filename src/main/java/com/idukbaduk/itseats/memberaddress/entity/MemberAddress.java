@@ -45,4 +45,10 @@ public class MemberAddress extends BaseEntity {
     @Column(name = "last_used_date")
     private LocalDateTime lastUsedDate;
 
+    public void updateAddress(String mainAddress, String detailAddress, Point location, AddressCategory category) {
+        this.mainAddress = mainAddress;
+        this.detailAddress = detailAddress;
+        this.location = location;
+        this.addressCategory = category;
+    }
 }
