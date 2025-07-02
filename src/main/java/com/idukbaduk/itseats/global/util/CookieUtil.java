@@ -31,12 +31,13 @@ public class CookieUtil {
                 .orElse(null);
     }
 
-    public static void deleteCookie(HttpServletResponse response, String name) {
-        Cookie cookie = new Cookie(name, null);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0); // 즉시 만료
-        response.addCookie(cookie);
+    public static ResponseCookie deleteCookie(String name, boolean secure, String sameSite) {
+        return ResponseCookie.from(name, "")
+                .path("/")
+                .httpOnly(true)
+                .secure(secure)
+                .maxAge(0)
+                .sameSite(sameSite)
+                .build();
     }
-
 }
