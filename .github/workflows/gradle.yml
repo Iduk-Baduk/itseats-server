@@ -16,6 +16,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # Docker Compose 설치 (Ubuntu 22.04에는 기본 포함, 혹시 모르니 명시)
+    - name: Set up Docker Compose
+      run: sudo apt-get update && sudo apt-get install -y docker-compose
+
     # docker-compose up (백그라운드로 실행)
     - name: Start docker-compose services
       run: docker-compose -f docker-compose.local.yml up -d
