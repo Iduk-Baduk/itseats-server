@@ -175,12 +175,9 @@ class OwnerStoreControllerTest {
         // given
         Long storeId = 12L;
         int pauseTime = 15;
-        StorePauseRequest request = new StorePauseRequest();
-
-        Field field = StorePauseRequest.class.getDeclaredField("pauseTime");
-        field.setAccessible(true);
-        field.set(request, pauseTime);
-
+        StorePauseRequest request = new StorePauseRequest().builder()
+                .pauseTime(pauseTime)
+                .build();
         StorePauseResponse response = StorePauseResponse.builder()
                 .storeId(storeId)
                 .orderable(false)
@@ -194,7 +191,7 @@ class OwnerStoreControllerTest {
         mockMvc.perform(post("/api/owner/{store_id}/pause", storeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.httpStatus").value(StoreResponse.PAUSE_ORDER_SUCCESS.getHttpStatus().value()))
                 .andExpect(jsonPath("$.message").value(StoreResponse.PAUSE_ORDER_SUCCESS.getMessage()))
                 .andExpect(jsonPath("$.data.storeId").value(storeId))
