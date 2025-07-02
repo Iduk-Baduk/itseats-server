@@ -2,6 +2,10 @@ package com.idukbaduk.itseats.order.dto;
 
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
+import com.idukbaduk.itseats.store.error.StoreException;
+import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -24,9 +28,9 @@ public class OrderHistoryDto {
 
     public static OrderHistoryDto of(Order order) {
         if (order == null)
-            throw new IllegalArgumentException("Order cannot be null");
+            throw new OrderException(OrderErrorCode.ORDER_NOT_FOUND);
         if (order.getStore() == null)
-            throw new IllegalStateException("Order must have an associated store");
+            throw new StoreException(StoreErrorCode.STORE_NOT_FOUND);
 
         return builder()
                 .orderId(order.getOrderId())

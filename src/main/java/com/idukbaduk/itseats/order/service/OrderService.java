@@ -157,7 +157,7 @@ public class OrderService {
     @Transactional
     public OrderHistoryResponse getOrders(String username, String keyword, Pageable pageable) {
         if (username == null || username.trim().isEmpty())
-            throw new OrderException(OrderErrorCode.INVALID_USERNAME);
+            throw new MemberException(MemberErrorCode.MEMBER_NOT_FOUND);
 
         Slice<Order> orders = orderRepository.findOrdersByUsernameWithKeyword(username, keyword, pageable);
         return OrderHistoryResponse.builder()
