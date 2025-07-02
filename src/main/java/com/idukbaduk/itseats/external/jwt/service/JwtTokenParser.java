@@ -47,7 +47,7 @@ public class JwtTokenParser {
         if (!token.startsWith(TOKEN_PREFIX)) {
             throw new JwtTokenException(JwtTokenErrorCode.TOKEN_UNTRUSTWORTHY);
         }
-        return token.replace(TOKEN_PREFIX, "");
+        return token.substring(TOKEN_PREFIX.length());
     }
 
     public String resolveToken(HttpServletRequest request) {
