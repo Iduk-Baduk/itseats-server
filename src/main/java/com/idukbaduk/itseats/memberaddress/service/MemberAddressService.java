@@ -48,4 +48,25 @@ public class MemberAddressService {
         return memberAddressRepository.findByMemberAndAddressId(member, addressId)
                 .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
     }
+
+    @Transactional
+    public AddressCreateResponse updateAddress(String username, AddressCreateRequest addressUpdateRequest, Long addressId) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        MemberAddress memberAddress = getMemberAddress(member, addressId);
+
+        memberAddress.updateAddress(
+                addressUpdateRequest.getMainAddress(),
+                addressUpdateRequest.getDetailAddress(),
+                GeoUtil.toPoint(addressUpdateRequest.getLng(), addressUpdateRequest.getLat()),
+                AddressCategory.valueOf(addressUpdateRequest.getAddressCategory())
+        );
+
+        return AddressCreateResponse.builder()
+                .mainAddress(memberAddress.getMainAddress())
+                .detailAddress(memberAddress.getDetailAddress())
+                .addressCategory(memberAddress.getAddressCategory().name())
+                .build();
+    }
 }
