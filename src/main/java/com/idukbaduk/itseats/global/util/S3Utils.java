@@ -1,7 +1,7 @@
 package com.idukbaduk.itseats.global.util;
 
 
-import com.idukbaduk.itseats.global.S3Config;
+import com.idukbaduk.itseats.global.config.S3Config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;

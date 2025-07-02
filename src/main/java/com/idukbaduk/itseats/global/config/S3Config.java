@@ -1,4 +1,4 @@
-package com.idukbaduk.itseats.global;
+package com.idukbaduk.itseats.global.config;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +12,6 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 
 import java.net.URI;
-import java.util.Optional;
 
 @Configuration
 public class S3Config {
