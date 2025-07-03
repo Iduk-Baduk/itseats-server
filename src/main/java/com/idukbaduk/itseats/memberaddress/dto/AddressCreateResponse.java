@@ -7,6 +7,7 @@ import lombok.Getter;
 @Builder
 public class AddressCreateResponse {
 
+    private Long addressId;
     private String mainAddress;
     private String detailAddress;
     private String addressCategory;

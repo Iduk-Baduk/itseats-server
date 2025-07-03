@@ -41,6 +41,7 @@ public class MemberAddressService {
         memberAddressRepository.save(memberAddress);
 
         return AddressCreateResponse.builder()
+                .addressId(memberAddress.getAddressId())
                 .mainAddress(memberAddress.getMainAddress())
                 .detailAddress(memberAddress.getDetailAddress())
                 .addressCategory(memberAddress.getAddressCategory().name())
