@@ -4,8 +4,7 @@ import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateRequest;
-import com.idukbaduk.itseats.memberaddress.dto.AddressCreateResponse;
-import com.idukbaduk.itseats.memberaddress.dto.AddressListResponse;
+import com.idukbaduk.itseats.memberaddress.dto.AddressResponse;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import com.idukbaduk.itseats.memberaddress.entity.enums.AddressCategory;
 import com.idukbaduk.itseats.memberaddress.error.MemberAddressException;
@@ -15,18 +14,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.locationtech.jts.geom.Point;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.within;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -77,7 +75,7 @@ class MemberAddressServiceTest {
         ArgumentCaptor<MemberAddress> captor = ArgumentCaptor.forClass(MemberAddress.class);
 
         // when
-        AddressCreateResponse response = memberAddressService.createAddress(username, request);
+        AddressResponse response = memberAddressService.createAddress(username, request);
 
         // then - response
         assertThat(response).isNotNull();
@@ -157,7 +155,7 @@ class MemberAddressServiceTest {
                 .build();
 
         // 수정 요청 실행
-        AddressCreateResponse response = memberAddressService.updateAddress(username, updateRequest, addressId);
+        AddressResponse response = memberAddressService.updateAddress(username, updateRequest, addressId);
 
         // then
         assertThat(response.getMainAddress()).isEqualTo(updateRequest.getMainAddress());
@@ -204,6 +202,7 @@ class MemberAddressServiceTest {
                 .addressId(1L)
                 .member(member)
                 .mainAddress("서울시 구름구 구름로100번길 10")
+                .location(GeoUtil.toPoint(126.9780, 37.5665))
                 .addressCategory(AddressCategory.HOUSE)
                 .build();
 
@@ -211,6 +210,7 @@ class MemberAddressServiceTest {
                 .addressId(2L)
                 .member(member)
                 .mainAddress("부산시 해운대구 우동 456")
+                .location(GeoUtil.toPoint(35.166471, 129.158443))
                 .addressCategory(AddressCategory.COMPANY)
                 .build();
 
@@ -221,7 +221,7 @@ class MemberAddressServiceTest {
 
 
         // when
-        List<AddressListResponse> response = memberAddressService.getAddressList(username);
+        List<AddressResponse> response = memberAddressService.getAddressList(username);
 
         // then
         assertThat(response).hasSize(2);
