@@ -12,8 +12,12 @@ import java.util.Optional;
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
-    default Member getOrThrow(Long memberId) {
+    default Member getOrThrowById(Long memberId) {
         return findByMemberId(memberId).orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+    }
+
+    default Member getOrThrowByUsername(String username) {
+        return findByUsername(username).orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
     }
 
     Optional<Member> findByMemberId(Long memberId);

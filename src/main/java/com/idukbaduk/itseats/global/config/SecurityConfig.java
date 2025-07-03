@@ -1,8 +1,7 @@
 package com.idukbaduk.itseats.global.config;
 
 import com.idukbaduk.itseats.auths.filter.AuthenticationFilter;
-import com.idukbaduk.itseats.external.jwt.service.JwtTokenService;
-import com.idukbaduk.itseats.member.service.MemberService;
+import com.idukbaduk.itseats.auths.usecase.AuthUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +28,7 @@ public class SecurityConfig {
             "/login"
     };
 
-    private final JwtTokenService jwtTokenService;
+    private final AuthUseCase authUseCase;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
@@ -58,7 +57,9 @@ public class SecurityConfig {
     }
 
     private AuthenticationFilter getAuthenticationFilter(AuthenticationManager authenticationManager) {
-        return new AuthenticationFilter(authenticationManager, jwtTokenService);
+        AuthenticationFilter filter = new AuthenticationFilter(authenticationManager, authUseCase);
+        filter.setFilterProcessesUrl("/api/login");
+        return filter;
     }
 
 }
