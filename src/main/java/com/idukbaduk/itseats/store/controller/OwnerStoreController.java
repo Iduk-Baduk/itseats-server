@@ -46,4 +46,10 @@ public class OwnerStoreController {
         ownerStoreService.updateStatus(storeId, request);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{storeId}/start")
+    public ResponseEntity<Void> restartOrder(@PathVariable("storeId") Long storeId) {
+        ownerStoreService.restartOrder(storeId);
+        return ResponseEntity.ok().build();
+    }
 }

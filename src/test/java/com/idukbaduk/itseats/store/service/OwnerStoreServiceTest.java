@@ -30,6 +30,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -214,5 +215,23 @@ class OwnerStoreServiceTest {
         assertThatThrownBy(() -> ownerStoreService.updateStatus(storeId, request))
                 .isInstanceOf(StoreException.class)
                 .hasMessageContaining(StoreErrorCode.STORE_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("주문 재개 성공")
+    void restartOrder_success() {
+        // given
+        Long storeId = 12L;
+        Store store = Store.builder()
+                .storeId(storeId)
+                .orderable(false)
+                .build();
+        given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+
+        // when
+        ownerStoreService.restartOrder(storeId);
+
+        // then
+        assertThat(store.getOrderable()).isTrue();
     }
 }

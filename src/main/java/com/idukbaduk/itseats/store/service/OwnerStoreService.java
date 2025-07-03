@@ -139,4 +139,11 @@ public class OwnerStoreService {
             store.updateOrderable(request.getOrderable());
         }
     }
+
+    @Transactional
+    public void restartOrder(Long storeId) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
+        store.updateOrderable(true);
+    }
 }
