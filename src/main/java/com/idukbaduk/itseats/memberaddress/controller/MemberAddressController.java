@@ -27,7 +27,7 @@ public class MemberAddressController {
         );
     }
 
-    @GetMapping("/addresses")
+    @GetMapping
     public ResponseEntity<BaseResponse> getAddressList(@AuthenticationPrincipal UserDetails userDetails) {
         return BaseResponse.toResponseEntity(
                 AddressResponse.GET_ADDRESS_LIST_SUCCESS,
