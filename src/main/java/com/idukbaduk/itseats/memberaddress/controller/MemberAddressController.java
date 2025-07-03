@@ -35,7 +35,7 @@ public class MemberAddressController {
         );
     }
 
-    @PutMapping("/{address_id}")
+    @PutMapping("/{addressId}")
     public ResponseEntity<BaseResponse> updateAddress(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody AddressCreateRequest addressUpdateRequest,
@@ -46,7 +46,7 @@ public class MemberAddressController {
         );
     }
 
-    @DeleteMapping("/{address_id}")
+    @DeleteMapping("/{addressId}")
     public ResponseEntity<BaseResponse> deleteAddress(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long address_id) {
