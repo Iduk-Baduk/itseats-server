@@ -69,12 +69,11 @@ public class MemberAddressService {
     }
 
     @Transactional
-    public String deleteAddress(String username, Long addressId) {
+    public void deleteAddress(String username, Long addressId) {
         Member member = getMember(username);
         MemberAddress memberAddress = getMemberAddress(member, addressId);
 
         memberAddressRepository.delete(memberAddress);
-        return username;
     }
 
     @Transactional(readOnly = true)

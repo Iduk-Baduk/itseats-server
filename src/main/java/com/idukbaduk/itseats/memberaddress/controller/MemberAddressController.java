@@ -50,9 +50,9 @@ public class MemberAddressController {
     public ResponseEntity<BaseResponse> deleteAddress(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long address_id) {
+        memberAddressService.deleteAddress(userDetails.getUsername(), address_id);
         return BaseResponse.toResponseEntity(
                 AddressResponse.DELETE_ADDRESS_SUCCESS,
-                memberAddressService.deleteAddress(userDetails.getUsername(), address_id)
-        );
+                address_id);
     }
 }
