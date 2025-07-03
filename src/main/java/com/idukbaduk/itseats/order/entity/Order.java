@@ -6,6 +6,7 @@ import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
+import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.rider.entity.Rider;
 import com.idukbaduk.itseats.store.entity.Store;
 import jakarta.persistence.*;
@@ -86,6 +87,9 @@ public class Order extends BaseEntity {
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
     private List<OrderMenu> orderMenus;
+
+    @OneToOne(mappedBy = "order")
+    private Payment payment;
 
     public void updateOrderStatusAccept(Rider rider, OrderStatus orderStatus) {
         if (this.rider != null) {

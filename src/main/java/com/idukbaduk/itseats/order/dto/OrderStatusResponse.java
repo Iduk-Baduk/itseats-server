@@ -7,6 +7,7 @@ import lombok.Getter;
 @Builder
 public class OrderStatusResponse {
 
+    private Long orderId;
     private String deliveryEta;
     private String orderStatus;
     private String storeName;

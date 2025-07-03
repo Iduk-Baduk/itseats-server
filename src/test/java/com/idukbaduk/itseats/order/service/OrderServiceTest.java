@@ -8,14 +8,9 @@ import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import com.idukbaduk.itseats.memberaddress.repository.MemberAddressRepository;
 import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
-import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
-import com.idukbaduk.itseats.order.dto.MenuOptionDTO;
-import com.idukbaduk.itseats.order.dto.OptionDTO;
-import com.idukbaduk.itseats.order.dto.OrderMenuDTO;
-import com.idukbaduk.itseats.order.dto.OrderNewRequest;
-import com.idukbaduk.itseats.order.dto.OrderNewResponse;
-import com.idukbaduk.itseats.order.dto.OrderStatusResponse;
+import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
@@ -25,6 +20,7 @@ import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +30,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.locationtech.jts.geom.Point;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,6 +40,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,6 +57,9 @@ class OrderServiceTest {
 
     @Mock
     private StoreRepository storeRepository;
+
+    @Mock
+    private StoreImageRepository storeImageRepository;
 
     @Mock
     private MemberRepository memberRepository;
@@ -84,6 +87,7 @@ class OrderServiceTest {
                 orderMenuRepository,
                 menuRepository,
                 storeRepository,
+                storeImageRepository,
                 memberRepository,
                 memberAddressRepository,
                 paymentRepository,
@@ -194,6 +198,7 @@ class OrderServiceTest {
                 orderMenuRepository,
                 menuRepository,
                 storeRepository,
+                storeImageRepository,
                 memberRepository,
                 memberAddressRepository,
                 paymentRepository,
@@ -287,5 +292,37 @@ class OrderServiceTest {
         assertThatThrownBy(() -> orderService.getOrder(1L))
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
+    
+    @Test
+    @DisplayName("과거 주문내역 조회 성공")
+    void getOrders_success() {
+        // given
+        PageRequest pageRequest = PageRequest.of(0, 1);
+        List<OrderMenu> orderMenuList = List.of(
+                OrderMenu.builder().menuName("양념치킨").build(),
+                OrderMenu.builder().menuName("간장치킨").build()
+        );
+        List<Order> orderList = List.of(
+                Order.builder()
+                        .orderId(1L)
+                        .store(Store.builder().storeId(1L).storeName("치킨집").build())
+                        .orderStatus(OrderStatus.COOKING)
+                        .orderMenus(orderMenuList)
+                        .build()
+        );
+        Slice<Order> orders = new SliceImpl<Order>(orderList, pageRequest, true);
+
+        when(orderRepository.findOrdersByUsernameWithKeyword(anyString(), anyString(), eq(pageRequest)))
+                .thenReturn(orders);
+    
+        // when
+        OrderHistoryResponse data = orderService.getOrders("username", "keyword", pageRequest);
+
+        // then
+        assertThat(data).isNotNull();
+        assertThat(data.getOrders()).hasSize(1)
+                .extracting("orderId", "storeId", "storeName", "orderStatus", "menuSummary")
+                .containsExactly(tuple(1L, 1L, "치킨집", "COOKING", "양념치킨, 간장치킨"));
     }
 }

@@ -3,6 +3,9 @@ package com.idukbaduk.itseats.order.repository;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.rider.entity.Rider;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -113,4 +116,21 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("riderLat") double riderLat,
             @Param("riderLng") double riderLng
     );
+
+    @EntityGraph(attributePaths = {"store", "payment"})
+    @Query("""
+        SELECT o
+        FROM Order o
+        WHERE o.member.username = :username
+          AND (
+            :keyword = '' OR
+            EXISTS (
+              SELECT 1 FROM OrderMenu om
+              WHERE om.order = o AND om.menuName LIKE %:keyword%
+            ) OR
+            o.store.storeName LIKE %:keyword%
+          )
+        ORDER BY o.createdAt DESC
+    """)
+    Slice<Order> findOrdersByUsernameWithKeyword(String username, String keyword, Pageable pageable);
 }

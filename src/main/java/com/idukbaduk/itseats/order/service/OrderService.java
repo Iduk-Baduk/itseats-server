@@ -13,12 +13,7 @@ import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
-import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
-import com.idukbaduk.itseats.order.dto.MenuOptionDTO;
-import com.idukbaduk.itseats.order.dto.OrderMenuDTO;
-import com.idukbaduk.itseats.order.dto.OrderNewRequest;
-import com.idukbaduk.itseats.order.dto.OrderNewResponse;
-import com.idukbaduk.itseats.order.dto.OrderStatusResponse;
+import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
@@ -32,10 +27,14 @@ import com.idukbaduk.itseats.payment.error.PaymentException;
 import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.entity.StoreImage;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
+import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +54,7 @@ public class OrderService {
     private final OrderMenuRepository orderMenuRepository;
     private final MenuRepository menuRepository;
     private final StoreRepository storeRepository;
+    private final StoreImageRepository storeImageRepository;
     private final MemberRepository memberRepository;
     private final MemberAddressRepository memberAddressRepository;
     private final PaymentRepository paymentRepository;
@@ -77,6 +77,7 @@ public class OrderService {
         int deliveryFee = getDeliveryFee(store, orderNewRequest.getDeliveryType());
 
         return OrderNewResponse.builder()
+                .orderId(order.getOrderId())
                 .defaultTimeMin(
                         Optional.ofNullable(orderRepository.findMinDeliveryTimeByType(DeliveryType.DEFAULT.name()))
                                 .orElse(30)
@@ -116,8 +117,8 @@ public class OrderService {
                 .destinationLocation(address.getLocation())
                 .storeLocation(store.getLocation())
                 .build();
-        orderRepository.save(order);
-        return order;
+
+        return orderRepository.save(order);
     }
 
     private String getOrderNumber() {
@@ -175,6 +176,24 @@ public class OrderService {
         }
     }
 
+    @Transactional
+    public OrderHistoryResponse getOrders(String username, String keyword, Pageable pageable) {
+        if (username == null || username.trim().isEmpty())
+            throw new MemberException(MemberErrorCode.MEMBER_NOT_FOUND);
+
+        Slice<Order> orders = orderRepository.findOrdersByUsernameWithKeyword(username, keyword, pageable);
+        return OrderHistoryResponse.builder()
+                .orders(orders.stream().map(order -> {
+                    List<StoreImage> storeImage = storeImageRepository.findAllByStoreIdOrderByDisplayOrderAsc(
+                            order.getStore().getStoreId()
+                    );
+                    return OrderHistoryDto.of(order, storeImage.isEmpty() ? null : storeImage.get(0));
+                }).toList())
+                .currentPage(pageable.getPageNumber())
+                .hasNext(orders.hasNext())
+                .build();
+    }
+
     @Transactional(readOnly = true)
     public OrderStatusResponse getOrderStatus(String username, Long orderId) {
         Member member = memberRepository.findByUsername(username)
@@ -186,6 +205,7 @@ public class OrderService {
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         return OrderStatusResponse.builder()
+                .orderId(orderId)
                 .deliveryEta(order.getDeliveryEta().toString())
                 .orderStatus(order.getOrderStatus().name())
                 .storeName(store.getStoreName())
