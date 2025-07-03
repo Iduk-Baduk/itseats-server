@@ -5,6 +5,7 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateRequest;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateResponse;
+import com.idukbaduk.itseats.memberaddress.dto.AddressListResponse;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import com.idukbaduk.itseats.memberaddress.entity.enums.AddressCategory;
 import com.idukbaduk.itseats.memberaddress.error.MemberAddressException;
@@ -18,6 +19,7 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.locationtech.jts.geom.Point;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -192,6 +194,39 @@ class MemberAddressServiceTest {
 
         // then
         verify(memberAddressRepository).delete(memberAddress);
+    }
+
+    @Test
+    @DisplayName("주소 목록 조회 성공")
+    void getAddressList_success() {
+        // given
+        MemberAddress memberAddress1 = MemberAddress.builder()
+                .addressId(1L)
+                .member(member)
+                .mainAddress("서울시 구름구 구름로100번길 10")
+                .addressCategory(AddressCategory.HOUSE)
+                .build();
+
+        MemberAddress memberAddress2 = MemberAddress.builder()
+                .addressId(2L)
+                .member(member)
+                .mainAddress("부산시 해운대구 우동 456")
+                .addressCategory(AddressCategory.COMPANY)
+                .build();
+
+        List<MemberAddress> addressList = List.of(memberAddress1, memberAddress2);
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(memberAddressRepository.findAllByMember(member)).thenReturn(addressList);
+
+
+        // when
+        List<AddressListResponse> response = memberAddressService.getAddressList(username);
+
+        // then
+        assertThat(response).hasSize(2);
+        assertThat(response.get(0).getAddressId()).isEqualTo(memberAddress1.getAddressId());
+        assertThat(response.get(1).getAddressId()).isEqualTo(memberAddress2.getAddressId());
     }
 
 }
