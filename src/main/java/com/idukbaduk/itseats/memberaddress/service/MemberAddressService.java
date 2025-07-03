@@ -91,12 +91,12 @@ public class MemberAddressService {
                 .collect(Collectors.toList());
     }
 
-    public MemberAddress getMemberAddress(Member member, Long addressId) {
+    MemberAddress getMemberAddress(Member member, Long addressId) {
         return memberAddressRepository.findByMemberAndAddressId(member, addressId)
                 .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
     }
 
-    public Member getMember(String username) {
+    private Member getMember(String username) {
         return memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
