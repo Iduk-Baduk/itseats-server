@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -198,5 +199,19 @@ class OwnerStoreControllerTest {
                 .andExpect(jsonPath("$.data.orderable").value(false))
                 .andExpect(jsonPath("$.data.pauseTime").value(pauseTime))
                 .andExpect(jsonPath("$.data.restartTime").value("06.10 15:19"));
+    }
+  
+    @Test
+    @DisplayName("주문 재개 성공 응답")
+    void restartOrder_success() throws Exception {
+        // given
+        Long storeId = 12L;
+        willDoNothing().given(ownerStoreService).restartOrder(storeId);
+
+        // when & then
+        mockMvc.perform(post("/api/owner/{storeId}/start", storeId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
     }
 }

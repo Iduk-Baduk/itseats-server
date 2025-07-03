@@ -235,4 +235,22 @@ class OwnerStoreServiceTest {
         assertThat(response.getPauseTime()).isEqualTo(pauseTime);
         assertThat(response.getRestartTime()).isNotNull();
     }
+    
+    @Test
+    @DisplayName("주문 재개 성공")
+    void restartOrder_success() {
+        // given
+        Long storeId = 12L;
+        Store store = Store.builder()
+                .storeId(storeId)
+                .orderable(false)
+                .build();
+        given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+
+        // when
+        ownerStoreService.restartOrder(storeId);
+
+        // then
+        assertThat(store.getOrderable()).isTrue();
+    }
 }

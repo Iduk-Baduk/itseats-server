@@ -159,4 +159,11 @@ public class OwnerStoreService {
                 .restartTime(restartTimeStr)
                 .build();
     }
+    
+    @Transactional
+    public void restartOrder(Long storeId) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
+        store.updateOrderable(true);
+    }
 }

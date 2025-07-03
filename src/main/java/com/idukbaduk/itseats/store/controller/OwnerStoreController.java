@@ -55,4 +55,10 @@ public class OwnerStoreController {
         StorePauseResponse response = ownerStoreService.pauseOrder(storeId, request.getPauseTime());
         return BaseResponse.toResponseEntity(StoreResponse.PAUSE_ORDER_SUCCESS, response);
     }
+  
+    @PostMapping("/{storeId}/start")
+    public ResponseEntity<Void> restartOrder(@PathVariable("storeId") Long storeId) {
+        ownerStoreService.restartOrder(storeId);
+        return ResponseEntity.ok().build();
+    }
 }
