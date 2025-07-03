@@ -25,8 +25,7 @@ public class MemberAddressService {
 
     @Transactional
     public AddressCreateResponse createAddress(String username, AddressCreateRequest addressCreateRequest) {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Member member = getMember(username);
 
         MemberAddress memberAddress = MemberAddress.builder()
                 .member(member)
@@ -44,15 +43,9 @@ public class MemberAddressService {
                 .build();
     }
 
-    public MemberAddress getMemberAddress(Member member, Long addressId) {
-        return memberAddressRepository.findByMemberAndAddressId(member, addressId)
-                .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
-    }
-
     @Transactional
     public AddressCreateResponse updateAddress(String username, AddressCreateRequest addressUpdateRequest, Long addressId) {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Member member = getMember(username);
 
         MemberAddress memberAddress = getMemberAddress(member, addressId);
 
@@ -68,5 +61,15 @@ public class MemberAddressService {
                 .detailAddress(memberAddress.getDetailAddress())
                 .addressCategory(memberAddress.getAddressCategory().name())
                 .build();
+    }
+
+    public MemberAddress getMemberAddress(Member member, Long addressId) {
+        return memberAddressRepository.findByMemberAndAddressId(member, addressId)
+                .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
+    }
+
+    public Member getMember(String username) {
+        return memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 }
