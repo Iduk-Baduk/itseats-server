@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.memberaddress.service;
 
+import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateRequest;
@@ -23,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -121,4 +123,49 @@ class MemberAddressServiceTest {
                 .isInstanceOf(MemberAddressException.class)
                 .hasMessageContaining(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND.getMessage());
     }
+
+    @Test
+    @DisplayName("주소 수정 성공")
+    void updateAddress_success() {
+        // given
+        Long addressId = 1L;
+
+        // 기존 주소 객체 생성
+        MemberAddress existingAddress = MemberAddress.builder()
+                .addressId(addressId)
+                .member(member)
+                .mainAddress("서울시 구름구 구름로100번길 10")
+                .detailAddress("100호")
+                .location(GeoUtil.toPoint(126.9780, 37.5665))
+                .addressCategory(AddressCategory.HOUSE)
+                .build();
+
+        // mock 설정
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(memberAddressRepository.findByMemberAndAddressId(member, addressId))
+                .thenReturn(Optional.of(existingAddress));
+
+        // when
+        AddressCreateRequest updateRequest = AddressCreateRequest.builder()
+                .mainAddress("부산시 해운대구 우동 456")
+                .detailAddress("202호")
+                .lng(129.1604)
+                .lat(35.163)
+                .addressCategory(AddressCategory.COMPANY.name())
+                .build();
+
+        // 수정 요청 실행
+        AddressCreateResponse response = memberAddressService.updateAddress(username, updateRequest, addressId);
+
+        // then
+        assertThat(response.getMainAddress()).isEqualTo(updateRequest.getMainAddress());
+        assertThat(response.getDetailAddress()).isEqualTo(updateRequest.getDetailAddress());
+        assertThat(response.getAddressCategory()).isEqualTo(updateRequest.getAddressCategory());
+
+
+        assertThat(existingAddress.getMainAddress()).isEqualTo(updateRequest.getMainAddress());
+        assertThat(existingAddress.getDetailAddress()).isEqualTo(updateRequest.getDetailAddress());
+        assertThat(existingAddress.getAddressCategory().name()).isEqualTo(updateRequest.getAddressCategory());
+    }
+
 }
