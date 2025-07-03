@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -190,5 +191,75 @@ class OwnerOrderServiceTest {
         assertThatThrownBy(() -> ownerOrderService.markAsCooked(orderId))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("예상 조리시간 설정 시 주문이 없으면 예외 발생")
+    void setCookTime_orderNotFound() {
+        // given
+        Long orderId = 99L;
+        int cookTime = 10;
+        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.setCookTime(orderId, cookTime))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("예상 조리 시간 설정 성공 - ACCEPTED 상태에서 COOKING 전이 가능")
+    void setCookTime_success() {
+        // given
+        Long orderId = 1L;
+        int cookTime = 15;
+        Order order = Order.builder()
+                .orderId(orderId)
+                .orderStatus(OrderStatus.ACCEPTED) // COOKING 전이 가능 상태
+                .build();
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        // when
+        CookTimeResponse response = ownerOrderService.setCookTime(orderId, cookTime);
+
+        // then
+        assertThat(response.getOrderId()).isEqualTo(orderId);
+        assertThat(response.getDeliveryEta()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("예상 조리 시간 설정 실패 - COMPLETED 상태에서 COOKING 전이 불가")
+    void setCookTime_fail_status_completed() {
+        // given
+        Long orderId = 1L;
+        int cookTime = 15;
+        Order order = Order.builder()
+                .orderId(orderId)
+                .orderStatus(OrderStatus.COMPLETED) // COOKING 전이 불가 상태
+                .build();
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.setCookTime(orderId, cookTime))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL.getMessage());
+    }
+
+    @Test
+    @DisplayName("예상 조리 시간 설정 실패 - REJECTED 상태에서 COOKING 전이 불가")
+    void setCookTime_fail_status_rejected() {
+        // given
+        Long orderId = 1L;
+        int cookTime = 15;
+        Order order = Order.builder()
+                .orderId(orderId)
+                .orderStatus(OrderStatus.REJECTED) // COOKING 전이 불가 상태
+                .build();
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> ownerOrderService.setCookTime(orderId, cookTime))
+                .isInstanceOf(OrderException.class)
+                .hasMessage(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL.getMessage());
     }
 }
