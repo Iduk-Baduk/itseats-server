@@ -9,5 +9,6 @@ import java.util.List;
 @Builder
 public class OrderHistoryResponse {
     List<OrderHistoryDto> orders;
+    Integer currentPage;
     Boolean hasNext;
 }

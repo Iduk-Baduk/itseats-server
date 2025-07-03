@@ -162,6 +162,7 @@ public class OrderService {
         Slice<Order> orders = orderRepository.findOrdersByUsernameWithKeyword(username, keyword, pageable);
         return OrderHistoryResponse.builder()
                 .orders(orders.stream().map(OrderHistoryDto::of).toList())
+                .currentPage(pageable.getPageNumber())
                 .hasNext(orders.hasNext())
                 .build();
     }
