@@ -168,4 +168,30 @@ class MemberAddressServiceTest {
         assertThat(existingAddress.getAddressCategory().name()).isEqualTo(updateRequest.getAddressCategory());
     }
 
+    @Test
+    @DisplayName("주소 삭제 성공")
+    void deleteAddress_success() {
+        // given
+        Long addressId = 1L;
+
+        MemberAddress memberAddress = MemberAddress.builder()
+                .addressId(addressId)
+                .member(member)
+                .mainAddress("서울시 구름구 구름로100번길 10")
+                .detailAddress("100호")
+                .location(GeoUtil.toPoint(126.9780, 37.5665))
+                .addressCategory(AddressCategory.HOUSE)
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(memberAddressRepository.findByMemberAndAddressId(member, addressId))
+                .thenReturn(Optional.of(memberAddress));
+
+        // when
+        memberAddressService.deleteAddress(username, addressId);
+
+        // then
+        verify(memberAddressRepository).delete(memberAddress);
+    }
+
 }
