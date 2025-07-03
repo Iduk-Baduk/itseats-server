@@ -20,6 +20,7 @@ import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +59,9 @@ class OrderServiceTest {
     private StoreRepository storeRepository;
 
     @Mock
+    private StoreImageRepository storeImageRepository;
+
+    @Mock
     private MemberRepository memberRepository;
 
     @Mock
@@ -83,6 +87,7 @@ class OrderServiceTest {
                 orderMenuRepository,
                 menuRepository,
                 storeRepository,
+                storeImageRepository,
                 memberRepository,
                 memberAddressRepository,
                 paymentRepository,
@@ -193,6 +198,7 @@ class OrderServiceTest {
                 orderMenuRepository,
                 menuRepository,
                 storeRepository,
+                storeImageRepository,
                 memberRepository,
                 memberAddressRepository,
                 paymentRepository,

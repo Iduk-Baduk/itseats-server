@@ -4,6 +4,7 @@ import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
+import com.idukbaduk.itseats.store.entity.StoreImage;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import lombok.Builder;
@@ -25,8 +26,9 @@ public class OrderHistoryDto {
     private String deliveryAddress;
     private String deliveryRequest;
     private String menuSummary;
+    private String storeImage;
 
-    public static OrderHistoryDto of(Order order) {
+    public static OrderHistoryDto of(Order order, StoreImage storeImage) {
         if (order == null)
             throw new OrderException(OrderErrorCode.ORDER_NOT_FOUND);
         if (order.getStore() == null)
@@ -49,6 +51,7 @@ public class OrderHistoryDto {
                                 .collect(Collectors.joining(", ")) :
                         "메뉴 정보 없음"
                 )
+                .storeImage(storeImage == null ? null : storeImage.getImageUrl())
                 .build();
     }
 }

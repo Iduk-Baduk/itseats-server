@@ -27,8 +27,10 @@ import com.idukbaduk.itseats.payment.error.PaymentException;
 import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import com.idukbaduk.itseats.store.entity.Store;
+import com.idukbaduk.itseats.store.entity.StoreImage;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
+import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -51,6 +53,7 @@ public class OrderService {
     private final OrderMenuRepository orderMenuRepository;
     private final MenuRepository menuRepository;
     private final StoreRepository storeRepository;
+    private final StoreImageRepository storeImageRepository;
     private final MemberRepository memberRepository;
     private final MemberAddressRepository memberAddressRepository;
     private final PaymentRepository paymentRepository;
@@ -161,7 +164,12 @@ public class OrderService {
 
         Slice<Order> orders = orderRepository.findOrdersByUsernameWithKeyword(username, keyword, pageable);
         return OrderHistoryResponse.builder()
-                .orders(orders.stream().map(OrderHistoryDto::of).toList())
+                .orders(orders.stream().map(order -> {
+                    List<StoreImage> storeImage = storeImageRepository.findAllByStoreIdOrderByDisplayOrderAsc(
+                            order.getStore().getStoreId()
+                    );
+                    return OrderHistoryDto.of(order, storeImage.isEmpty() ? null : storeImage.get(0));
+                }).toList())
                 .currentPage(pageable.getPageNumber())
                 .hasNext(orders.hasNext())
                 .build();
