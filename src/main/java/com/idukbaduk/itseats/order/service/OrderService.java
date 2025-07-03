@@ -76,6 +76,7 @@ public class OrderService {
         int deliveryFee = getDevliveryFee(store, orderNewRequest.getDeliveryType());
 
         return OrderNewResponse.builder()
+                .orderId(order.getOrderId())
                 .defaultTimeMin(orderRepository.findMinDeliveryTimeByType(DeliveryType.DEFAULT.name()))
                 .defaultTimeMax(orderRepository.findMaxDeliveryTimeByType(DeliveryType.DEFAULT.name()))
                 .onlyOneTimeMin(orderRepository.findMinDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
@@ -103,8 +104,8 @@ public class OrderService {
                 .destinationLocation(address.getLocation())
                 .storeLocation(store.getLocation())
                 .build();
-        orderRepository.save(order);
-        return order;
+
+        return orderRepository.save(order);
     }
 
     private String getOrderNumber() {
@@ -186,6 +187,7 @@ public class OrderService {
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         return OrderStatusResponse.builder()
+                .orderId(orderId)
                 .deliveryEta(order.getDeliveryEta().toString())
                 .orderStatus(order.getOrderStatus().name())
                 .storeName(store.getStoreName())
