@@ -7,6 +7,8 @@ import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateRequest;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateResponse;
+import com.idukbaduk.itseats.memberaddress.dto.AddressListResponse;
+import com.idukbaduk.itseats.memberaddress.dto.enums.AddressResponse;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import com.idukbaduk.itseats.memberaddress.entity.enums.AddressCategory;
 import com.idukbaduk.itseats.memberaddress.error.MemberAddressException;
@@ -16,7 +18,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +75,21 @@ public class MemberAddressService {
         MemberAddress memberAddress = getMemberAddress(member, addressId);
 
         memberAddressRepository.delete(memberAddress);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AddressListResponse> getAddressList(String username) {
+        Member member = getMember(username);
+        List<MemberAddress> memberAddresses = memberAddressRepository.findAllByMember(member);
+
+        return memberAddresses.stream()
+                .map(address -> AddressListResponse.builder()
+                        .addressId(address.getAddressId())
+                        .mainAddress(address.getMainAddress())
+                        .detailAddress(address.getDetailAddress())
+                        .addressCategory(address.getAddressCategory().name())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     public MemberAddress getMemberAddress(Member member, Long addressId) {
