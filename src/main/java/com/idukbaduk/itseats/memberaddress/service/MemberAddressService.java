@@ -8,7 +8,6 @@ import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateRequest;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateResponse;
 import com.idukbaduk.itseats.memberaddress.dto.AddressListResponse;
-import com.idukbaduk.itseats.memberaddress.dto.enums.AddressResponse;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import com.idukbaduk.itseats.memberaddress.entity.enums.AddressCategory;
 import com.idukbaduk.itseats.memberaddress.error.MemberAddressException;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,11 +68,12 @@ public class MemberAddressService {
     }
 
     @Transactional
-    public void deleteAddress(String username, Long addressId) {
+    public String deleteAddress(String username, Long addressId) {
         Member member = getMember(username);
         MemberAddress memberAddress = getMemberAddress(member, addressId);
 
         memberAddressRepository.delete(memberAddress);
+        return username;
     }
 
     @Transactional(readOnly = true)

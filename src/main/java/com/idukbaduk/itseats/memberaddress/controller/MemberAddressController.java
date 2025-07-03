@@ -45,4 +45,14 @@ public class MemberAddressController {
                 memberAddressService.updateAddress(userDetails.getUsername(), addressUpdateRequest, address_id)
         );
     }
+
+    @DeleteMapping("/{address_id}")
+    public ResponseEntity<BaseResponse> deleteAddress(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long address_id) {
+        return BaseResponse.toResponseEntity(
+                AddressResponse.DELETE_ADDRESS_SUCCESS,
+                memberAddressService.deleteAddress(userDetails.getUsername(), address_id)
+        );
+    }
 }
