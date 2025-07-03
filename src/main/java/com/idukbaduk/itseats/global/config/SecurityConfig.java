@@ -1,12 +1,12 @@
 package com.idukbaduk.itseats.global.config;
 
 import com.idukbaduk.itseats.auths.filter.AuthenticationFilter;
-import com.idukbaduk.itseats.external.jwt.service.JwtTokenService;
-import com.idukbaduk.itseats.member.service.MemberService;
+import com.idukbaduk.itseats.auths.usecase.AuthUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,12 +28,13 @@ public class SecurityConfig {
             "/login"
     };
 
-    private final JwtTokenService jwtTokenService;
+    private final AuthUseCase authUseCase;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
 
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(PERMIT_URL_ARRAY).permitAll()
@@ -56,7 +57,9 @@ public class SecurityConfig {
     }
 
     private AuthenticationFilter getAuthenticationFilter(AuthenticationManager authenticationManager) {
-        return new AuthenticationFilter(authenticationManager, jwtTokenService);
+        AuthenticationFilter filter = new AuthenticationFilter(authenticationManager, authUseCase);
+        filter.setFilterProcessesUrl("/api/login");
+        return filter;
     }
 
 }

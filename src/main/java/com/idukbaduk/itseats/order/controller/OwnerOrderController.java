@@ -1,12 +1,7 @@
 package com.idukbaduk.itseats.order.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.order.dto.OrderCookedResponse;
-import com.idukbaduk.itseats.order.dto.OrderDetailResponse;
-import com.idukbaduk.itseats.order.dto.OrderAcceptResponse;
-import com.idukbaduk.itseats.order.dto.OrderReceptionResponse;
-import com.idukbaduk.itseats.order.dto.OrderRejectRequest;
-import com.idukbaduk.itseats.order.dto.OrderRejectResponse;
+import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.dto.enums.OrderResponse;
 import com.idukbaduk.itseats.order.service.OwnerOrderService;
 import jakarta.validation.Valid;
@@ -43,7 +38,7 @@ public class OwnerOrderController {
         OrderRejectResponse response = ownerOrderService.rejectOrder(orderId, request.getReason());
         return BaseResponse.toResponseEntity(OrderResponse.REJECT_ORDER_SUCCESS, response);
     }
-  
+
     @PostMapping("/orders/{orderId}/accept")
     public ResponseEntity<BaseResponse> acceptOrder(@PathVariable("orderId") Long orderId) {
         OrderAcceptResponse response = ownerOrderService.acceptOrder(orderId);
@@ -54,5 +49,14 @@ public class OwnerOrderController {
     public ResponseEntity<BaseResponse> cookingComplete(@PathVariable("orderId") Long orderId) {
         OrderCookedResponse response = ownerOrderService.markAsCooked(orderId);
         return BaseResponse.toResponseEntity(OrderResponse.COOKED_SUCCESS, response);
+    }
+
+    @PostMapping("/orders/{orderId}/cooktime")
+    public ResponseEntity<BaseResponse> setCookTime(
+            @PathVariable("orderId") Long orderId,
+            @RequestBody @Valid CookTimeRequest request
+    ) {
+        CookTimeResponse response = ownerOrderService.setCookTime(orderId, request.getCookTime());
+        return BaseResponse.toResponseEntity(OrderResponse.SET_COOKTIME_SUCCESS, response);
     }
 }

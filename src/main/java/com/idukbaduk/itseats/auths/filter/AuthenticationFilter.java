@@ -1,10 +1,14 @@
 package com.idukbaduk.itseats.auths.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.idukbaduk.itseats.auths.dto.CustomMemberDetails;
+import com.idukbaduk.itseats.external.jwt.dto.JwtTokenPair;
 import com.idukbaduk.itseats.auths.dto.request.LoginRequest;
 import com.idukbaduk.itseats.auths.error.AuthException;
 import com.idukbaduk.itseats.auths.error.enums.AuthErrorCode;
-import com.idukbaduk.itseats.external.jwt.service.JwtTokenService;
+import com.idukbaduk.itseats.auths.usecase.AuthUseCase;
+import com.idukbaduk.itseats.global.util.CookieUtil;
+import com.idukbaduk.itseats.member.entity.Member;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,6 +16,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,13 +26,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Slf4j
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private final JwtTokenService jwtTokenService;
+    private final AuthUseCase authUseCase;
 
     public AuthenticationFilter(
-            AuthenticationManager authenticationManager, JwtTokenService jwtTokenService
+            AuthenticationManager authenticationManager, AuthUseCase authUseCase
     ) {
         super(authenticationManager);
-        this.jwtTokenService = jwtTokenService;
+        this.authUseCase = authUseCase;
     }
 
     @Override
@@ -54,7 +60,25 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     protected void successfulAuthentication(
             HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult
     ) {
-        // todo: 추후 토큰 발행 로직 구현 필요
+        Member member = ((CustomMemberDetails) authResult.getPrincipal()).member();
+        JwtTokenPair jwtTokenPair = authUseCase.login(member.getMemberId());
+
+        response.addHeader(
+                jwtTokenPair.accessToken().type().getValue(),
+                jwtTokenPair.accessToken().value()
+        );
+
+        response.addHeader(
+                HttpHeaders.SET_COOKIE,
+                CookieUtil.create(
+                        jwtTokenPair.refreshToken().type().name(),
+                        jwtTokenPair.refreshToken().value(),
+                        jwtTokenPair.refreshToken().duration(),
+                        true,
+                        true,
+                        "None"
+                ).toString()
+        );
     }
 
 }

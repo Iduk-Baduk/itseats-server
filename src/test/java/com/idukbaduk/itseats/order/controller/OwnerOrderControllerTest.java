@@ -245,4 +245,53 @@ class OwnerOrderControllerTest {
                 .andExpect(jsonPath("$.status").value(OrderErrorCode.ORDER_NOT_FOUND.getStatus().value()))
                 .andExpect(jsonPath("$.message").value(OrderErrorCode.ORDER_NOT_FOUND.getMessage()));
     }
+
+    @Test
+    @DisplayName("예상 조리 시간 설정 성공 응답")
+    void setCookTime_success() throws Exception {
+        // given
+        Long orderId = 12L;
+        int cookTime = 15;
+        CookTimeRequest request = new CookTimeRequest().builder()
+                .cookTime(cookTime)
+                .build();
+        CookTimeResponse response = CookTimeResponse.builder()
+                .orderId(orderId)
+                .deliveryEta("06.10 14:46")
+                .build();
+
+        given(ownerOrderService.setCookTime(orderId, cookTime)).willReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/api/owner/orders/{order_id}/cooktime", orderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.httpStatus").value(OrderResponse.SET_COOKTIME_SUCCESS.getHttpStatus().value()))
+                .andExpect(jsonPath("$.message").value(OrderResponse.SET_COOKTIME_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.data.orderId").value(orderId))
+                .andExpect(jsonPath("$.data.deliveryEta").value("06.10 14:46"));
+    }
+
+    @Test
+    @DisplayName("주문이 없으면 404 에러 응답")
+    void setCookTime_orderNotFound() throws Exception {
+        // given
+        Long orderId = 99L;
+        int cookTime = 10;
+        CookTimeRequest request = new CookTimeRequest().builder()
+                .cookTime(cookTime)
+                .build();
+
+        given(ownerOrderService.setCookTime(orderId, cookTime))
+                .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        // when & then
+        mockMvc.perform(post("/api/owner/orders/{order_id}/cooktime", orderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(OrderErrorCode.ORDER_NOT_FOUND.getStatus().value()))
+                .andExpect(jsonPath("$.message").value(OrderErrorCode.ORDER_NOT_FOUND.getMessage()));
+    }
 }

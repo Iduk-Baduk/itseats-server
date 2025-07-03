@@ -30,9 +30,7 @@ public class ClockUtil {
     }
 
     public static Date getExpirationDate(LocalDateTime now, long expirationTime) {
-        return Date.from(
-                now.plusSeconds(expirationTime).atZone(ZoneId.systemDefault()).toInstant()
-        );
+        return Date.from(now.plusSeconds(expirationTime).atZone(ZoneId.systemDefault()).toInstant());
     }
 
 }

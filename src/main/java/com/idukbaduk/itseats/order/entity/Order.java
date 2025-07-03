@@ -73,10 +73,10 @@ public class Order extends BaseEntity {
     @Column(name = "store_location", columnDefinition = "POINT", nullable = false)
     private Point storeLocation;
 
-    @Column(name = "order_received_time", nullable = false)
+    @Column(name = "order_received_time")
     private LocalDateTime orderReceivedTime;
 
-    @Column(name = "cook_start_time", nullable = false)
+    @Column(name = "cook_start_time")
     private LocalDateTime cookStartTime;
 
     @Column(name = "order_end_time")
@@ -110,5 +110,9 @@ public class Order extends BaseEntity {
         OrderStatus.REJECTED.validateTransitionFrom(this.orderStatus);
         this.orderStatus = OrderStatus.REJECTED;
         this.rejectReason = reason;
+    }
+
+    public void updateDeliveryEta(LocalDateTime deliveryEta) {
+        this.deliveryEta = deliveryEta;
     }
 }

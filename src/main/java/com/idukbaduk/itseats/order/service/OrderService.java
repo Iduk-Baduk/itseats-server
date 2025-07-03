@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -73,14 +74,26 @@ public class OrderService {
         saveAllOrderMenu(order, orderNewRequest);
 
         int orderPrice = getOrderPrice(orderNewRequest.getOrderMenus());
-        int deliveryFee = getDevliveryFee(store, orderNewRequest.getDeliveryType());
+        int deliveryFee = getDeliveryFee(store, orderNewRequest.getDeliveryType());
 
         return OrderNewResponse.builder()
                 .orderId(order.getOrderId())
-                .defaultTimeMin(orderRepository.findMinDeliveryTimeByType(DeliveryType.DEFAULT.name()))
-                .defaultTimeMax(orderRepository.findMaxDeliveryTimeByType(DeliveryType.DEFAULT.name()))
-                .onlyOneTimeMin(orderRepository.findMinDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
-                .onlyOneTimeMax(orderRepository.findMaxDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
+                .defaultTimeMin(
+                        Optional.ofNullable(orderRepository.findMinDeliveryTimeByType(DeliveryType.DEFAULT.name()))
+                                .orElse(30)
+                )
+                .defaultTimeMax(
+                        Optional.ofNullable(orderRepository.findMaxDeliveryTimeByType(DeliveryType.DEFAULT.name()))
+                                .orElse(40)
+                )
+                .onlyOneTimeMin(
+                        Optional.ofNullable(orderRepository.findMinDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
+                                .orElse(20)
+                )
+                .onlyOneTimeMax(
+                        Optional.ofNullable(orderRepository.findMaxDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
+                                .orElse(30)
+                )
                 .orderPrice(orderPrice)
                 .deliveryFee(deliveryFee)
                 // TODO: 쿠폰 관련 로직은 추후 구현
@@ -98,8 +111,8 @@ public class OrderService {
                 .orderStatus(OrderStatus.WAITING)
                 .deliveryType(DeliveryType.valueOf(orderNewRequest.getDeliveryType()))
                 .deliveryEta(LocalDateTime.now()
-                        .plusMinutes(orderRepository.findAvgDeliveryTimeByType(orderNewRequest.getDeliveryType())))
-                .deliveryFee(getDevliveryFee(store, orderNewRequest.getDeliveryType()))
+                        .plusMinutes(getAvgDeliveryTime(orderNewRequest.getDeliveryType())))
+                .deliveryFee(getDeliveryFee(store, orderNewRequest.getDeliveryType()))
                 .deliveryAddress(address.getMainAddress() + " " + address.getDetailAddress())
                 .destinationLocation(address.getLocation())
                 .storeLocation(store.getLocation())
@@ -123,7 +136,12 @@ public class OrderService {
                 .sum();
     }
 
-    private int getDevliveryFee(Store store, String deliveryType) {
+    private long getAvgDeliveryTime(String deliveryType) {
+        Long avgDeliveryTime = orderRepository.findAvgDeliveryTimeByType(deliveryType);
+        return avgDeliveryTime == null ? 30L : avgDeliveryTime;
+    }
+
+    private int getDeliveryFee(Store store, String deliveryType) {
         return deliveryType.equals(DeliveryType.DEFAULT.name())
                 ? store.getDefaultDeliveryFee()
                 : store.getOnlyOneDeliveryFee();
