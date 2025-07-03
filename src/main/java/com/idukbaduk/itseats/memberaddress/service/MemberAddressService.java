@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class MemberAddressService {
@@ -61,6 +63,14 @@ public class MemberAddressService {
                 .detailAddress(memberAddress.getDetailAddress())
                 .addressCategory(memberAddress.getAddressCategory().name())
                 .build();
+    }
+
+    @Transactional
+    public void deleteAddress(String username, Long addressId) {
+        Member member = getMember(username);
+        MemberAddress memberAddress = getMemberAddress(member, addressId);
+
+        memberAddressRepository.delete(memberAddress);
     }
 
     public MemberAddress getMemberAddress(Member member, Long addressId) {
