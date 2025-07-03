@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/addresses")
@@ -27,6 +24,14 @@ public class MemberAddressController {
         return BaseResponse.toResponseEntity(
                 AddressResponse.CREATE_ADDRESS_SUCCESS,
                 memberAddressService.createAddress(userDetails.getUsername(), addressCreateRequest)
+        );
+    }
+
+    @GetMapping("/addresses")
+    public ResponseEntity<BaseResponse> getAddressList(@AuthenticationPrincipal UserDetails userDetails) {
+        return BaseResponse.toResponseEntity(
+                AddressResponse.GET_ADDRESS_LIST_SUCCESS,
+                memberAddressService.getAddressList(userDetails.getUsername())
         );
     }
 }
