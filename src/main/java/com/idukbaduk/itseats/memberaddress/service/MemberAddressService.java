@@ -6,8 +6,7 @@ import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.memberaddress.dto.AddressCreateRequest;
-import com.idukbaduk.itseats.memberaddress.dto.AddressCreateResponse;
-import com.idukbaduk.itseats.memberaddress.dto.AddressListResponse;
+import com.idukbaduk.itseats.memberaddress.dto.AddressResponse;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import com.idukbaduk.itseats.memberaddress.entity.enums.AddressCategory;
 import com.idukbaduk.itseats.memberaddress.error.MemberAddressException;
@@ -28,7 +27,7 @@ public class MemberAddressService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public AddressCreateResponse createAddress(String username, AddressCreateRequest addressCreateRequest) {
+    public AddressResponse createAddress(String username, AddressCreateRequest addressCreateRequest) {
         Member member = getMember(username);
 
         MemberAddress memberAddress = MemberAddress.builder()
@@ -40,7 +39,7 @@ public class MemberAddressService {
                 .build();
         memberAddressRepository.save(memberAddress);
 
-        return AddressCreateResponse.builder()
+        return AddressResponse.builder()
                 .addressId(memberAddress.getAddressId())
                 .mainAddress(memberAddress.getMainAddress())
                 .detailAddress(memberAddress.getDetailAddress())
@@ -49,7 +48,7 @@ public class MemberAddressService {
     }
 
     @Transactional
-    public AddressCreateResponse updateAddress(String username, AddressCreateRequest addressUpdateRequest, Long addressId) {
+    public AddressResponse updateAddress(String username, AddressCreateRequest addressUpdateRequest, Long addressId) {
         Member member = getMember(username);
 
         MemberAddress memberAddress = getMemberAddress(member, addressId);
@@ -61,10 +60,12 @@ public class MemberAddressService {
                 AddressCategory.valueOf(addressUpdateRequest.getAddressCategory())
         );
 
-        return AddressCreateResponse.builder()
+        return AddressResponse.builder()
                 .mainAddress(memberAddress.getMainAddress())
                 .detailAddress(memberAddress.getDetailAddress())
                 .addressCategory(memberAddress.getAddressCategory().name())
+                .lng(memberAddress.getLocation().getX())
+                .lat(memberAddress.getLocation().getY())
                 .build();
     }
 
@@ -77,16 +78,18 @@ public class MemberAddressService {
     }
 
     @Transactional(readOnly = true)
-    public List<AddressListResponse> getAddressList(String username) {
+    public List<AddressResponse> getAddressList(String username) {
         Member member = getMember(username);
         List<MemberAddress> memberAddresses = memberAddressRepository.findAllByMember(member);
 
         return memberAddresses.stream()
-                .map(address -> AddressListResponse.builder()
+                .map(address -> AddressResponse.builder()
                         .addressId(address.getAddressId())
                         .mainAddress(address.getMainAddress())
                         .detailAddress(address.getDetailAddress())
                         .addressCategory(address.getAddressCategory().name())
+                        .lng(address.getLocation().getX())
+                        .lat(address.getLocation().getY())
                         .build())
                 .collect(Collectors.toList());
     }
