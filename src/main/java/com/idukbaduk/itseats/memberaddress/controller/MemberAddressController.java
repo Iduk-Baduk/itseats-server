@@ -34,4 +34,15 @@ public class MemberAddressController {
                 memberAddressService.getAddressList(userDetails.getUsername())
         );
     }
+
+    @PutMapping("/{address_id}")
+    public ResponseEntity<BaseResponse> updateAddress(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody AddressCreateRequest addressUpdateRequest,
+            @PathVariable Long address_id) {
+        return BaseResponse.toResponseEntity(
+                AddressResponse.UPDATE_ADDRESS_SUCCESS,
+                memberAddressService.updateAddress(userDetails.getUsername(), addressUpdateRequest, address_id)
+        );
+    }
 }
