@@ -28,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -140,6 +142,24 @@ public class OwnerStoreService {
         }
     }
 
+    @Transactional
+    public StorePauseResponse pauseOrder(Long storeId, int pauseTime) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
+
+        store.updateOrderable(false);
+
+        LocalDateTime restartTime = LocalDateTime.now().plusMinutes(pauseTime);
+        String restartTimeStr = restartTime.format(DateTimeFormatter.ofPattern("MM.dd HH:mm"));
+
+        return StorePauseResponse.builder()
+                .storeId(store.getStoreId())
+                .orderable(store.getOrderable())
+                .pauseTime(pauseTime)
+                .restartTime(restartTimeStr)
+                .build();
+    }
+    
     @Transactional
     public void restartOrder(Long storeId) {
         Store store = storeRepository.findById(storeId)

@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus;
 public enum StoreResponse implements Response {
 
     CREATE_STORE_SUCCESS(HttpStatus.CREATED, "가게 추가 성공"),
-    UPDATE_STATUS_SUCCESS(HttpStatus.OK, "가게 상태 변경 성공")
+    UPDATE_STATUS_SUCCESS(HttpStatus.OK, "가게 상태 변경 성공"),
+    PAUSE_ORDER_SUCCESS(HttpStatus.OK, "주문 일시정지 성공")
     ;
 
     private final HttpStatus httpStatus;
