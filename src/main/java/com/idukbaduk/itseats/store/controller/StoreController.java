@@ -5,6 +5,7 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
 import com.idukbaduk.itseats.store.dto.StoreCategoryListResponse;
 import com.idukbaduk.itseats.store.dto.StoreListResponse;
+import com.idukbaduk.itseats.store.dto.enums.StoreResponse;
 import com.idukbaduk.itseats.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,8 +26,10 @@ public class StoreController {
 
     @GetMapping("/list")
     public ResponseEntity<BaseResponse> getAllStores() {
-        StoreListResponse response = storeService.getAllStores();
-        return BaseResponse.toResponseEntity(HttpStatus.OK, "전체 가게 목록 조회 성공", response);
+        return BaseResponse.toResponseEntity(
+                StoreResponse.GET_STORES_SUCCESS,
+                storeService.getAllStores()
+        );
     }
 
     @GetMapping("/{storeId}")
@@ -34,13 +37,17 @@ public class StoreController {
             @PathVariable Long storeId,
             @AuthenticationPrincipal UserDetails userDetails
             ) {
-        StoreDetailResponse response = storeService.getStoreDetail(userDetails.getUsername(), storeId);
-        return BaseResponse.toResponseEntity(HttpStatus.OK, "가게 상세 조회 성공", response);
+        return BaseResponse.toResponseEntity(
+                StoreResponse.GET_STORE_DETAIL_SUCCESS,
+                storeService.getStoreDetail(userDetails.getUsername(), storeId)
+        );
     }
 
     @GetMapping("/list/{storeCategory}")
     public ResponseEntity<BaseResponse> getStoresByCategory(@PathVariable String storeCategory) {
-        StoreCategoryListResponse response = storeService.getStoresByCategory(storeCategory);
-        return BaseResponse.toResponseEntity(HttpStatus.OK, "카테고리 별 가게 목록 조회 성공", response);
+        return BaseResponse.toResponseEntity(
+                StoreResponse.GET_STORES_BY_CATEGORY_SUCCESS,
+                storeService.getStoresByCategory(storeCategory)
+        );
     }
 }
