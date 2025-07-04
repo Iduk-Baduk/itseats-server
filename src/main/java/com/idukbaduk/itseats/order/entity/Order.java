@@ -73,7 +73,7 @@ public class Order extends BaseEntity {
     @Column(name = "destination_location", columnDefinition = "POINT", nullable = false)
     private Point destinationLocation;
 
-    @Column(name = "store_location", columnDefinition = "POINT", nullable = false)
+    @Column(name = "store_location", columnDefinition = "POINT SRID 4326", nullable = false)
     private Point storeLocation;
 
     @Column(name = "order_received_time")
