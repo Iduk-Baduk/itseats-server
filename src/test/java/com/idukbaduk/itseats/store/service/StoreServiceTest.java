@@ -116,8 +116,8 @@ class StoreServiceTest {
         StoreImage image2 = StoreImage.builder().store(store2).imageUrl("s3 url 2").build();
         StoreImage image3 = StoreImage.builder().store(store3).imageUrl("s3 url 3").build();
 
-        when(storeRepository.findAllByDeletedFalse())
-                .thenReturn(List.of(store1, store2, store3));
+        when(storeRepository.findAllOrderByOrderCount(any(Pageable.class)))
+                .thenReturn(new SliceImpl<>(List.of(store1, store2, store3)));
         when(storeImageRepository.findImagesByStoreIds(List.of(1L, 2L, 3L)))
                 .thenReturn(List.of(image1, image2, image3));
         when(reviewRepository.findReviewStatsByStoreIds(List.of(1L, 2L, 3L)))
@@ -126,9 +126,10 @@ class StoreServiceTest {
                         new Object[]{2L, 4.7, 2847L},
                         new Object[]{3L, 4.5, 3715L}
                 ));
+        PageRequest pageRequest = PageRequest.of(0, 10);
 
         // when
-        StoreListResponse response = storeService.getAllStores();
+        StoreListResponse response = storeService.getAllStores(pageRequest);
 
         // then
         assertThat(response).isNotNull();
@@ -163,12 +164,13 @@ class StoreServiceTest {
         Store store1 = Store.builder().storeId(1L).storeName("신규 가게").build();
         StoreImage image1 = StoreImage.builder().store(store1).imageUrl("s3 url").build();
 
-        when(storeRepository.findAllByDeletedFalse()).thenReturn(List.of(store1));
+        when(storeRepository.findAllOrderByOrderCount(any(Pageable.class))).thenReturn(new SliceImpl<>(List.of(store1)));
         when(storeImageRepository.findImagesByStoreIds(List.of(1L))).thenReturn(List.of(image1));
         when(reviewRepository.findReviewStatsByStoreIds(List.of(1L))).thenReturn(Collections.emptyList());
+        PageRequest pageRequest = PageRequest.of(0, 10);
 
         // when
-        StoreListResponse response = storeService.getAllStores();
+        StoreListResponse response = storeService.getAllStores(pageRequest);
 
         // then
         assertThat(response).isNotNull();
@@ -186,10 +188,11 @@ class StoreServiceTest {
     @DisplayName("가게가 없을 때 빈 리스트 반환")
     void getAllStores_emptyList_returnsEmptyList() {
         // given
-        when(storeRepository.findAllByDeletedFalse()).thenReturn(Collections.emptyList());
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        when(storeRepository.findAllOrderByOrderCount(pageRequest)).thenReturn(new SliceImpl<>(Collections.emptyList()));
 
         // when
-        StoreListResponse response = storeService.getAllStores();
+        StoreListResponse response = storeService.getAllStores(pageRequest);
 
         // then
         assertThat(response).isNotNull();
