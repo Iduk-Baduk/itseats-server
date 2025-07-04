@@ -1,13 +1,21 @@
 package com.idukbaduk.itseats.order.service;
 
+import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.entity.enums.MemberType;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
+import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
+import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
 import com.idukbaduk.itseats.store.repository.StoreCategoryRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +45,7 @@ class OrderQueryServiceTest {
     private double riderLat;
     private double userLng;
     private double userLat;
+    int deliveryFee;
 
     @BeforeEach
     void setUp() {
@@ -46,6 +55,8 @@ class OrderQueryServiceTest {
 
         userLng = 126.9851;
         userLat = 37.5631;
+
+        deliveryFee = 6000;
 
         member = Member.builder()
                 .password("Password123!")
@@ -65,6 +76,50 @@ class OrderQueryServiceTest {
                 .build();
 
         storeCategoryRepository.save(storeCategory);
+    }
+
+    private Store createStore(String address, double lng, double lat, String name) {
+        Store store = Store.builder()
+                .member(member)
+                .storePhone("010-1234-1234")
+                .storeCategory(storeCategory)
+                .storeAddress(address)
+                .orderable(true)
+                .businessStatus(BusinessStatus.OPEN)
+                .defaultDeliveryFee(deliveryFee)
+                .location(GeoUtil.toPoint(lng, lat))
+                .description("가게입니다.")
+                .storeName(name)
+                .build();
+
+        storeRepository.save(store);
+
+        return store;
+    }
+
+    private Order createOrder(
+      String orderNumber,
+      double lng,
+      double lat,
+      OrderStatus orderStatus,
+      int price,
+      String address
+    ) {
+        Order order = Order.builder()
+                .deliveryFee(deliveryFee)
+                .orderNumber(orderNumber)
+                .storeLocation(GeoUtil.toPoint(lng, lat))
+                .deliveryType(DeliveryType.DEFAULT)
+                .orderStatus(orderStatus)
+                .orderPrice(price)
+                .deliveryAddress(address)
+                .member(member)
+                .destinationLocation(GeoUtil.toPoint(userLng, userLat))
+                .build();
+
+        orderRepository.save(order);
+
+        return order;
     }
 
 }
