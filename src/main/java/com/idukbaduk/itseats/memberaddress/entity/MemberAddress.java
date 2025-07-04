@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "member_address")
+@Table(name = "member_address", indexes = @Index(name = "idx_member_address_location", columnList = "location"))
 public class MemberAddress extends BaseEntity {
 
     @Id
