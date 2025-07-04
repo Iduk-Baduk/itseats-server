@@ -5,9 +5,12 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class AddressCreateResponse {
+public class AddressResponse {
 
+    private Long addressId;
     private String mainAddress;
     private String detailAddress;
     private String addressCategory;
+    private Double lng;
+    private Double lat;
 }

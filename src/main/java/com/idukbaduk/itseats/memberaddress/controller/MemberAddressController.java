@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/addresses")
@@ -28,5 +25,34 @@ public class MemberAddressController {
                 AddressResponse.CREATE_ADDRESS_SUCCESS,
                 memberAddressService.createAddress(userDetails.getUsername(), addressCreateRequest)
         );
+    }
+
+    @GetMapping
+    public ResponseEntity<BaseResponse> getAddressList(@AuthenticationPrincipal UserDetails userDetails) {
+        return BaseResponse.toResponseEntity(
+                AddressResponse.GET_ADDRESS_LIST_SUCCESS,
+                memberAddressService.getAddressList(userDetails.getUsername())
+        );
+    }
+
+    @PutMapping("/{addressId}")
+    public ResponseEntity<BaseResponse> updateAddress(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody AddressCreateRequest addressUpdateRequest,
+            @PathVariable Long address_id) {
+        return BaseResponse.toResponseEntity(
+                AddressResponse.UPDATE_ADDRESS_SUCCESS,
+                memberAddressService.updateAddress(userDetails.getUsername(), addressUpdateRequest, address_id)
+        );
+    }
+
+    @DeleteMapping("/{addressId}")
+    public ResponseEntity<BaseResponse> deleteAddress(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long address_id) {
+        memberAddressService.deleteAddress(userDetails.getUsername(), address_id);
+        return BaseResponse.toResponseEntity(
+                AddressResponse.DELETE_ADDRESS_SUCCESS,
+                address_id);
     }
 }
