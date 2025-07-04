@@ -20,7 +20,7 @@ public class StoreController {
     private final StoreService storeService;
 
     @GetMapping("/list")
-    public ResponseEntity<BaseResponse> getAllStores(@PageableDefault Pageable pageable) {
+    public ResponseEntity<BaseResponse> getAllStores(@PageableDefault(size = 20) Pageable pageable) {
         return BaseResponse.toResponseEntity(
                 StoreResponse.GET_STORES_SUCCESS,
                 storeService.getAllStores(pageable)

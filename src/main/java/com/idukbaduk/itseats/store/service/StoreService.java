@@ -89,23 +89,18 @@ public class StoreService {
                 .orElseThrow(() -> new StoreException(StoreErrorCode.CATEGORY_NOT_FOUND));
         Long categoryId = category.getStoreCategoryId();
 
-        Slice<Store> stores = null;
         // 기본 정렬 무시
         PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted());
-        if (sort == StoreSortOption.DISTANCE) {
-            Member member = memberRepository.findByUsername(username).orElse(null);
-            Point myLocation = getMyLocation(addressId, member); // 존재하지 않을시 기본 값: 서울시청
-            stores = storeRepository.findNearByStoresByCategory(categoryId, GeoUtil.toString(myLocation), pageRequest);
-        }
-        else if (sort == StoreSortOption.RATING) {
-            stores = storeRepository.findStoresOrderByRating(categoryId, pageRequest);
-        }
-        else if (sort == StoreSortOption.ORDER_COUNT) {
-            stores = storeRepository.findStoresOrderByOrderCount(categoryId, pageRequest);
-        }
-        else if (sort == StoreSortOption.RECENT) {
-            stores = storeRepository.findStoresOrderByCreatedAt(categoryId, pageRequest);
-        }
+        Slice<Store> stores = switch(sort) {
+            case DISTANCE -> {
+                Member member = memberRepository.findByUsername(username).orElse(null);
+                Point myLocation = getMyLocation(addressId, member); // 존재하지 않을시 기본 값: 서울시청
+                yield storeRepository.findNearByStoresByCategory(categoryId, GeoUtil.toString(myLocation), pageRequest);
+            }
+            case RATING -> storeRepository.findStoresOrderByRating(categoryId, pageRequest);
+            case ORDER_COUNT -> storeRepository.findStoresOrderByOrderCount(categoryId, pageRequest);
+            case RECENT -> storeRepository.findStoresOrderByCreatedAt(categoryId, pageRequest);
+        };
 
         if (stores == null || stores.getContent().isEmpty()) {
             return StoreCategoryListResponse.builder()
