@@ -1,6 +1,6 @@
 package com.idukbaduk.itseats.order.dto;
 
-public interface NearbyOrderDto {
+public interface NearbyOrderDTO {
     Long getOrderId();
     String getStoreName();
     Double getDistance();

@@ -1,7 +1,7 @@
 package com.idukbaduk.itseats.order.repository;
 
 import com.idukbaduk.itseats.member.entity.Member;
-import com.idukbaduk.itseats.order.dto.NearbyOrderDto;
+import com.idukbaduk.itseats.order.dto.NearbyOrderDTO;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.rider.entity.Rider;
 import org.springframework.data.domain.Pageable;
@@ -156,7 +156,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             WHERE distance <= :radiusInMeters
             ORDER BY distance;
     """, nativeQuery = true)
-    List<NearbyOrderDto> findNearbyOrders(
+    List<NearbyOrderDTO> findNearbyOrders(
             @Param("lat") double latitude,
             @Param("lon") double longitude,
             @Param("radiusInMeters") int radiusInMeters
