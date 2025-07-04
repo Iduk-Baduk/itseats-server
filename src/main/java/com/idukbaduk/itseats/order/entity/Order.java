@@ -24,7 +24,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "orders")
+@Table(
+  name = "orders",
+  indexes = @Index(name = "idx_store_location", columnList = "store_location")
+)
 public class Order extends BaseEntity {
 
     @Id
