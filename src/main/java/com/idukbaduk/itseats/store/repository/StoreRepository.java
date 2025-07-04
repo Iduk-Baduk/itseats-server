@@ -41,4 +41,14 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
         ORDER BY AVG(IFNULL(r.store_star, 0)) DESC
     """, nativeQuery = true)
     Slice<Store> findStoresOrderByRating(Long storeCategoryId, Pageable pageable);
+
+    @Query(value = """
+        SELECT s.* FROM store s 
+        LEFT JOIN orders o ON o.store_id = s.store_id
+        WHERE s.store_category_id = :storeCategoryId
+            AND s.is_deleted = 0
+        GROUP BY s.store_id
+        ORDER BY COUNT(o.order_id) DESC
+    """, nativeQuery = true)
+    Slice<Store> findStoresOrderByOrderCount(Long storeCategoryId, Pageable pageable);
 }
