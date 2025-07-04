@@ -17,4 +17,14 @@ public class GeoUtil {
     public static Point toPoint(double lng, double lat) {
         return geometryFactory.createPoint(new Coordinate(lng, lat));
     }
+
+
+    /**
+     * Point 객체를 문자열로 변환합니다. (예시: "POINT(127.0276 37.4979)")
+     * @param point 객체
+     * @return String 문자열
+     */
+    public static String toString(Point point) {
+        return "POINT(" + point.getX() + " " + point.getY() + ")";
+    }
 }

@@ -39,20 +39,20 @@ public class MemberAddressController {
     public ResponseEntity<BaseResponse> updateAddress(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody AddressCreateRequest addressUpdateRequest,
-            @PathVariable Long address_id) {
+            @PathVariable Long addressId) {
         return BaseResponse.toResponseEntity(
                 AddressResponse.UPDATE_ADDRESS_SUCCESS,
-                memberAddressService.updateAddress(userDetails.getUsername(), addressUpdateRequest, address_id)
+                memberAddressService.updateAddress(userDetails.getUsername(), addressUpdateRequest, addressId)
         );
     }
 
     @DeleteMapping("/{addressId}")
     public ResponseEntity<BaseResponse> deleteAddress(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long address_id) {
-        memberAddressService.deleteAddress(userDetails.getUsername(), address_id);
+            @PathVariable Long addressId) {
+        memberAddressService.deleteAddress(userDetails.getUsername(), addressId);
         return BaseResponse.toResponseEntity(
                 AddressResponse.DELETE_ADDRESS_SUCCESS,
-                address_id);
+                addressId);
     }
 }

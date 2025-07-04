@@ -1,15 +1,18 @@
 package com.idukbaduk.itseats.store.service;
 
+import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.FavoriteRepository;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
-import com.idukbaduk.itseats.member.service.MemberService;
-import com.idukbaduk.itseats.menu.entity.MenuImage;
+import com.idukbaduk.itseats.memberaddress.error.MemberAddressException;
+import com.idukbaduk.itseats.memberaddress.error.enums.MemberAddressErrorCode;
+import com.idukbaduk.itseats.memberaddress.repository.MemberAddressRepository;
 import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import com.idukbaduk.itseats.store.dto.*;
+import com.idukbaduk.itseats.store.dto.enums.StoreSortOption;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
 import com.idukbaduk.itseats.store.entity.StoreImage;
@@ -20,10 +23,16 @@ import com.idukbaduk.itseats.store.repository.StoreCategoryRepository;
 import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Point;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +44,7 @@ public class StoreService {
     private final ReviewRepository reviewRepository;
     private final FavoriteRepository favoriteRepository;
     private final MemberRepository memberRepository;
+    private final MemberAddressRepository memberAddressRepository;
     private final StoreCategoryRepository storeCategoryRepository;
 
 
@@ -44,56 +54,88 @@ public class StoreService {
     }
 
     @Transactional(readOnly = true)
-    public StoreListResponse getAllStores() {
+    public StoreListResponse getAllStores(Pageable pageable) {
 
-        List<Store> stores = storeRepository.findAllByDeletedFalse();
+        // 기본 정렬 무시
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted());
+        Slice<Store> stores = storeRepository.findAllOrderByOrderCount(pageRequest);
 
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
-
         Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
 
         Map<Long, Double> storeIdToAvg = new HashMap<>();
         Map<Long, Integer> storeIdToCount = new HashMap<>();
         buildReviewStatsMap(storeIds, storeIdToAvg, storeIdToCount);
 
-        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImages, storeIdToAvg, storeIdToCount);
+        List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, storeIdToAvg, storeIdToCount);
 
         return StoreListResponse.builder()
                 .stores(storeDtos)
+                .currentPage(pageable.getPageNumber())
+                .hasNext(stores.hasNext())
                 .build();
     }
 
     @Transactional(readOnly = true)
-    public StoreCategoryListResponse getStoresByCategory(String categoryCode) {
+    public StoreCategoryListResponse getStoresByCategory(
+            String username,
+            String categoryCode,
+            Pageable pageable,
+            StoreSortOption sort,
+            Long addressId
+    ) {
 
         StoreCategory category = storeCategoryRepository.findByCategoryCode(categoryCode)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.CATEGORY_NOT_FOUND));
+        Long categoryId = category.getStoreCategoryId();
 
-        List<Store> stores = storeRepository.findAllByStoreCategory_CategoryCodeAndDeletedFalse(categoryCode);
+        // 기본 정렬 무시
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted());
+        Slice<Store> stores = switch(sort) {
+            case DISTANCE -> {
+                Member member = memberRepository.findByUsername(username).orElse(null);
+                Point myLocation = getMyLocation(addressId, member); // 존재하지 않을시 기본 값: 서울시청
+                yield storeRepository.findNearByStoresByCategory(categoryId, GeoUtil.toString(myLocation), pageRequest);
+            }
+            case RATING -> storeRepository.findStoresOrderByRating(categoryId, pageRequest);
+            case ORDER_COUNT -> storeRepository.findStoresOrderByOrderCount(categoryId, pageRequest);
+            case RECENT -> storeRepository.findStoresOrderByCreatedAt(categoryId, pageRequest);
+        };
 
-        if (stores.isEmpty()) {
+        if (stores == null || stores.getContent().isEmpty()) {
             return StoreCategoryListResponse.builder()
                     .category(categoryCode)
                     .categoryName(category.getCategoryName())
                     .stores(Collections.emptyList())
+                    .currentPage(pageable.getPageNumber())
+                    .hasNext(false)
                     .build();
         }
 
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
-
         Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
 
-        Map<Long, Double> storeIdToAvg = new HashMap<>();
-        Map<Long, Integer> storeIdToCount = new HashMap<>();
-        buildReviewStatsMap(storeIds, storeIdToAvg, storeIdToCount);
+        Map<Long, Double> storeIdToRatingAvg = new HashMap<>();
+        Map<Long, Integer> storeIdToRatingCount = new HashMap<>();
+        buildReviewStatsMap(storeIds, storeIdToRatingAvg, storeIdToRatingCount);
 
-        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImages, storeIdToAvg, storeIdToCount);
+        List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, storeIdToRatingAvg, storeIdToRatingCount);
 
         return StoreCategoryListResponse.builder()
                 .category(categoryCode)
                 .categoryName(category.getCategoryName())
                 .stores(storeDtos)
+                .currentPage(pageable.getPageNumber())
+                .hasNext(stores.hasNext())
                 .build();
+    }
+
+    private Point getMyLocation(Long addressId, Member member) {
+        return Optional.ofNullable(member)
+                .map(m -> memberAddressRepository.findByMemberAndAddressId(m, addressId)
+                        .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND))
+                        .getLocation())
+                .orElse(GeoUtil.toPoint(126.9779451, 37.5662952));  // 서울시청 (기본값)
     }
 
     private Map<Long, List<String>> buildStoreImageMap(List<Long> storeIds) {

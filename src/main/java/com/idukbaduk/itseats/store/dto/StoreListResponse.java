@@ -9,4 +9,6 @@ import java.util.List;
 @Builder
 public class StoreListResponse {
     private List<StoreDto> stores;
+    private Integer currentPage;
+    private Boolean hasNext;
 }
