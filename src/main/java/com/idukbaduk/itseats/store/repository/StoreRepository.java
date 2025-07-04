@@ -25,6 +25,15 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     List<Store> findAllByStoreCategory_CategoryCodeAndDeletedFalse(String categoryCode);
 
     @Query(value = """
+        SELECT s.* FROM store s 
+        LEFT JOIN orders o ON o.store_id = s.store_id
+        WHERE s.is_deleted = 0
+        GROUP BY s.store_id
+        ORDER BY COUNT(o.order_id) DESC
+    """, nativeQuery = true)
+    Slice<Store> findAllOrderByOrderCount(Pageable pageable);
+
+    @Query(value = """
         SELECT * FROM store
         WHERE store_category_id = :storeCategoryId
         AND is_deleted = 0

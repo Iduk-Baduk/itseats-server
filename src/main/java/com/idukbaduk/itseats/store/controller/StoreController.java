@@ -20,10 +20,10 @@ public class StoreController {
     private final StoreService storeService;
 
     @GetMapping("/list")
-    public ResponseEntity<BaseResponse> getAllStores() {
+    public ResponseEntity<BaseResponse> getAllStores(@PageableDefault Pageable pageable) {
         return BaseResponse.toResponseEntity(
                 StoreResponse.GET_STORES_SUCCESS,
-                storeService.getAllStores()
+                storeService.getAllStores(pageable)
         );
     }
 
@@ -44,7 +44,7 @@ public class StoreController {
             @PathVariable String storeCategory,
             @PageableDefault Pageable pageable,
             @RequestParam(defaultValue = "ORDER_COUNT") StoreSortOption sort,
-            @RequestParam Long addressId
+            @RequestParam(required = false) Long addressId
             ) {
         return BaseResponse.toResponseEntity(
                 StoreResponse.GET_STORES_BY_CATEGORY_SUCCESS,

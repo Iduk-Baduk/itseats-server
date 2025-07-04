@@ -54,22 +54,25 @@ public class StoreService {
     }
 
     @Transactional(readOnly = true)
-    public StoreListResponse getAllStores() {
+    public StoreListResponse getAllStores(Pageable pageable) {
 
-        List<Store> stores = storeRepository.findAllByDeletedFalse();
+        // 기본 정렬 무시
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted());
+        Slice<Store> stores = storeRepository.findAllOrderByOrderCount(pageRequest);
 
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
-
         Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
 
         Map<Long, Double> storeIdToAvg = new HashMap<>();
         Map<Long, Integer> storeIdToCount = new HashMap<>();
         buildReviewStatsMap(storeIds, storeIdToAvg, storeIdToCount);
 
-        List<StoreDto> storeDtos = buildStoreDtos(stores, storeIdToImages, storeIdToAvg, storeIdToCount);
+        List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, storeIdToAvg, storeIdToCount);
 
         return StoreListResponse.builder()
                 .stores(storeDtos)
+                .currentPage(pageable.getPageNumber())
+                .hasNext(stores.hasNext())
                 .build();
     }
 
@@ -84,31 +87,24 @@ public class StoreService {
 
         StoreCategory category = storeCategoryRepository.findByCategoryCode(categoryCode)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.CATEGORY_NOT_FOUND));
+        Long categoryId = category.getStoreCategoryId();
 
         Slice<Store> stores = null;
-        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted()); // 기본 정렬 무시
+        // 기본 정렬 무시
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted());
         if (sort == StoreSortOption.DISTANCE) {
             Member member = memberRepository.findByUsername(username).orElse(null);
-            Point myLocation = Optional.ofNullable(member)
-                    .map(m -> memberAddressRepository.findByMemberAndAddressId(m, addressId)
-                            .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND))
-                            .getLocation())
-                    .orElse(GeoUtil.toPoint(126.9779451, 37.5662952)); // 서울시청 (기본값)
-
-            stores = storeRepository.findNearByStoresByCategory(
-                    category.getStoreCategoryId(),
-                    GeoUtil.toString(myLocation),
-                    pageRequest
-            );
+            Point myLocation = getMyLocation(addressId, member); // 존재하지 않을시 기본 값: 서울시청
+            stores = storeRepository.findNearByStoresByCategory(categoryId, GeoUtil.toString(myLocation), pageRequest);
         }
         else if (sort == StoreSortOption.RATING) {
-            stores = storeRepository.findStoresOrderByRating(category.getStoreCategoryId(), pageRequest);
+            stores = storeRepository.findStoresOrderByRating(categoryId, pageRequest);
         }
         else if (sort == StoreSortOption.ORDER_COUNT) {
-            stores = storeRepository.findStoresOrderByOrderCount(category.getStoreCategoryId(), pageRequest);
+            stores = storeRepository.findStoresOrderByOrderCount(categoryId, pageRequest);
         }
         else if (sort == StoreSortOption.RECENT) {
-            stores = storeRepository.findStoresOrderByCreatedAt(category.getStoreCategoryId(), pageRequest);
+            stores = storeRepository.findStoresOrderByCreatedAt(categoryId, pageRequest);
         }
 
         if (stores == null || stores.getContent().isEmpty()) {
@@ -137,6 +133,14 @@ public class StoreService {
                 .currentPage(pageable.getPageNumber())
                 .hasNext(stores.hasNext())
                 .build();
+    }
+
+    private Point getMyLocation(Long addressId, Member member) {
+        return Optional.ofNullable(member)
+                .map(m -> memberAddressRepository.findByMemberAndAddressId(m, addressId)
+                        .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND))
+                        .getLocation())
+                .orElse(GeoUtil.toPoint(126.9779451, 37.5662952));  // 서울시청 (기본값)
     }
 
     private Map<Long, List<String>> buildStoreImageMap(List<Long> storeIds) {
