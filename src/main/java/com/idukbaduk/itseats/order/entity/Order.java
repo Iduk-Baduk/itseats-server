@@ -70,7 +70,7 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_address", nullable = false)
     private String deliveryAddress;
 
-    @Column(name = "destination_location", columnDefinition = "POINT", nullable = false)
+    @Column(name = "destination_location", columnDefinition = "POINT SRID 4326", nullable = false)
     private Point destinationLocation;
 
     @Column(name = "store_location", columnDefinition = "POINT SRID 4326", nullable = false)
