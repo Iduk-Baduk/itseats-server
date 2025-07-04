@@ -49,7 +49,7 @@ public class StoreController {
         return BaseResponse.toResponseEntity(
                 StoreResponse.GET_STORES_BY_CATEGORY_SUCCESS,
                 storeService.getStoresByCategory(
-                        (userDetails == null ? "test" : userDetails.getUsername()),
+                        (userDetails == null ? null : userDetails.getUsername()),
                         storeCategory, pageable,
                         sort,
                         addressId

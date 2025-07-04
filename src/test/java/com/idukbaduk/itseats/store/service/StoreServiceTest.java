@@ -11,6 +11,7 @@ import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
 import com.idukbaduk.itseats.store.dto.StoreCategoryListResponse;
 import com.idukbaduk.itseats.store.dto.StoreDto;
 import com.idukbaduk.itseats.store.dto.StoreListResponse;
+import com.idukbaduk.itseats.store.dto.enums.StoreSortOption;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
 import com.idukbaduk.itseats.store.entity.StoreImage;
@@ -25,6 +26,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 
 import java.util.Collections;
 import java.util.List;
@@ -261,6 +265,7 @@ class StoreServiceTest {
         // given
         String categoryCode = "burger";
         StoreCategory category = StoreCategory.builder()
+                .storeCategoryId(1L)
                 .categoryCode("burger")
                 .categoryName("버거")
                 .build();
@@ -272,8 +277,8 @@ class StoreServiceTest {
         StoreImage image2 = StoreImage.builder().store(store2).imageUrl("s3 url 2").build();
 
         when(storeCategoryRepository.findByCategoryCode(categoryCode)).thenReturn(Optional.of(category));
-        when(storeRepository.findAllByStoreCategory_CategoryCodeAndDeletedFalse(categoryCode))
-                .thenReturn(List.of(store1, store2));
+        when(storeRepository.findStoresOrderByRating(eq(1L), any(Pageable.class)))
+                .thenReturn(new SliceImpl<>(List.of(store1, store2)));
         when(storeImageRepository.findImagesByStoreIds(List.of(1L, 2L)))
                 .thenReturn(List.of(image1, image2));
         when(reviewRepository.findReviewStatsByStoreIds(List.of(1L, 2L)))
@@ -281,9 +286,16 @@ class StoreServiceTest {
                         new Object[]{1L, 4.9, 1742L},
                         new Object[]{2L, 4.7, 2847L}
                 ));
+        PageRequest pageRequest = PageRequest.of(0, 10);
 
         // when
-        StoreCategoryListResponse response = storeService.getStoresByCategory(categoryCode);
+        StoreCategoryListResponse response = storeService.getStoresByCategory(
+                null,
+                categoryCode,
+                pageRequest,
+                StoreSortOption.RATING,
+                null
+        );
 
         // then
         assertThat(response).isNotNull();
@@ -312,9 +324,11 @@ class StoreServiceTest {
         // given
         String categoryCode = "unknown";
         when(storeCategoryRepository.findByCategoryCode(categoryCode)).thenReturn(Optional.empty());
+        PageRequest pageRequest = PageRequest.of(0, 10);
 
         // when & then
-        assertThatThrownBy(() -> storeService.getStoresByCategory(categoryCode))
+        assertThatThrownBy(() -> storeService.getStoresByCategory(null, categoryCode, pageRequest,
+                StoreSortOption.RATING, null))
                 .isInstanceOf(StoreException.class)
                 .hasMessageContaining(StoreErrorCode.CATEGORY_NOT_FOUND.getMessage());
     }
@@ -324,15 +338,18 @@ class StoreServiceTest {
     void getStoresByCategory_noStores() {
         String categoryCode = "burger";
         StoreCategory category = StoreCategory.builder()
+                .storeCategoryId(1L)
                 .categoryCode("burger")
                 .categoryName("버거")
                 .build();
 
         when(storeCategoryRepository.findByCategoryCode(categoryCode)).thenReturn(Optional.of(category));
-        when(storeRepository.findAllByStoreCategory_CategoryCodeAndDeletedFalse(categoryCode))
-                .thenReturn(Collections.emptyList());
+        when(storeRepository.findStoresOrderByRating(eq(1L), any(Pageable.class)))
+                .thenReturn(new SliceImpl<>(Collections.emptyList()));
+        PageRequest pageRequest = PageRequest.of(0, 10);
 
-        StoreCategoryListResponse response = storeService.getStoresByCategory(categoryCode);
+        StoreCategoryListResponse response = storeService.getStoresByCategory(null, categoryCode,
+                pageRequest, StoreSortOption.RATING, null);
 
         assertThat(response).isNotNull();
         assertThat(response.getCategory()).isEqualTo("burger");
