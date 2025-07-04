@@ -45,4 +45,25 @@ public class MemberAddress extends BaseEntity {
     @Column(name = "last_used_date")
     private LocalDateTime lastUsedDate;
 
+    public void updateAddress(String mainAddress, String detailAddress, Point location, AddressCategory category) {
+        validateAddressFields(mainAddress, detailAddress, location, category);
+
+        this.mainAddress = mainAddress;
+        this.detailAddress = detailAddress;
+        this.location = location;
+        this.addressCategory = category;
+        this.lastUsedDate = LocalDateTime.now();
+    }
+
+    private void validateAddressFields(String mainAddress, String detailAddress, Point location, AddressCategory category) {
+        if (mainAddress == null || mainAddress.trim().isEmpty()) {
+            throw new IllegalArgumentException("메인 주소는 필수입니다");
+        }
+        if (detailAddress == null || detailAddress.trim().isEmpty()) {
+            throw new IllegalArgumentException("상세 주소는 필수입니다");
+        }
+        if (location == null || category == null) {
+            throw new IllegalArgumentException("위치 정보와 주소 카테고리는 필수입니다");
+        }
+    }
 }
