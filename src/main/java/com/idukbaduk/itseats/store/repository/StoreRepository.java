@@ -51,4 +51,12 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
         ORDER BY COUNT(o.order_id) DESC
     """, nativeQuery = true)
     Slice<Store> findStoresOrderByOrderCount(Long storeCategoryId, Pageable pageable);
+
+    @Query(value = """
+        SELECT * FROM store
+        WHERE store_category_id = :storeCategoryId
+            AND is_deleted = 0
+        ORDER BY created_at DESC
+    """, nativeQuery = true)
+    Slice<Store> findStoresOrderByCreatedAt(Long storeCategoryId, Pageable pageable);
 }

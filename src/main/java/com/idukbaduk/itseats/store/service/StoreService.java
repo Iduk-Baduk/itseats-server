@@ -107,6 +107,9 @@ public class StoreService {
         else if (sort == StoreSortOption.ORDER_COUNT) {
             stores = storeRepository.findStoresOrderByOrderCount(category.getStoreCategoryId(), pageRequest);
         }
+        else if (sort == StoreSortOption.RECENT) {
+            stores = storeRepository.findStoresOrderByCreatedAt(category.getStoreCategoryId(), pageRequest);
+        }
 
         if (stores == null || stores.getContent().isEmpty()) {
             return StoreCategoryListResponse.builder()
