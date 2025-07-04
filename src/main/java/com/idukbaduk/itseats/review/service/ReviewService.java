@@ -22,8 +22,10 @@ import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import com.idukbaduk.itseats.rider.entity.Rider;
 import com.idukbaduk.itseats.store.entity.Store;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
@@ -114,11 +117,20 @@ public class ReviewService {
     }
 
     private void updateStoreStarCache(Long storeId, int storeStar) {
-        String key = "store:" + storeId + ":review:stats";
-        HashOperations<String, Object, Object> ops = redisTemplate.opsForHash();
-        String starField = "star_" + storeStar;
-        ops.increment(key, starField, 1);
-        ops.increment(key, "sum", storeStar);
-        ops.increment(key, "count", 1);
+        try {
+            String key = "store:" + storeId + ":review:stats";
+            redisTemplate.execute((RedisCallback<Object>) connection -> {
+                connection.multi();
+                byte[] keyBytes = key.getBytes();
+                connection.hashCommands().hIncrBy(keyBytes, ("star_" + storeStar).getBytes(), 1L);
+                connection.hashCommands().hIncrBy(keyBytes, "sum".getBytes(), (long) storeStar);
+                connection.hashCommands().hIncrBy(keyBytes, "count".getBytes(), 1L);
+                connection.exec();
+                return null;
+            });
+        } catch (Exception e) {
+            log.error("Failed to update store review stats for storeId: {}", storeId, e);
+            // 통계 업데이트 실패는 리뷰 생성을 막지 않음
+        }
     }
 }
