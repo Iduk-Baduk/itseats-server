@@ -31,4 +31,14 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
         ORDER BY ST_Distance_Sphere(location, ST_GeomFromText(:myLocation, 4326))
     """, nativeQuery = true)
     Slice<Store> findNearByStoresByCategory(Long storeCategoryId, String myLocation, Pageable pageable);
+
+    @Query(value = """
+        SELECT s.* FROM store s
+        LEFT JOIN review r ON r.store_id = s.store_id
+        WHERE s.store_category_id = :storeCategoryId
+          AND s.is_deleted = 0
+        GROUP BY s.store_id
+        ORDER BY AVG(IFNULL(r.store_star, 0)) DESC
+    """, nativeQuery = true)
+    Slice<Store> findStoresOrderByRating(Long storeCategoryId, Pageable pageable);
 }

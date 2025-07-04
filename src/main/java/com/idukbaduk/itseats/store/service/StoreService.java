@@ -86,6 +86,7 @@ public class StoreService {
                 .orElseThrow(() -> new StoreException(StoreErrorCode.CATEGORY_NOT_FOUND));
 
         Slice<Store> stores = null;
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted()); // 기본 정렬 무시
         if (sort == StoreSortOption.DISTANCE) {
             Member member = memberRepository.findByUsername(username).orElse(null);
             Point myLocation = Optional.ofNullable(member)
@@ -94,12 +95,14 @@ public class StoreService {
                             .getLocation())
                     .orElse(GeoUtil.toPoint(126.9779451, 37.5662952)); // 서울시청 (기본값)
 
-            PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted()); // 기본 정렬 무시
             stores = storeRepository.findNearByStoresByCategory(
                     category.getStoreCategoryId(),
                     GeoUtil.toString(myLocation),
                     pageRequest
             );
+        }
+        else if (sort == StoreSortOption.RATING) {
+            stores = storeRepository.findStoresOrderByRating(category.getStoreCategoryId(), pageRequest);
         }
 
         if (stores == null || stores.getContent().isEmpty()) {
