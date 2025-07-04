@@ -152,7 +152,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                         ) AS distance
                 FROM orders o
                     JOIN store s ON o.store_id = s.store_id
-                WHERE o.order_state = 'COOKED') AS nearbyOrders
+                WHERE o.order_status = 'COOKED') AS nearbyOrders
             WHERE distance <= :radiusInMeters
             ORDER BY distance;
     """, nativeQuery = true)
