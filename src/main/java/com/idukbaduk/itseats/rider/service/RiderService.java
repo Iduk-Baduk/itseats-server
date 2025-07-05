@@ -1,6 +1,8 @@
 package com.idukbaduk.itseats.rider.service;
 
+import com.idukbaduk.itseats.order.dto.NearbyOrderDTO;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
 import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
@@ -16,12 +18,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class RiderService {
 
     private final RiderRepository riderRepository;
     private final RiderAssignmentRepository riderAssignmentRepository;
+    private final OrderRepository orderRepository;
+
 
     @Transactional
     public WorkingInfoResponse modifyWorking(String username, ModifyWorkingRequest modifyWorkingRequest) {
@@ -68,5 +74,11 @@ public class RiderService {
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_ASSIGNMENT_NOT_FOUND));
 
         riderAssignment.updateAssignmentStatus(assignmentStatus);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NearbyOrderDTO> findNearbyOrders(double latitude, double longitude, int searchRadiusMeters) {
+
+        return orderRepository.findNearbyOrders(longitude, latitude, searchRadiusMeters);
     }
 }
