@@ -1,4 +1,4 @@
-package com.idukbaduk.itseats.order.service;
+package com.idukbaduk.itseats.rider.service;
 
 import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
@@ -29,10 +29,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
-class OrderQueryServiceTest {
+class FindNearbyOrdersServiceTest {
 
     @Autowired
-    private OrderQueryService orderQueryService;
+    private RiderService riderService;
 
     @Autowired
     private StoreRepository storeRepository;
@@ -142,7 +142,7 @@ class OrderQueryServiceTest {
 
         // when
         // 3km(3000m) 이내 배달 조회
-        List<NearbyOrderDTO> nearbyOrders = orderQueryService.findNearbyOrders(riderLat, riderLng, 3 * 10 * 100);
+        List<NearbyOrderDTO> nearbyOrders = riderService.findNearbyOrders(riderLat, riderLng, 3 * 10 * 100);
 
         // then
         assertThat(nearbyOrders).hasSize(2);
