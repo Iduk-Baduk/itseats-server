@@ -19,7 +19,7 @@ public class UserMenuController {
 
     private final UserMenuService userMenuService;
 
-    @GetMapping("/{storeId}/{menuId}/options")
+    @GetMapping("/{storeId}/menus/{menuId}/options")
     public ResponseEntity<BaseResponse> getMenuOptions(
             @PathVariable Long storeId,
             @PathVariable Long menuId
