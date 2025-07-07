@@ -6,4 +6,5 @@ public interface NearbyOrderDTO {
     Double getDistance();
     Integer getDeliveryFee();
     String getDeliveryAddress();
+    String getDeliveryType();
 }
