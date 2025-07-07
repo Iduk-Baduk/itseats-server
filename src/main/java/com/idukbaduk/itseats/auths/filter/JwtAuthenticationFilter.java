@@ -1,6 +1,8 @@
 package com.idukbaduk.itseats.auths.filter;
 
+import com.idukbaduk.itseats.auths.error.AuthException;
 import com.idukbaduk.itseats.auths.usecase.AuthUseCase;
+import com.idukbaduk.itseats.external.jwt.error.JwtTokenException;
 import com.idukbaduk.itseats.external.jwt.service.JwtTokenParser;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,14 +25,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String token = jwtTokenParser.resolveToken(request);
+        try {
+            String token = jwtTokenParser.resolveToken(request);
 
-        if (token != null && authUseCase.verify(token)) {
-            Authentication auth = authUseCase.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            if (token != null && authUseCase.verify(token)) {
+                Authentication auth = authUseCase.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+
+            filterChain.doFilter(request, response);
+        } catch (JwtTokenException ex) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("""
+            {
+              "message": "%s"
+            }
+        """.formatted(ex.getErrorCode().getMessage()));
         }
-
-        filterChain.doFilter(request, response);
     }
 
 }
