@@ -3,10 +3,7 @@ package com.idukbaduk.itseats.rider.service;
 import com.idukbaduk.itseats.order.dto.NearbyOrderDTO;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
-import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
-import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
-import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
-import com.idukbaduk.itseats.rider.dto.WorkingInfoResponse;
+import com.idukbaduk.itseats.rider.dto.*;
 import com.idukbaduk.itseats.rider.entity.Rider;
 import com.idukbaduk.itseats.rider.entity.RiderAssignment;
 import com.idukbaduk.itseats.rider.entity.enums.AssignmentStatus;
@@ -19,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -77,8 +75,22 @@ public class RiderService {
     }
 
     @Transactional(readOnly = true)
-    public List<NearbyOrderDTO> findNearbyOrders(double latitude, double longitude, int searchRadiusMeters) {
+    public List<ReadyOrderResponse> findNearbyOrders(NearByOrderRequest request, int searchRadiusMeters) {
+        List<NearbyOrderDTO> nearbyOrders = orderRepository.findNearbyOrders(
+          request.longitude(),
+          request.latitude(),
+          searchRadiusMeters
+        ).orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_LOCATION_NOT_FOUND));
 
-        return orderRepository.findNearbyOrders(longitude, latitude, searchRadiusMeters);
+
+        return nearbyOrders.stream()
+                .map(dto -> ReadyOrderResponse.builder()
+                        .deliveryType(null)
+                        .storeName(dto.getStoreName())
+                        .deliveryDistance(Math.round(dto.getDistance() / 100.0) / 10.0)
+                        .deliveryFee(dto.getDeliveryFee())
+                        .deliveryAddress(dto.getDeliveryAddress())
+                        .build())
+                .toList();
     }
 }
