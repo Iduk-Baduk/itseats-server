@@ -79,9 +79,9 @@ public class RiderService {
         final int searchRadiusMeters = 10 * 1000; // 10km
 
         List<NearbyOrderDTO> nearbyOrders = orderRepository.findNearbyOrders(
-          request.longitude(),
-          request.latitude(),
-          searchRadiusMeters
+                request.getLongitude(),
+                request.getLatitude(),
+                searchRadiusMeters
         );
 
         if (nearbyOrders.isEmpty()) {
