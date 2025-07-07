@@ -156,7 +156,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             WHERE distance <= :radiusInMeters
             ORDER BY distance;
     """, nativeQuery = true)
-    Optional<List<NearbyOrderDTO>> findNearbyOrders(
+    List<NearbyOrderDTO> findNearbyOrders(
             @Param("lat") double latitude,
             @Param("lon") double longitude,
             @Param("radiusInMeters") int radiusInMeters
