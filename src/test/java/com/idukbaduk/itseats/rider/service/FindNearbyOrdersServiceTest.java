@@ -9,6 +9,8 @@ import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.rider.dto.NearByOrderRequest;
+import com.idukbaduk.itseats.rider.dto.ReadyOrderResponse;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
 import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
@@ -139,10 +141,10 @@ class FindNearbyOrdersServiceTest {
                 storeD
         );
 
-
         // when
         // 3km(3000m) 이내 배달 조회
-        List<NearbyOrderDTO> nearbyOrders = riderService.findNearbyOrders(riderLat, riderLng, 3 * 10 * 100);
+        NearByOrderRequest request = new NearByOrderRequest(riderLat, riderLng);
+        List<ReadyOrderResponse> nearbyOrders = riderService.findNearbyOrders(request);
 
         // then
         assertThat(nearbyOrders).hasSize(2);
