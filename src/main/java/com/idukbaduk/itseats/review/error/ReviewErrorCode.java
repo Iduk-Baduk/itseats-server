@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ReviewErrorCode implements ErrorCode {
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰가 없습니다."),
+    ALREADY_REPORTED(HttpStatus.CONFLICT, "이미 신고한 리뷰입니다."),
     ;
 
     private final HttpStatus httpStatus;
