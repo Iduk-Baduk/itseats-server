@@ -21,7 +21,7 @@ public class CorsConfig {
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
-        config.setExposedHeaders(List.of("access-token"));
+        config.setExposedHeaders(List.of("access-token", "Access-Token"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
