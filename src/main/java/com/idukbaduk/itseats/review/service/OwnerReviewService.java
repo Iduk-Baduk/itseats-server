@@ -18,6 +18,7 @@ import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,7 @@ public class OwnerReviewService {
     private final ReviewRepository reviewRepository;
     private final StoreRepository storeRepository;
 
+    @Transactional
     public ReviewReportResponse reportReview(
             String username, Long storeId, Long reviewId, ReviewReportRequest request
     ) {

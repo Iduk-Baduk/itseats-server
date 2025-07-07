@@ -5,6 +5,7 @@ import com.idukbaduk.itseats.review.dto.ReviewReportRequest;
 import com.idukbaduk.itseats.review.dto.ReviewReportResponse;
 import com.idukbaduk.itseats.review.dto.enums.ReviewResponse;
 import com.idukbaduk.itseats.review.service.OwnerReviewService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +23,7 @@ public class OwnerReviewController {
     public ResponseEntity<BaseResponse> reportReview(
             @PathVariable("storeId") Long storeId,
             @PathVariable("reviewId") Long reviewId,
-            @RequestBody ReviewReportRequest request,
+            @RequestBody @Valid ReviewReportRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         ReviewReportResponse response =

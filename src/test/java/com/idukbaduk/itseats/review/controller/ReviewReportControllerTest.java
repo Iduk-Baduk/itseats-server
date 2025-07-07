@@ -79,7 +79,7 @@ class ReviewReportControllerTest {
     }
 
     @Test
-    @DisplayName("가맹점주가 아니면 403 반환")
+    @DisplayName("가맹점주가 아니면 에러 발생")
     @WithMockUser(username = "owner1")
     void reportReview_notStoreOwner() throws Exception {
         // given
@@ -100,7 +100,7 @@ class ReviewReportControllerTest {
     }
 
     @Test
-    @DisplayName("리뷰가 없으면 404 반환")
+    @DisplayName("리뷰가 없으면 에러 발생")
     @WithMockUser(username = "owner1")
     void reportReview_reviewNotFound() throws Exception {
         // given
@@ -121,7 +121,7 @@ class ReviewReportControllerTest {
     }
 
     @Test
-    @DisplayName("중복 신고 시 409 반환")
+    @DisplayName("중복 신고 시 에러 발생")
     @WithMockUser(username = "owner1")
     void reportReview_alreadyReported() throws Exception {
         // given
