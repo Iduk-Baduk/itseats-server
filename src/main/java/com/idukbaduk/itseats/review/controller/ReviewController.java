@@ -2,6 +2,7 @@ package com.idukbaduk.itseats.review.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.review.dto.StoreReviewResponse;
+import com.idukbaduk.itseats.review.dto.enums.ReviewResponse;
 import com.idukbaduk.itseats.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,6 @@ public class ReviewController {
     @GetMapping("/{storeId}")
     public ResponseEntity<BaseResponse> getStoreReviews(@PathVariable Long storeId) {
         StoreReviewResponse response = reviewService.getReviewsByStore(storeId);
-        return BaseResponse.toResponseEntity(HttpStatus.OK, "가게 별 리뷰 목록 조회 성공", response);
+        return BaseResponse.toResponseEntity(ReviewResponse.GET_STORE_REVIEWS, response);
     }
 }
