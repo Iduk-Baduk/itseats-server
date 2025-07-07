@@ -16,6 +16,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -117,8 +118,8 @@ class OwnerReviewControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/owner/{storeId}/reviews", storeId)
-                        .param("startDate", startDate.toString())
-                        .param("endDate", endDate.toString()))
+                        .param("startDate", startDate.format(DateTimeFormatter.ISO_DATE_TIME))
+                        .param("endDate", endDate.format(DateTimeFormatter.ISO_DATE_TIME)))
                 .andExpect(status().isNotFound());
     }
 }
