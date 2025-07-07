@@ -50,8 +50,6 @@ public class StoreService {
     private final StoreCategoryRepository storeCategoryRepository;
     private final ReviewStatsService reviewStatsService;
 
-    // TODO: #176번 PR Merge 후 서비스 코드 수정
-
     public Store getStore(Member member, Long storeId) {
         return storeRepository.findByMemberAndStoreId(member, storeId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
@@ -67,11 +65,7 @@ public class StoreService {
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
         Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
 
-        Map<Long, StoreReviewStats> reviewStatsMap = new HashMap<>();
-        for (Long storeId : storeIds) {
-            StoreReviewStats stats = reviewStatsService.getReviewStats(storeId);
-            reviewStatsMap.put(storeId, stats);
-        }
+        Map<Long, StoreReviewStats> reviewStatsMap = reviewStatsService.getReviewStatsForStores(storeIds);
 
         List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, reviewStatsMap);
 
@@ -120,12 +114,7 @@ public class StoreService {
 
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
         Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
-
-        Map<Long, StoreReviewStats> reviewStatsMap = new HashMap<>();
-        for (Long storeId : storeIds) {
-            StoreReviewStats stats = reviewStatsService.getReviewStats(storeId);
-            reviewStatsMap.put(storeId, stats);
-        }
+        Map<Long, StoreReviewStats> reviewStatsMap = reviewStatsService.getReviewStatsForStores(storeIds);
 
         List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, reviewStatsMap);
         return StoreCategoryListResponse.builder()
