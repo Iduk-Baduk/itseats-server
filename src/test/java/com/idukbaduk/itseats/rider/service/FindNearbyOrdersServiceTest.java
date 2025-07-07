@@ -4,7 +4,6 @@ import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.entity.enums.MemberType;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
-import com.idukbaduk.itseats.order.dto.NearbyOrderDTO;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
@@ -88,7 +87,7 @@ class FindNearbyOrdersServiceTest {
     }
 
     @Test
-    @DisplayName("라이더 위치 3km 반경 내에 있는 '대기중' 상태의 배달만 조회한다.")
+    @DisplayName("라이더 위치 10km 반경 내에 있는 '대기중' 상태의 배달만 조회한다.")
     void findNearbyOrdersTest() {
         // given
 
