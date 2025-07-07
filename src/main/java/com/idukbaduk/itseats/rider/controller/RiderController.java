@@ -2,6 +2,7 @@ package com.idukbaduk.itseats.rider.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
+import com.idukbaduk.itseats.rider.dto.NearByOrderRequest;
 import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
 import com.idukbaduk.itseats.rider.dto.enums.RiderResponse;
 import com.idukbaduk.itseats.rider.service.RiderService;
@@ -42,6 +43,17 @@ public class RiderController {
         return BaseResponse.toResponseEntity(
                 RiderResponse.REJECT_DELIVERY_SUCCESS,
                 riderService.rejectDelivery(userDetails.getUsername(), orderId, reasonRequest)
+        );
+    }
+
+    @PostMapping("/ready-order")
+    public ResponseEntity<BaseResponse> getNearbyOrders(
+            @RequestBody NearByOrderRequest request
+    ) {
+
+        return BaseResponse.toResponseEntity(
+                RiderResponse.GET_NEARBY_ORDERS_SUCCESS,
+                riderService.findNearbyOrders(request)
         );
     }
 }
