@@ -80,7 +80,11 @@ public class RiderService {
           request.longitude(),
           request.latitude(),
           searchRadiusMeters
-        ).orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_LOCATION_NOT_FOUND));
+        );
+
+        if (nearbyOrders.isEmpty()) {
+            throw new RiderException(RiderErrorCode.RIDER_LOCATION_NOT_FOUND);
+        }
 
 
         return nearbyOrders.stream()
