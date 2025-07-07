@@ -1,11 +1,9 @@
 package com.idukbaduk.itseats.review.controller;
 
-import com.idukbaduk.itseats.auths.dto.CustomMemberDetails;
 import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.review.dto.ReviewListResponse;
 import com.idukbaduk.itseats.review.dto.enums.ReviewResponse;
 import com.idukbaduk.itseats.review.service.OwnerReviewService;
-import com.idukbaduk.itseats.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +27,9 @@ public class OwnerReviewController {
             @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @AuthenticationPrincipal UserDetails userDetails
             ) {
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("시작 날짜는 종료 날짜보다 이전이어야 합니다.");
+        }
         ReviewListResponse response =
                 ownerReviewService.getReviewsByStoreAndPeriod(storeId, startDate, endDate, userDetails.getUsername());
         return BaseResponse.toResponseEntity(ReviewResponse.GET_STORE_REVIEWS_BY_PERIOD, response);
