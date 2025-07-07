@@ -49,7 +49,7 @@ public class PaymentService {
                 .discountValue(0)
                 .totalCost(paymentInfoRequest.getTotalCost())
                 .paymentMethod(PaymentMethod.valueOf(paymentInfoRequest.getPaymentMethod()))
-                .paymentStatus(PaymentStatus.valueOf(paymentInfoRequest.getPaymentStatus()))
+                .paymentStatus(PaymentStatus.PENDING)
                 .storeRequest(paymentInfoRequest.getStoreRequest())
                 .riderRequest(paymentInfoRequest.getRiderRequest())
                 .build();
