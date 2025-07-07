@@ -34,6 +34,7 @@ import org.springframework.data.domain.SliceImpl;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -120,15 +121,19 @@ class StoreServiceTest {
         StoreImage image2 = StoreImage.builder().store(store2).imageUrl("s3 url 2").build();
         StoreImage image3 = StoreImage.builder().store(store3).imageUrl("s3 url 3").build();
 
+        List<Long> storeIds = List.of(1L, 2L, 3L);
+
         when(storeRepository.findAllOrderByOrderCount(any(Pageable.class)))
                 .thenReturn(new SliceImpl<>(List.of(store1, store2, store3)));
-        when(storeImageRepository.findImagesByStoreIds(List.of(1L, 2L, 3L)))
+        when(storeImageRepository.findImagesByStoreIds(storeIds))
                 .thenReturn(List.of(image1, image2, image3));
 
-        // ReviewStatsService 동작 설정
-        when(reviewStatsService.getReviewStats(1L)).thenReturn(new StoreReviewStats(4.9, 1742));
-        when(reviewStatsService.getReviewStats(2L)).thenReturn(new StoreReviewStats(4.7, 2847));
-        when(reviewStatsService.getReviewStats(3L)).thenReturn(new StoreReviewStats(4.5, 3715));
+        Map<Long, StoreReviewStats> reviewStatsMap = Map.of(
+                1L, new StoreReviewStats(4.9, 1742),
+                2L, new StoreReviewStats(4.7, 2847),
+                3L, new StoreReviewStats(4.5, 3715)
+        );
+        when(reviewStatsService.getReviewStatsForStores(storeIds)).thenReturn(reviewStatsMap);
 
         PageRequest pageRequest = PageRequest.of(0, 10);
 
@@ -159,6 +164,8 @@ class StoreServiceTest {
         assertThat(dto3.getName()).isEqualTo("롯데리아 구름점");
         assertThat(dto3.getReview()).isEqualTo(4.5);
         assertThat(dto3.getReviewCount()).isEqualTo(3715);
+
+        verify(reviewStatsService, times(1)).getReviewStatsForStores(storeIds);
     }
 
     @Test
@@ -168,13 +175,17 @@ class StoreServiceTest {
         Store store1 = Store.builder().storeId(1L).storeName("신규 가게").build();
         StoreImage image1 = StoreImage.builder().store(store1).imageUrl("s3 url").build();
 
+        List<Long> storeIds = List.of(1L);
+
         when(storeRepository.findAllOrderByOrderCount(any(Pageable.class)))
                 .thenReturn(new SliceImpl<>(List.of(store1)));
-        when(storeImageRepository.findImagesByStoreIds(List.of(1L)))
+        when(storeImageRepository.findImagesByStoreIds(storeIds))
                 .thenReturn(List.of(image1));
 
-        // ReviewStatsService가 0값 반환하도록 설정
-        when(reviewStatsService.getReviewStats(1L)).thenReturn(new StoreReviewStats(0.0, 0));
+        Map<Long, StoreReviewStats> reviewStatsMap = Map.of(
+                1L, new StoreReviewStats(0.0, 0)
+        );
+        when(reviewStatsService.getReviewStatsForStores(storeIds)).thenReturn(reviewStatsMap);
 
         PageRequest pageRequest = PageRequest.of(0, 10);
 
@@ -191,6 +202,8 @@ class StoreServiceTest {
         assertThat(dto.getName()).isEqualTo("신규 가게");
         assertThat(dto.getReview()).isEqualTo(0.0);
         assertThat(dto.getReviewCount()).isEqualTo(0);
+
+        verify(reviewStatsService, times(1)).getReviewStatsForStores(storeIds);
     }
 
     @Test
@@ -246,6 +259,8 @@ class StoreServiceTest {
         assertThat(response.getReview()).isEqualTo(4.9);
         assertThat(response.getReviewCount()).isEqualTo(13812);
         assertThat(response.getImages()).containsExactly("s3_url1", "s3_url2");
+
+        verify(reviewStatsService, times(1)).getReviewStats(storeId);
     }
 
     @Test
@@ -286,15 +301,20 @@ class StoreServiceTest {
         StoreImage image1 = StoreImage.builder().store(store1).imageUrl("s3 url 1").build();
         StoreImage image2 = StoreImage.builder().store(store2).imageUrl("s3 url 2").build();
 
+        List<Long> storeIds = List.of(1L, 2L);
+
         when(storeCategoryRepository.findByCategoryCode(categoryCode)).thenReturn(Optional.of(category));
         when(storeRepository.findStoresOrderByRating(eq(1L), any(Pageable.class)))
                 .thenReturn(new SliceImpl<>(List.of(store1, store2)));
-        when(storeImageRepository.findImagesByStoreIds(List.of(1L, 2L)))
+        when(storeImageRepository.findImagesByStoreIds(storeIds))
                 .thenReturn(List.of(image1, image2));
 
-        // ReviewStatsService 동작 설정
-        when(reviewStatsService.getReviewStats(1L)).thenReturn(new StoreReviewStats(4.9, 1742));
-        when(reviewStatsService.getReviewStats(2L)).thenReturn(new StoreReviewStats(4.7, 2847));
+        // ReviewStatsService 배치 처리 동작 설정
+        Map<Long, StoreReviewStats> reviewStatsMap = Map.of(
+                1L, new StoreReviewStats(4.9, 1742),
+                2L, new StoreReviewStats(4.7, 2847)
+        );
+        when(reviewStatsService.getReviewStatsForStores(storeIds)).thenReturn(reviewStatsMap);
 
         PageRequest pageRequest = PageRequest.of(0, 10);
 
@@ -326,6 +346,8 @@ class StoreServiceTest {
         assertThat(dto2.getName()).isEqualTo("맥도날드 구름점");
         assertThat(dto2.getReview()).isEqualTo(4.7);
         assertThat(dto2.getReviewCount()).isEqualTo(2847);
+
+        verify(reviewStatsService, times(1)).getReviewStatsForStores(storeIds);
     }
 
     @Test
