@@ -1,10 +1,12 @@
 package com.idukbaduk.itseats.rider.dto;
 
-public record ReadyOrderResponse(
-        String deliveryType,
-        String storeName,
-        double deliveryDistance,
-        int deliveryFee,
-        String deliveryAddress
-) {
+import lombok.Builder;
+
+@Builder
+public class ReadyOrderResponse{
+    private String deliveryType;
+    private String storeName;
+    private double deliveryDistance;
+    private int deliveryFee;
+    private String deliveryAddress;
 }
