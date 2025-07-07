@@ -85,7 +85,7 @@ public class RiderService {
 
         return nearbyOrders.stream()
                 .map(dto -> ReadyOrderResponse.builder()
-                        .deliveryType(null)
+                        .deliveryType(dto.getDeliveryType())
                         .storeName(dto.getStoreName())
                         .deliveryDistance(Math.round(dto.getDistance() / 100.0) / 10.0)
                         .deliveryFee(dto.getDeliveryFee())
