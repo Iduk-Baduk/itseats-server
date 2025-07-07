@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
     boolean existsByMemberAndStore(Member member, Store store);
+
+    int countByMember(Member member);
 }
