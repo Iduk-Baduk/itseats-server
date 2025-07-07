@@ -10,7 +10,9 @@ import com.idukbaduk.itseats.memberaddress.error.MemberAddressException;
 import com.idukbaduk.itseats.memberaddress.error.enums.MemberAddressErrorCode;
 import com.idukbaduk.itseats.memberaddress.repository.MemberAddressRepository;
 import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
+import com.idukbaduk.itseats.review.dto.StoreReviewStats;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
+import com.idukbaduk.itseats.review.service.ReviewStatsService;
 import com.idukbaduk.itseats.store.dto.*;
 import com.idukbaduk.itseats.store.dto.enums.StoreSortOption;
 import com.idukbaduk.itseats.store.entity.Store;
@@ -46,6 +48,7 @@ public class StoreService {
     private final MemberRepository memberRepository;
     private final MemberAddressRepository memberAddressRepository;
     private final StoreCategoryRepository storeCategoryRepository;
+    private final ReviewStatsService reviewStatsService;
 
     // TODO: #176번 PR Merge 후 서비스 코드 수정
 
@@ -64,11 +67,13 @@ public class StoreService {
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
         Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
 
-        Map<Long, Double> storeIdToAvg = new HashMap<>();
-        Map<Long, Integer> storeIdToCount = new HashMap<>();
-        buildReviewStatsMap(storeIds, storeIdToAvg, storeIdToCount);
+        Map<Long, StoreReviewStats> reviewStatsMap = new HashMap<>();
+        for (Long storeId : storeIds) {
+            StoreReviewStats stats = reviewStatsService.getReviewStats(storeId);
+            reviewStatsMap.put(storeId, stats);
+        }
 
-        List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, storeIdToAvg, storeIdToCount);
+        List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, reviewStatsMap);
 
         return StoreListResponse.builder()
                 .stores(storeDtos)
@@ -116,12 +121,13 @@ public class StoreService {
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
         Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
 
-        Map<Long, Double> storeIdToRatingAvg = new HashMap<>();
-        Map<Long, Integer> storeIdToRatingCount = new HashMap<>();
-        buildReviewStatsMap(storeIds, storeIdToRatingAvg, storeIdToRatingCount);
+        Map<Long, StoreReviewStats> reviewStatsMap = new HashMap<>();
+        for (Long storeId : storeIds) {
+            StoreReviewStats stats = reviewStatsService.getReviewStats(storeId);
+            reviewStatsMap.put(storeId, stats);
+        }
 
-        List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, storeIdToRatingAvg, storeIdToRatingCount);
-
+        List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, reviewStatsMap);
         return StoreCategoryListResponse.builder()
                 .category(categoryCode)
                 .categoryName(category.getCategoryName())
@@ -159,31 +165,21 @@ public class StoreService {
         return storeIdToImages;
     }
 
-    private void buildReviewStatsMap(List<Long> storeIds,
-                                     Map<Long, Double> avgMap,
-                                     Map<Long, Integer> countMap) {
-        List<Object[]> stats = reviewRepository.findReviewStatsByStoreIds(storeIds);
-        for (Object[] row : stats) {
-            Long storeId = (Long) row[0];
-            Double avg = row[1] != null ? Math.round(((Double) row[1]) * 10) / 10.0 : 0.0;
-            Long count = (Long) row[2];
-            avgMap.put(storeId, avg);
-            countMap.put(storeId, count.intValue());
-        }
-    }
-
     private List<StoreDto> buildStoreDtos(List<Store> stores,
                                           Map<Long, List<String>> imageMap,
-                                          Map<Long, Double> avgMap,
-                                          Map<Long, Integer> countMap) {
+                                          Map<Long, StoreReviewStats> reviewStatsMap) {
         return stores.stream()
-                .map(store -> StoreDto.builder()
-                        .storeId(store.getStoreId())
-                        .name(store.getStoreName())
-                        .review(avgMap.getOrDefault(store.getStoreId(), 0.0))
-                        .reviewCount(countMap.getOrDefault(store.getStoreId(), 0))
-                        .images(imageMap.getOrDefault(store.getStoreId(), Collections.emptyList()))
-                        .build())
+                .map(store -> {
+                    StoreReviewStats stats = reviewStatsMap.getOrDefault(store.getStoreId(),
+                            new StoreReviewStats(0.0, 0));
+                    return StoreDto.builder()
+                            .storeId(store.getStoreId())
+                            .name(store.getStoreName())
+                            .review(stats.avg())
+                            .reviewCount(stats.count())
+                            .images(imageMap.getOrDefault(store.getStoreId(), Collections.emptyList()))
+                            .build();
+                })
                 .toList();
     }
 
@@ -198,9 +194,7 @@ public class StoreService {
 
         boolean isLiked = favoriteRepository.existsByMemberAndStore(member, store);
 
-        Double avgRating = reviewRepository.findAverageRatingByStoreId(storeId);
-
-        int reviewCount = reviewRepository.countByStoreId(storeId);
+        StoreReviewStats reviewStats = reviewStatsService.getReviewStats(storeId);
 
         List<String> images = storeImageRepository.findAllByStoreIdOrderByDisplayOrderAsc(storeId)
                 .stream()
@@ -210,8 +204,8 @@ public class StoreService {
         return StoreDetailResponse.builder()
                 .name(store.getStoreName())
                 .isLiked(isLiked)
-                .review(avgRating != null ? Math.round(avgRating * 10) / 10.0 : 0.0)
-                .reviewCount(reviewCount)
+                .review(reviewStats.avg())
+                .reviewCount(reviewStats.count())
                 .images(images)
                 .description(store.getDescription() != null ? store.getDescription() : "")
                 .address(store.getStoreAddress())
