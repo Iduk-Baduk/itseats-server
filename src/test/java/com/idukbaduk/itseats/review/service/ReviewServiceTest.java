@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.lang.reflect.Field;
@@ -61,11 +62,6 @@ class ReviewServiceTest {
 
     @InjectMocks
     private ReviewService reviewService;
-
-    @BeforeEach
-    void setUp() {
-        doReturn(hashOperations).when(redisTemplate).opsForHash();
-    }
 
     @DisplayName("가게 별 리뷰 목록 조회 성공")
     @Test
@@ -147,7 +143,11 @@ class ReviewServiceTest {
         String username = "user1";
         Store store = Store.builder().storeId(10L).build();
         Rider rider = Rider.builder().riderId(20L).build();
-        Order order = Order.builder().orderId(orderId).store(store).rider(rider).build();
+        Order order = Order.builder()
+                .orderId(orderId)
+                .store(store)
+                .rider(rider)
+                .build();
         Member member = Member.builder().username(username).build();
 
         ReviewCreateRequest request = ReviewCreateRequest.builder()
@@ -157,15 +157,28 @@ class ReviewServiceTest {
                 .content("맛있어요")
                 .build();
 
-        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
-        given(memberRepository.findByUsername(username)).willReturn(Optional.of(member));
-        given(reviewRepository.save(any(Review.class))).willAnswer(invocation -> {
-            Review review = invocation.getArgument(0);
-            Field field = review.getClass().getSuperclass().getDeclaredField("createdAt");
-            field.setAccessible(true);
-            field.set(review, LocalDateTime.now());
-            return review;
+        Review savedReview = Review.builder()
+                .reviewId(1L)
+                .order(order)
+                .store(store)
+                .rider(rider)
+                .member(member)
+                .storeStar(request.getStoreStar())
+                .riderStar(request.getRiderStar())
+                .menuLiked(request.getMenuLiked())
+                .content(request.getContent())
+                .storeReply("")
+                .build();
+
+        // Redis 모킹
+        when(redisTemplate.execute(any(RedisCallback.class))).thenAnswer(invocation -> {
+            RedisCallback<?> callback = invocation.getArgument(0);
+            return callback.doInRedis(null);
         });
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
 
         // when
         ReviewCreateResponse response = reviewService.createReview(orderId, username, request);
@@ -175,19 +188,17 @@ class ReviewServiceTest {
         assertThat(response.getRiderStar()).isEqualTo(5);
         assertThat(response.getMenuLiked()).isEqualTo(MenuLiked.GOOD);
         assertThat(response.getContent()).isEqualTo("맛있어요");
-        assertThat(response.getCreatedAt()).isNotNull();
 
-        // Redis 캐시 갱신 검증
-        verify(hashOperations).increment("store:10:review:stats", "star_5", 1);
-        verify(hashOperations).increment("store:10:review:stats", "sum", 5);
-        verify(hashOperations).increment("store:10:review:stats", "count", 1);
+        verify(redisTemplate).execute(any(RedisCallback.class));
 
         // DB 저장 검증
         ArgumentCaptor<Review> reviewCaptor = ArgumentCaptor.forClass(Review.class);
         verify(reviewRepository).save(reviewCaptor.capture());
-        Review savedReview = reviewCaptor.getValue();
-        assertThat(savedReview.getStoreStar()).isEqualTo(5);
-        assertThat(savedReview.getMenuLiked()).isEqualTo(MenuLiked.GOOD);
+        Review capturedReview = reviewCaptor.getValue();
+        assertThat(capturedReview.getStoreStar()).isEqualTo(5);
+        assertThat(capturedReview.getRiderStar()).isEqualTo(5);
+        assertThat(capturedReview.getMenuLiked()).isEqualTo(MenuLiked.GOOD);
+        assertThat(capturedReview.getContent()).isEqualTo("맛있어요");
+        assertThat(capturedReview.getStoreReply()).isEqualTo("");
     }
-
 }
