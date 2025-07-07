@@ -72,10 +72,14 @@ public class ReviewStatsService {
                 Map<Object, Object> hashEntries = multipleHash.get(key);
 
                 if (hashEntries != null && !hashEntries.isEmpty()) {
-                    int sum = Integer.parseInt(hashEntries.get("sum").toString());
-                    int count = Integer.parseInt(hashEntries.get("count").toString());
-                    double avg = count > 0 ? roundToOneDecimal((double) sum / count) : 0.0;
-                    resultMap.put(storeId, new StoreReviewStats(avg, count));
+                    Object sumObj = hashEntries.get("sum");
+                    Object countObj = hashEntries.get("count");
+                    if (sumObj != null && countObj != null) {
+                        int sum = Integer.parseInt(sumObj.toString());
+                        int count = Integer.parseInt(countObj.toString());
+                        double avg = count > 0 ? roundToOneDecimal((double) sum / count) : 0.0;
+                        resultMap.put(storeId, new StoreReviewStats(avg, count));
+                    }
                 }
             }
 
