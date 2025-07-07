@@ -20,4 +20,10 @@ public class CustomMemberDetailService implements UserDetailsService {
         );
     }
 
+    public CustomMemberDetails loadUserByMemberId(Long memberId) throws MemberException {
+        return new CustomMemberDetails(
+                memberRepository.getOrThrowById(memberId)
+        );
+    }
+
 }

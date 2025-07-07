@@ -1,5 +1,7 @@
 package com.idukbaduk.itseats.auths.usecase;
 
+import com.idukbaduk.itseats.auths.dto.CustomMemberDetails;
+import com.idukbaduk.itseats.auths.service.CustomMemberDetailService;
 import com.idukbaduk.itseats.external.jwt.dto.JwtTokenPair;
 import com.idukbaduk.itseats.external.jwt.entity.JwtToken;
 import com.idukbaduk.itseats.external.jwt.error.JwtTokenException;
@@ -16,6 +18,8 @@ import java.security.MessageDigest;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,6 +29,7 @@ public class AuthUseCase {
     private final JwtTokenIssuer jwtTokenIssuer;
     private final JwtTokenParser jwtTokenParser;
     private final RedisJwtRefreshTokenStore redisJwtRefreshTokenStore;
+    private final CustomMemberDetailService memberDetailService;
 
     public JwtTokenPair login(Long memberId) {
         JwtToken accessToken = jwtTokenIssuer.issueAccessToken(memberId);
@@ -67,6 +72,18 @@ public class AuthUseCase {
         } catch (SignatureException | MalformedJwtException e) {
             throw new JwtTokenException(JwtTokenErrorCode.TOKEN_UNTRUSTWORTHY);
         }
+    }
+
+    public Authentication getAuthentication(String token) {
+        String subject = jwtTokenParser.parseClaims(token).getSubject();
+        Long memberId = Long.parseLong(subject);
+        CustomMemberDetails userDetails = memberDetailService.loadUserByMemberId(memberId);
+
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
     }
 
 }
