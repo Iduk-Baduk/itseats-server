@@ -75,7 +75,9 @@ public class RiderService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReadyOrderResponse> findNearbyOrders(NearByOrderRequest request, int searchRadiusMeters) {
+    public List<ReadyOrderResponse> findNearbyOrders(NearByOrderRequest request) {
+        final int searchRadiusMeters = 10 * 1000; // 10km
+
         List<NearbyOrderDTO> nearbyOrders = orderRepository.findNearbyOrders(
           request.longitude(),
           request.latitude(),
