@@ -80,15 +80,14 @@ public class RiderService {
         final int searchRadiusMeters = DEFAULT_SEARCH_RADIUS_KM * 1000; // 10km
 
         List<NearbyOrderDTO> nearbyOrders = orderRepository.findNearbyOrders(
-                request.getLatitude(),
                 request.getLongitude(),
+                request.getLatitude(),
                 searchRadiusMeters
         );
 
         if (nearbyOrders.isEmpty()) {
             throw new RiderException(RiderErrorCode.RIDER_LOCATION_NOT_FOUND);
         }
-
 
         return nearbyOrders.stream()
                 .map(dto -> ReadyOrderResponse.builder()
