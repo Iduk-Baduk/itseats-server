@@ -32,7 +32,9 @@ public class PaymentClient {
                     .onStatus(httpStatus -> httpStatus.is4xxClientError() || httpStatus.is5xxServerError(),
                             (request, response) -> handlePaymentError(response))
                     .body(PaymentClientResponse.class);
-            validatePaymentStatus(Objects.requireNonNull(clientResponse).getStatus());
+
+            validatePaymentClientResponse(clientResponse);
+            validatePaymentStatus(clientResponse.getStatus());
             return clientResponse;
         } catch (ResourceAccessException e) {
             throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
@@ -45,6 +47,12 @@ public class PaymentClient {
             PaymentConfirmErrorCode errorCode = objectMapper.readValue(body, PaymentConfirmErrorCode.class);
             throw new PaymentException(errorCode);
         } catch(IOException e) {
+            throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
+        }
+    }
+
+    private void validatePaymentClientResponse(PaymentClientResponse clientResponse) {
+        if (clientResponse == null) {
             throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
         }
     }
