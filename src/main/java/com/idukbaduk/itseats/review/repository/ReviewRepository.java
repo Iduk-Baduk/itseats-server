@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
@@ -23,6 +24,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT COUNT(r) FROM Review r WHERE r.store.storeId = :storeId")
     int countByStoreId(@Param("storeId") Long storeId);
+
+    List<Review> findByStore_StoreIdAndCreatedAtBetween(Long storeId, LocalDateTime start, LocalDateTime end);
 
     int countByMember(Member member);
 }
