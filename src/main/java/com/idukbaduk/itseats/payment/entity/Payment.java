@@ -62,4 +62,16 @@ public class Payment extends BaseEntity {
 
     @Column(name = "rider_request")
     private String riderRequest;
+
+    @Column(name = "toss_payment_key")
+    private String tossPaymentKey;
+
+    @Column(name = "toss_order_id")
+    private String tossOrderId;
+
+    public void confirm(String paymentKey, String orderId) {
+        this.tossPaymentKey = paymentKey;
+        this.tossOrderId = orderId;
+        this.paymentStatus = PaymentStatus.COMPLETED;
+    }
 }
