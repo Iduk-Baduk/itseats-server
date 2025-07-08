@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.review.repository;
 
+import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.review.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +23,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT COUNT(r) FROM Review r WHERE r.store.storeId = :storeId")
     int countByStoreId(@Param("storeId") Long storeId);
+
+    int countByMember(Member member);
 }
