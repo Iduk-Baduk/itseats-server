@@ -66,8 +66,8 @@ public class PaymentService {
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
     }
 
-    public void confirmPayment(String username, PaymentConfirmRequest paymentConfirmRequest) {
-        Payment payment = paymentRepository.findByUsername(username)
+    public void confirmPayment(String username, Long paymentId, PaymentConfirmRequest paymentConfirmRequest) {
+        Payment payment = paymentRepository.findByPaymentIdAndUsername(username, paymentId)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         PaymentClientResponse clientResponse = paymentClient.confirmPayment(paymentConfirmRequest);

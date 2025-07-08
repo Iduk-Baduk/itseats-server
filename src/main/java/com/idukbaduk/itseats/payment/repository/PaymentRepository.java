@@ -18,6 +18,10 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
         SELECT p
         FROM Payment p
         WHERE p.member.username = :username
+          AND p.paymentId = :paymentId
     """)
-    Optional<Payment> findByUsername(@Param("username") String username);
+    Optional<Payment> findByPaymentIdAndUsername(
+            @Param("username") String username,
+            @Param("paymentId") Long paymentId
+    );
 }
