@@ -1,8 +1,6 @@
 package com.idukbaduk.itseats.store.service;
 
 import com.idukbaduk.itseats.global.util.GeoUtil;
-import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import com.idukbaduk.itseats.store.dto.*;
@@ -10,7 +8,6 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
-import com.idukbaduk.itseats.member.service.MemberService;
 import com.idukbaduk.itseats.store.entity.Franchise;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
@@ -27,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
