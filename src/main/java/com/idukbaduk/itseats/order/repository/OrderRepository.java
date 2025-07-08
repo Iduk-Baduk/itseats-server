@@ -147,7 +147,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                         s.store_name,
                         o.delivery_fee,
                         o.delivery_address,
-                        o.delivery_type
+                        o.delivery_type,
                         ST_DISTANCE_SPHERE(
                             ST_PointFromTEXT(CONCAT('POINT(', :lon, ' ', :lat, ')'), 4326),
                             s.location
