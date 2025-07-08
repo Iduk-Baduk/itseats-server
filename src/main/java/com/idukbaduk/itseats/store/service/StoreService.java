@@ -134,6 +134,10 @@ public class StoreService {
             case RECENT -> storeRepository.searchStoresOrderByCreatedAt(keyword, pageRequest);
         };
 
+        return getStoreListResponse(stores, pageable);
+    }
+
+    private StoreListResponse getStoreListResponse(Slice<Store> stores, Pageable pageable) {
         if (stores == null || stores.getContent().isEmpty()) {
             return StoreListResponse.builder()
                     .stores(Collections.emptyList())
@@ -142,10 +146,6 @@ public class StoreService {
                     .build();
         }
 
-        return getStoreListResponse(stores, pageable);
-    }
-
-    private StoreListResponse getStoreListResponse(Slice<Store> stores, Pageable pageable) {
         List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
         Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
 
