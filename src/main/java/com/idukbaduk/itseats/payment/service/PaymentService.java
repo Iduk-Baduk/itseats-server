@@ -66,7 +66,7 @@ public class PaymentService {
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
     }
 
-    public PaymentClientResponse confirmPayment(String username, PaymentConfirmRequest paymentConfirmRequest) {
+    public void confirmPayment(String username, PaymentConfirmRequest paymentConfirmRequest) {
         Payment payment = paymentRepository.findByUsername(username)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
@@ -75,20 +75,11 @@ public class PaymentService {
 
         payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
         paymentRepository.save(payment);
-
-        return buildPaymentClientResponse(payment);
     }
 
     private void validateAmount(Long totalCost, Long tossAmount) {
         if (!totalCost.equals(tossAmount)) {
             throw new PaymentException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
-    }
-
-    private PaymentClientResponse buildPaymentClientResponse(Payment payment) {
-        return PaymentClientResponse.builder()
-                .paymentKey(payment.getTossPaymentKey())
-                .orderId(payment.getTossOrderId())
-                .build();
     }
 }

@@ -35,9 +35,7 @@ public class PaymentController {
     public ResponseEntity<BaseResponse> confirmPayment(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody PaymentConfirmRequest paymentConfirmRequest) {
-        return BaseResponse.toResponseEntity(
-                PaymentResponse.CONFIRM_PAYMENT_SUCCESS,
-                paymentService.confirmPayment(userDetails.getUsername(), paymentConfirmRequest)
-        );
+        paymentService.confirmPayment(userDetails.getUsername(), paymentConfirmRequest);
+        return BaseResponse.toResponseEntity(PaymentResponse.CONFIRM_PAYMENT_SUCCESS);
     }
 }
