@@ -5,6 +5,7 @@ import com.idukbaduk.itseats.payment.dto.PaymentConfirmRequest;
 import com.idukbaduk.itseats.payment.dto.PaymentInfoRequest;
 import com.idukbaduk.itseats.payment.dto.enums.PaymentResponse;
 import com.idukbaduk.itseats.payment.service.PaymentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,7 +37,7 @@ public class PaymentController {
     public ResponseEntity<BaseResponse> confirmPayment(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long paymentId,
-            @RequestBody PaymentConfirmRequest paymentConfirmRequest) {
+            @RequestBody @Valid PaymentConfirmRequest paymentConfirmRequest) {
         paymentService.confirmPayment(userDetails.getUsername(), paymentId, paymentConfirmRequest);
         return BaseResponse.toResponseEntity(PaymentResponse.CONFIRM_PAYMENT_SUCCESS);
     }
