@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.review.repository;
 
+import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.review.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +27,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     List<Review> findByStore_StoreIdAndCreatedAtBetween(Long storeId, LocalDateTime start, LocalDateTime end);
 
+    int countByMember(Member member);
 }

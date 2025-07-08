@@ -7,8 +7,10 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ReviewResponse implements Response {
 
-    GET_STORE_REVIEWS(HttpStatus.OK, "가게 별 리뷰 조회 성공"),
+
     GET_STORE_REVIEWS_BY_PERIOD(HttpStatus.OK, "특정 기간에 해당하는 리뷰 조회 성공"),
+    GET_STORE_REVIEW_SUCCESS(HttpStatus.OK, "가게 별 리뷰 조회 성공"),
+    CREATE_REVIEW_SUCCESS(HttpStatus.CREATED, "리뷰 작성 성공"),
     ;
 
     private final HttpStatus httpStatus;
