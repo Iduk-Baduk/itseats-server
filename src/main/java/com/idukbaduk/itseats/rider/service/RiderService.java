@@ -86,7 +86,7 @@ public class RiderService {
         );
 
         if (nearbyOrders.isEmpty()) {
-            throw new RiderException(RiderErrorCode.RIDER_LOCATION_NOT_FOUND);
+            throw new RiderException(RiderErrorCode.NEARBY_ORDERS_NOT_FOUND);
         }
 
         return nearbyOrders.stream()

@@ -141,7 +141,6 @@ class FindNearbyOrdersServiceTest {
         );
 
         // when
-        // 3km(3000m) 이내 배달 조회
         NearByOrderRequest request = new NearByOrderRequest(riderLat, riderLng);
         List<ReadyOrderResponse> nearbyOrders = riderService.findNearbyOrders(request);
 
