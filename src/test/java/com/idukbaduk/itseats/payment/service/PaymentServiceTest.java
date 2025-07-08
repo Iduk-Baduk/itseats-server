@@ -63,7 +63,7 @@ class PaymentServiceTest {
 
         paymentInfoRequest = PaymentInfoRequest.builder()
                 .orderId(1L)
-                .totalCost(10000)
+                .totalCost(10000L)
                 .paymentMethod(PaymentMethod.COUPAY.name())
                 .storeRequest("맛있게 만들어주세요")
                 .riderRequest("문 앞에 두고 가주세요")

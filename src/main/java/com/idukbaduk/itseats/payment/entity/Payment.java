@@ -47,7 +47,7 @@ public class Payment extends BaseEntity {
     private int discountValue;
 
     @Column(name = "total_cost", nullable = false)
-    private int totalCost;
+    private Long totalCost;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false)
