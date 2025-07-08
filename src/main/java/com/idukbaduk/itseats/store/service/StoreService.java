@@ -47,6 +47,7 @@ public class StoreService {
     private final MemberAddressRepository memberAddressRepository;
     private final StoreCategoryRepository storeCategoryRepository;
 
+    // TODO: #176번 PR Merge 후 서비스 코드 수정
 
     public Store getStore(Member member, Long storeId) {
         return storeRepository.findByMemberAndStoreId(member, storeId)
