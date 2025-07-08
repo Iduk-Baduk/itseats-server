@@ -48,7 +48,7 @@ public class RiderController {
 
     @PostMapping("/ready-order")
     public ResponseEntity<BaseResponse> getNearbyOrders(
-            @RequestBody NearByOrderRequest request
+            @RequestBody @Valid NearByOrderRequest request
     ) {
 
         return BaseResponse.toResponseEntity(
