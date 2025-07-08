@@ -34,6 +34,12 @@ public class Coupon extends BaseEntity {
     @JoinColumn(name = "franchise_id")
     private Franchise franchise;
 
+    @Column(name = "coupon_name", nullable = false)
+    private String couponName;
+
+    @Column(name = "description", nullable = false)
+    private String description;
+
     @Column(name = "discount_value", nullable = false)
     private int discountValue;
 
@@ -47,7 +53,7 @@ public class Coupon extends BaseEntity {
     @Column(name = "min_price", nullable = false)
     private int minPrice;
 
-    @Column(name = "max_discount_value", nullable = false)
+    @Column(name = "max_discount_value")
     private int maxDiscountValue;
 
     @Column(name = "issue_start_date", nullable = false)
