@@ -39,10 +39,14 @@ public class PaymentClient {
         }
     }
 
-    private void handlePaymentError(ClientHttpResponse response) throws IOException {
-        byte[] body = response.getBody().readAllBytes();
-        PaymentConfirmErrorCode errorCode = objectMapper.readValue(body, PaymentConfirmErrorCode.class);
-        throw new PaymentException(errorCode);
+    private void handlePaymentError(ClientHttpResponse response){
+        try {
+            byte[] body = response.getBody().readAllBytes();
+            PaymentConfirmErrorCode errorCode = objectMapper.readValue(body, PaymentConfirmErrorCode.class);
+            throw new PaymentException(errorCode);
+        } catch(IOException e) {
+            throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
+        }
     }
 
     private void validatePaymentStatus(String status) {
