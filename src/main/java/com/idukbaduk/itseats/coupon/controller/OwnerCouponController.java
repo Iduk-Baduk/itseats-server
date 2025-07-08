@@ -19,7 +19,7 @@ public class OwnerCouponController {
 
     private final OwnerCouponService ownerCouponService;
 
-    @PostMapping("/{storeId}/coupons")
+    @PostMapping("/stores/{storeId}/coupons")
     public ResponseEntity<BaseResponse> createStoreCoupon(
             @PathVariable("storeId") Long storeId,
             @RequestBody CouponCreateRequest request,
@@ -30,7 +30,7 @@ public class OwnerCouponController {
         return BaseResponse.toResponseEntity(CouponResponse.CREATE_COUPON_SUCCESS, response);
     }
 
-    @PostMapping("{franchiseId}/coupons")
+    @PostMapping("franchises/{franchiseId}/coupons")
     public ResponseEntity<BaseResponse> createFranchiseCoupon(
             @PathVariable("franchiseId") Long franchiseId,
             @RequestBody CouponCreateRequest request
