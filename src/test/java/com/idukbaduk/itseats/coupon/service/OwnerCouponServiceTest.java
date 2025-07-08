@@ -1,14 +1,18 @@
 package com.idukbaduk.itseats.coupon.service;
 
 import com.idukbaduk.itseats.coupon.dto.CouponCreateRequest;
+import com.idukbaduk.itseats.coupon.dto.FranchiseCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.dto.StoreCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.entity.Coupon;
 import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
+import com.idukbaduk.itseats.coupon.entity.enums.TargetType;
 import com.idukbaduk.itseats.coupon.repository.CouponRepository;
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.store.entity.Franchise;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.error.StoreException;
 import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
+import com.idukbaduk.itseats.store.repository.FranchiseRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +37,8 @@ class OwnerCouponServiceTest {
     private StoreRepository storeRepository;
     @Mock
     private CouponRepository couponRepository;
+    @Mock
+    private FranchiseRepository franchiseRepository;
 
     @InjectMocks
     private OwnerCouponService ownerCouponService;
@@ -138,5 +144,79 @@ class OwnerCouponServiceTest {
         assertThatThrownBy(() -> ownerCouponService.createStoreCoupon(storeId, request, username))
                 .isInstanceOf(StoreException.class)
                 .hasMessageContaining(StoreErrorCode.STORE_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("프랜차이즈 쿠폰 등록 성공")
+    void createFranchiseCoupon_success() {
+        // given
+        Long franchiseId = 1L;
+        CouponCreateRequest request = CouponCreateRequest.builder()
+                .name("5,000원 할인")
+                .description("5000원 할인 쿠폰입니다")
+                .quantity(200)
+                .couponType(CouponType.FIXED)
+                .minPrice(20000)
+                .discountValue(5000)
+                .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
+                .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
+                .build();
+
+        Franchise franchise = Franchise.builder()
+                .franchiseId(franchiseId)
+                .brandName("테스트 프랜차이즈")
+                .build();
+
+        Coupon savedCoupon = Coupon.builder()
+                .couponId(12L)
+                .franchise(franchise)
+                .couponName(request.getName())
+                .description(request.getDescription())
+                .discountValue(request.getDiscountValue())
+                .couponType(request.getCouponType())
+                .quantity(request.getQuantity())
+                .minPrice(request.getMinPrice())
+                .issueStartDate(request.getIssueStartDate())
+                .validDate(request.getValidDate())
+                .targetType(TargetType.FRANCHISE)
+                .build();
+
+        given(franchiseRepository.findById(franchiseId)).willReturn(Optional.of(franchise));
+        given(couponRepository.save(any(Coupon.class))).willReturn(savedCoupon);
+
+        // when
+        FranchiseCouponCreateResponse response = ownerCouponService.createFranchiseCoupon(franchiseId, request);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getFranchiseName()).isEqualTo("테스트 프랜차이즈");
+        assertThat(response.getCouponId()).isEqualTo(12L);
+        assertThat(response.getName()).isEqualTo("5,000원 할인");
+        assertThat(response.getQuantity()).isEqualTo(200);
+        assertThat(response.getCouponType()).isEqualTo(CouponType.FIXED);
+        assertThat(response.getMinPrice()).isEqualTo(20000);
+        assertThat(response.getDiscountValue()).isEqualTo(5000);
+
+        // DB 저장 검증
+        ArgumentCaptor<Coupon> couponCaptor = ArgumentCaptor.forClass(Coupon.class);
+        verify(couponRepository).save(couponCaptor.capture());
+        Coupon capturedCoupon = couponCaptor.getValue();
+        assertThat(capturedCoupon.getFranchise()).isEqualTo(franchise);
+        assertThat(capturedCoupon.getTargetType()).isEqualTo(TargetType.FRANCHISE);
+    }
+
+    @Test
+    @DisplayName("프랜차이즈가 없으면 예외 발생")
+    void createFranchiseCoupon_franchiseNotFound() {
+        // given
+        Long franchiseId = 1L;
+        CouponCreateRequest request = CouponCreateRequest.builder().build();
+
+        given(franchiseRepository.findById(franchiseId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> ownerCouponService.createFranchiseCoupon(franchiseId, request))
+                .isInstanceOf(StoreException.class)
+                .hasMessageContaining(StoreErrorCode.FRANCHISE_NOT_FOUND.getMessage());
     }
 }

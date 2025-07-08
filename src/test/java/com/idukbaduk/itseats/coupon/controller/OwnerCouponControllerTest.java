@@ -2,6 +2,7 @@ package com.idukbaduk.itseats.coupon.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idukbaduk.itseats.coupon.dto.CouponCreateRequest;
+import com.idukbaduk.itseats.coupon.dto.FranchiseCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.dto.StoreCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.dto.enums.CouponResponse;
 import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
@@ -132,5 +133,76 @@ class OwnerCouponControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("프랜차이즈 쿠폰 생성 성공")
+    @WithMockUser(username = "owner")
+    void createFranchiseCoupon_success() throws Exception {
+        // given
+        Long franchiseId = 1L;
+        CouponCreateRequest request = CouponCreateRequest.builder()
+                .name("5,000원 할인")
+                .description("5000원 할인 쿠폰입니다")
+                .quantity(200)
+                .couponType(CouponType.FIXED)
+                .minPrice(20000)
+                .discountValue(5000)
+                .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
+                .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
+                .build();
+
+        FranchiseCouponCreateResponse response = FranchiseCouponCreateResponse.builder()
+                .franchiseName("테스트 프랜차이즈")
+                .couponId(12L)
+                .name("5,000원 할인")
+                .quantity(200)
+                .couponType(CouponType.FIXED)
+                .minPrice(20000)
+                .discountValue(5000)
+                .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
+                .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
+                .build();
+
+        given(ownerCouponService.createFranchiseCoupon(eq(franchiseId), any(CouponCreateRequest.class)))
+                .willReturn(response);
+
+        // when & then
+        mockMvc.perform(post("/api/owner/{franchiseId}/coupons", franchiseId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.httpStatus").value(CouponResponse.CREATE_COUPON_SUCCESS.getHttpStatus().value()))
+                .andExpect(jsonPath("$.message").value(CouponResponse.CREATE_COUPON_SUCCESS.getMessage()))
+                .andExpect(jsonPath("$.data.franchiseName").value("테스트 프랜차이즈"))
+                .andExpect(jsonPath("$.data.couponId").value(12L))
+                .andExpect(jsonPath("$.data.name").value("5,000원 할인"))
+                .andExpect(jsonPath("$.data.quantity").value(200))
+                .andExpect(jsonPath("$.data.minPrice").value(20000))
+                .andExpect(jsonPath("$.data.discountValue").value(5000));
+    }
+
+    @Test
+    @DisplayName("프랜차이즈 쿠폰 생성 실패 - 프랜차이즈 없음")
+    @WithMockUser(username = "owner")
+    void createFranchiseCoupon_franchiseNotFound() throws Exception {
+        // given
+        Long franchiseId = 99L;
+        CouponCreateRequest request = CouponCreateRequest.builder()
+                .name("5,000원 할인")
+                .quantity(200)
+                .couponType(CouponType.FIXED)
+                .minPrice(20000)
+                .discountValue(5000)
+                .build();
+
+        doThrow(new StoreException(StoreErrorCode.FRANCHISE_NOT_FOUND))
+                .when(ownerCouponService).createFranchiseCoupon(eq(franchiseId), any(CouponCreateRequest.class));
+
+        // when & then
+        mockMvc.perform(post("/api/owner/{franchiseId}/coupons", franchiseId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
     }
 }
