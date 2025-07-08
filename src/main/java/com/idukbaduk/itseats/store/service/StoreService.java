@@ -113,6 +113,13 @@ public class StoreService {
     @Transactional(readOnly = true)
     public StoreListResponse searchStores(String username, String keyword, Pageable pageable, StoreSortOption sort,
                                           Long addressId) {
+        if (keyword == null || keyword.isEmpty()) {
+            return StoreListResponse.builder()
+                    .stores(Collections.emptyList())
+                    .currentPage(pageable.getPageNumber())
+                    .hasNext(false)
+                    .build();
+        }
 
         // 기본 정렬 무시
         PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted());
@@ -126,6 +133,14 @@ public class StoreService {
             case ORDER_COUNT -> storeRepository.searchStoresOrderByOrderCount(keyword, pageRequest);
             case RECENT -> storeRepository.searchStoresOrderByCreatedAt(keyword, pageRequest);
         };
+
+        if (stores == null || stores.getContent().isEmpty()) {
+            return StoreListResponse.builder()
+                    .stores(Collections.emptyList())
+                    .currentPage(pageable.getPageNumber())
+                    .hasNext(false)
+                    .build();
+        }
 
         return getStoreListResponse(stores, pageable);
     }
