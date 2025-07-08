@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.payment.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import com.idukbaduk.itseats.payment.dto.PaymentConfirmRequest;
 import com.idukbaduk.itseats.payment.dto.PaymentInfoRequest;
 import com.idukbaduk.itseats.payment.dto.enums.PaymentResponse;
 import com.idukbaduk.itseats.payment.service.PaymentService;
@@ -27,6 +28,16 @@ public class PaymentController {
         return BaseResponse.toResponseEntity(
                 PaymentResponse.CREATE_PAYMENT_SUCCESS,
                 paymentService.createPayment(userDetails.getUsername(), paymentInfoRequest)
+        );
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<BaseResponse> confirmPayment(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody PaymentConfirmRequest paymentConfirmRequest) {
+        return BaseResponse.toResponseEntity(
+                PaymentResponse.CONFIRM_PAYMENT_SUCCESS,
+                paymentService.confirmPayment(userDetails.getUsername(), paymentConfirmRequest)
         );
     }
 }
