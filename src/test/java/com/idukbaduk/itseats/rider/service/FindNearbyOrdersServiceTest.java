@@ -87,7 +87,7 @@ class FindNearbyOrdersServiceTest {
     }
 
     @Test
-    @DisplayName("라이더 위치 10km 반경 내에 있는 '대기중' 상태의 배달만 조회한다.")
+    @DisplayName("라이더 위치 10km 반경 내에 있는 'COOKED' 상태의 배달만 조회한다.")
     void findNearbyOrdersTest() {
         // given
 
