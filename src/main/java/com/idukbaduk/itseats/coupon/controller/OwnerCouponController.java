@@ -1,7 +1,7 @@
 package com.idukbaduk.itseats.coupon.controller;
 
 import com.idukbaduk.itseats.coupon.dto.CouponCreateRequest;
-import com.idukbaduk.itseats.coupon.dto.CouponCreateResponse;
+import com.idukbaduk.itseats.coupon.dto.StoreCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.dto.enums.CouponResponse;
 import com.idukbaduk.itseats.coupon.service.OwnerCouponService;
 import com.idukbaduk.itseats.global.response.BaseResponse;
@@ -24,7 +24,7 @@ public class OwnerCouponController {
             @RequestBody CouponCreateRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        CouponCreateResponse response =
+        StoreCouponCreateResponse response =
                 ownerCouponService.createStoreCoupon(storeId, request, userDetails.getUsername());
         return BaseResponse.toResponseEntity(CouponResponse.CREATE_COUPON_SUCCESS, response);
     }

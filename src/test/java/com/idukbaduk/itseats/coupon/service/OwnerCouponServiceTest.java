@@ -1,7 +1,7 @@
 package com.idukbaduk.itseats.coupon.service;
 
 import com.idukbaduk.itseats.coupon.dto.CouponCreateRequest;
-import com.idukbaduk.itseats.coupon.dto.CouponCreateResponse;
+import com.idukbaduk.itseats.coupon.dto.StoreCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.entity.Coupon;
 import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
 import com.idukbaduk.itseats.coupon.repository.CouponRepository;
@@ -80,7 +80,7 @@ class OwnerCouponServiceTest {
         given(couponRepository.save(any(Coupon.class))).willReturn(savedCoupon);
 
         // when
-        CouponCreateResponse response = ownerCouponService.createStoreCoupon(storeId, request, username);
+        StoreCouponCreateResponse response = ownerCouponService.createStoreCoupon(storeId, request, username);
 
         // then
         assertThat(response).isNotNull();

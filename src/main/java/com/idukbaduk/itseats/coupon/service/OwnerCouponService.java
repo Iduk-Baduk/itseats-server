@@ -1,7 +1,7 @@
 package com.idukbaduk.itseats.coupon.service;
 
 import com.idukbaduk.itseats.coupon.dto.CouponCreateRequest;
-import com.idukbaduk.itseats.coupon.dto.CouponCreateResponse;
+import com.idukbaduk.itseats.coupon.dto.StoreCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.entity.Coupon;
 import com.idukbaduk.itseats.coupon.entity.enums.TargetType;
 import com.idukbaduk.itseats.coupon.repository.CouponRepository;
@@ -21,7 +21,7 @@ public class OwnerCouponService {
     private final CouponRepository couponRepository;
 
     @Transactional
-    public CouponCreateResponse createStoreCoupon(Long storeId, CouponCreateRequest request, String username) {
+    public StoreCouponCreateResponse createStoreCoupon(Long storeId, CouponCreateRequest request, String username) {
 
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
@@ -45,7 +45,7 @@ public class OwnerCouponService {
 
         Coupon savedCoupon = couponRepository.save(coupon);
 
-        return CouponCreateResponse.builder()
+        return StoreCouponCreateResponse.builder()
                 .couponId(savedCoupon.getCouponId())
                 .name(savedCoupon.getCouponName())
                 .quantity(savedCoupon.getQuantity())

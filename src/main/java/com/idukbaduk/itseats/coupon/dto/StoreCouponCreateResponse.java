@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class CouponCreateResponse {
+public class StoreCouponCreateResponse {
     private Long couponId;
     private String name;
     private int quantity;

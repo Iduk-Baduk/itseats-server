@@ -2,7 +2,7 @@ package com.idukbaduk.itseats.coupon.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.idukbaduk.itseats.coupon.dto.CouponCreateRequest;
-import com.idukbaduk.itseats.coupon.dto.CouponCreateResponse;
+import com.idukbaduk.itseats.coupon.dto.StoreCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.dto.enums.CouponResponse;
 import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
 import com.idukbaduk.itseats.coupon.service.OwnerCouponService;
@@ -58,7 +58,7 @@ class OwnerCouponControllerTest {
                 .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
                 .build();
 
-        CouponCreateResponse response = CouponCreateResponse.builder()
+        StoreCouponCreateResponse response = StoreCouponCreateResponse.builder()
                 .couponId(11L)
                 .name("3,000원 할인")
                 .quantity(100)
