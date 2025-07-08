@@ -1,12 +1,16 @@
 package com.idukbaduk.itseats.member.service;
 
 import com.idukbaduk.itseats.member.dto.CustomerDto;
+import com.idukbaduk.itseats.member.dto.response.CurrentMemberResponse;
 import com.idukbaduk.itseats.member.dto.response.CustomerCreateResponse;
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.entity.enums.MemberType;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.factory.MemberTestFactory;
+import com.idukbaduk.itseats.member.repository.FavoriteRepository;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
+import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +38,12 @@ class MemberServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private ReviewRepository reviewRepository;
+
+    @Mock
+    private FavoriteRepository favoriteRepository;
 
     @Test
     @DisplayName("회원 정보를 성공적으로 반환")
@@ -128,6 +138,43 @@ class MemberServiceTest {
         assertThatThrownBy(() -> memberService.createCustomer(dto))
                 .isInstanceOf(MemberException.class)
                 .hasMessageContaining(MemberErrorCode.MEMBER_EMAIL_DUPLICATED.getMessage());
+    }
+
+    @Test
+    @DisplayName("내 정보 조회시 성공적으로 반환")
+    void getCurrentMember_success() {
+        // given
+        String username = "testUser";
+        Member member = Member.builder()
+                .memberId(1L)
+                .username(username)
+                .memberType(MemberType.CUSTOMER)
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(reviewRepository.countByMember(member)).thenReturn(3);
+        when(favoriteRepository.countByMember(member)).thenReturn(14);
+
+        // when
+        CurrentMemberResponse response = memberService.getCurrentMember(username);
+
+        // then
+        assertThat(response)
+                .extracting("memberId", "username", "reviewCount", "favoriteCount")
+                .containsExactly(1L, username, 3, 14);
+    }
+
+    @DisplayName("내 정보 조회시 멤버가 존재하지 않으면 예외 발생")
+    @Test
+    void getCurrentMember_notExist() {
+        // given
+        String username = "testUser";
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> memberService.getCurrentMember(username))
+                .isInstanceOf(MemberException.class)
+                .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 
 }

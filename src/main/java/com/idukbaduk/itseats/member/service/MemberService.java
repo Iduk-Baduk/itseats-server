@@ -1,11 +1,14 @@
 package com.idukbaduk.itseats.member.service;
 
 import com.idukbaduk.itseats.member.dto.CustomerDto;
+import com.idukbaduk.itseats.member.dto.response.CurrentMemberResponse;
 import com.idukbaduk.itseats.member.dto.response.CustomerCreateResponse;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
+import com.idukbaduk.itseats.member.repository.FavoriteRepository;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
+import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,8 @@ public class MemberService {
 
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
+    private final ReviewRepository reviewRepository;
+    private final FavoriteRepository favoriteRepository;
 
     public Member getMemberByUsername(String username) {
         return memberRepository.findByUsername(username)
@@ -43,4 +48,14 @@ public class MemberService {
         return CustomerCreateResponse.of(newCustomer.getMemberId());
     }
 
+    public CurrentMemberResponse getCurrentMember(String username) {
+        Member member = memberRepository.findByUsername(username).orElseThrow(
+                () -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND)
+        );
+
+        int reviewCount = reviewRepository.countByMember(member);
+        int favoriteCount = favoriteRepository.countByMember(member);
+
+        return CurrentMemberResponse.of(member, reviewCount, favoriteCount);
+    }
 }

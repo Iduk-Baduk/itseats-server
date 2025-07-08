@@ -1,45 +1,67 @@
 package com.idukbaduk.itseats.review.service;
 
 import com.idukbaduk.itseats.global.BaseEntity;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
+import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.review.dto.ReviewCreateRequest;
+import com.idukbaduk.itseats.review.dto.ReviewCreateResponse;
 import com.idukbaduk.itseats.review.dto.StoreReviewDto;
 import com.idukbaduk.itseats.review.dto.StoreReviewResponse;
 import com.idukbaduk.itseats.review.entity.Review;
 import com.idukbaduk.itseats.review.entity.ReviewImage;
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.review.entity.enums.MenuLiked;
 import com.idukbaduk.itseats.review.error.ReviewErrorCode;
 import com.idukbaduk.itseats.review.error.ReviewException;
+import com.idukbaduk.itseats.rider.entity.Rider;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.review.repository.ReviewImageRepository;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
 
     @Mock
     private ReviewRepository reviewRepository;
+
     @Mock
     private ReviewImageRepository reviewImageRepository;
 
+    @Mock
+    private OrderRepository orderRepository;
+
+    @Mock
+    private MemberRepository memberRepository;
+
+    @Mock
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @Mock
+    private HashOperations<String, Object, Object> hashOperations;
+
     @InjectMocks
     private ReviewService reviewService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @DisplayName("가게 별 리뷰 목록 조회 성공")
     @Test
@@ -111,5 +133,72 @@ class ReviewServiceTest {
         assertThat(dto2.getRating()).isEqualTo(4);
         assertThat(dto2.getContent()).isEqualTo("또 먹고 싶어요!");
         assertThat(dto2.getCreatedAt()).isEqualTo("2025-05-04T12:34:56");
+    }
+
+    @Test
+    @DisplayName("리뷰 작성 성공")
+    void createReview_success() throws Exception {
+        // given
+        Long orderId = 1L;
+        String username = "user1";
+        Store store = Store.builder().storeId(10L).build();
+        Rider rider = Rider.builder().riderId(20L).build();
+        Order order = Order.builder()
+                .orderId(orderId)
+                .store(store)
+                .rider(rider)
+                .build();
+        Member member = Member.builder().username(username).build();
+
+        ReviewCreateRequest request = ReviewCreateRequest.builder()
+                .storeStar(5)
+                .riderStar(5)
+                .menuLiked(MenuLiked.GOOD)
+                .content("맛있어요")
+                .build();
+
+        Review savedReview = Review.builder()
+                .reviewId(1L)
+                .order(order)
+                .store(store)
+                .rider(rider)
+                .member(member)
+                .storeStar(request.getStoreStar())
+                .riderStar(request.getRiderStar())
+                .menuLiked(request.getMenuLiked())
+                .content(request.getContent())
+                .storeReply("")
+                .build();
+
+        // Redis 모킹
+        when(redisTemplate.execute(any(RedisCallback.class))).thenAnswer(invocation -> {
+            RedisCallback<?> callback = invocation.getArgument(0);
+            return callback.doInRedis(null);
+        });
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+
+        // when
+        ReviewCreateResponse response = reviewService.createReview(orderId, username, request);
+
+        // then
+        assertThat(response.getStoreStar()).isEqualTo(5);
+        assertThat(response.getRiderStar()).isEqualTo(5);
+        assertThat(response.getMenuLiked()).isEqualTo(MenuLiked.GOOD);
+        assertThat(response.getContent()).isEqualTo("맛있어요");
+
+        verify(redisTemplate).execute(any(RedisCallback.class));
+
+        // DB 저장 검증
+        ArgumentCaptor<Review> reviewCaptor = ArgumentCaptor.forClass(Review.class);
+        verify(reviewRepository).save(reviewCaptor.capture());
+        Review capturedReview = reviewCaptor.getValue();
+        assertThat(capturedReview.getStoreStar()).isEqualTo(5);
+        assertThat(capturedReview.getRiderStar()).isEqualTo(5);
+        assertThat(capturedReview.getMenuLiked()).isEqualTo(MenuLiked.GOOD);
+        assertThat(capturedReview.getContent()).isEqualTo("맛있어요");
+        assertThat(capturedReview.getStoreReply()).isEqualTo("");
     }
 }
