@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.coupon.controller;
 
 import com.idukbaduk.itseats.coupon.dto.CouponCreateRequest;
+import com.idukbaduk.itseats.coupon.dto.FranchiseCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.dto.StoreCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.dto.enums.CouponResponse;
 import com.idukbaduk.itseats.coupon.service.OwnerCouponService;
@@ -26,6 +27,15 @@ public class OwnerCouponController {
     ) {
         StoreCouponCreateResponse response =
                 ownerCouponService.createStoreCoupon(storeId, request, userDetails.getUsername());
+        return BaseResponse.toResponseEntity(CouponResponse.CREATE_COUPON_SUCCESS, response);
+    }
+
+    @PostMapping("{franchiseId}/coupons")
+    public ResponseEntity<BaseResponse> createFranchiseCoupon(
+            @PathVariable("franchiseId") Long franchiseId,
+            @RequestBody CouponCreateRequest request
+    ) {
+        FranchiseCouponCreateResponse response = ownerCouponService.createFranchiseCoupon(franchiseId, request);
         return BaseResponse.toResponseEntity(CouponResponse.CREATE_COUPON_SUCCESS, response);
     }
 }
