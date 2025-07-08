@@ -29,7 +29,7 @@ public class ClientConfig {
     @Bean
     public RestClient TossRestClient() {
         return RestClient.builder()
-                .requestFactory(getRequestFactory())
+//                .requestFactory(getRequestFactory())
                 .baseUrl(tossBaseUrl)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, AUTH_HEADER_PREFIX + getEncodedAuth())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -37,13 +37,13 @@ public class ClientConfig {
     }
 
     // TODO : Factory에 관해 고민해볼것
-    private ClientHttpRequestFactory getRequestFactory() {
-        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-        factory.setConnectTimeout(CONNECT_TIMEOUT);
-        factory.setReadTimeout(READ_TIMEOUT);
-
-        return factory;
-    }
+//    private ClientHttpRequestFactory getRequestFactory() {
+//        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+//        factory.setConnectTimeout(CONNECT_TIMEOUT);
+//        factory.setReadTimeout(READ_TIMEOUT);
+//
+//        return factory;
+//    }
 
     private String getEncodedAuth() {
         return Base64.getEncoder().encodeToString((secretKey + BASIC_DELIMITER).getBytes(StandardCharsets.UTF_8));
