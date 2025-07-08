@@ -49,6 +49,7 @@ class OwnerCouponServiceTest {
         // given
         Long storeId = 1L;
         String username = "owner1";
+        LocalDateTime now = LocalDateTime.now();
         CouponCreateRequest request = CouponCreateRequest.builder()
                 .name("3,000원 할인")
                 .description("3000원 할인 쿠폰입니다")
@@ -56,8 +57,8 @@ class OwnerCouponServiceTest {
                 .couponType(CouponType.FIXED)
                 .minPrice(15000)
                 .discountValue(3000)
-                .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
-                .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
+                .issueStartDate(now.plusDays(1))
+                .validDate(now.plusDays(30))
                 .build();
 
         Member member = Member.builder()
@@ -96,8 +97,8 @@ class OwnerCouponServiceTest {
         assertThat(response.getCouponType()).isEqualTo(CouponType.FIXED);
         assertThat(response.getMinPrice()).isEqualTo(15000);
         assertThat(response.getDiscountValue()).isEqualTo(3000);
-        assertThat(response.getIssueStartDate()).isEqualTo(LocalDateTime.of(2025, 7, 8, 0, 0));
-        assertThat(response.getValidDate()).isEqualTo(LocalDateTime.of(2025, 7, 31, 23, 59));
+        assertThat(response.getIssueStartDate()).isEqualTo(now.plusDays(1));
+        assertThat(response.getValidDate()).isEqualTo(now.plusDays(30));
 
         // DB 저장 검증
         ArgumentCaptor<Coupon> couponCaptor = ArgumentCaptor.forClass(Coupon.class);
@@ -151,6 +152,7 @@ class OwnerCouponServiceTest {
     void createFranchiseCoupon_success() {
         // given
         Long franchiseId = 1L;
+        LocalDateTime now = LocalDateTime.now();
         CouponCreateRequest request = CouponCreateRequest.builder()
                 .name("5,000원 할인")
                 .description("5000원 할인 쿠폰입니다")
@@ -158,8 +160,8 @@ class OwnerCouponServiceTest {
                 .couponType(CouponType.FIXED)
                 .minPrice(20000)
                 .discountValue(5000)
-                .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
-                .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
+                .issueStartDate(now.plusDays(1))
+                .validDate(now.plusDays(30))
                 .build();
 
         Franchise franchise = Franchise.builder()

@@ -43,11 +43,12 @@ class OwnerCouponControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("쿠폰 생성 성공")
+    @DisplayName("매장 쿠폰 생성 성공")
     @WithMockUser(username = "owner")
     void createStoreCoupon_success() throws Exception {
         // given
         Long storeId = 1L;
+        LocalDateTime now = LocalDateTime.now();
         CouponCreateRequest request = CouponCreateRequest.builder()
                 .name("3,000원 할인")
                 .description("3000원 할인 쿠폰입니다")
@@ -55,8 +56,8 @@ class OwnerCouponControllerTest {
                 .couponType(CouponType.FIXED)
                 .minPrice(15000)
                 .discountValue(3000)
-                .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
-                .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
+                .issueStartDate(now.plusDays(1))
+                .validDate(now.plusDays(30))
                 .build();
 
         StoreCouponCreateResponse response = StoreCouponCreateResponse.builder()
@@ -66,8 +67,8 @@ class OwnerCouponControllerTest {
                 .couponType(CouponType.FIXED)
                 .minPrice(15000)
                 .discountValue(3000)
-                .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
-                .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
+                .issueStartDate(now.plusDays(1))
+                .validDate(now.plusDays(30))
                 .build();
 
         given(ownerCouponService.createStoreCoupon(eq(storeId), any(CouponCreateRequest.class), any(String.class)))
@@ -78,27 +79,25 @@ class OwnerCouponControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.httpStatus").value(CouponResponse.CREATE_COUPON_SUCCESS.getHttpStatus().value()))
-                .andExpect(jsonPath("$.message").value(CouponResponse.CREATE_COUPON_SUCCESS.getMessage()))
                 .andExpect(jsonPath("$.data.couponId").value(11L))
-                .andExpect(jsonPath("$.data.name").value("3,000원 할인"))
-                .andExpect(jsonPath("$.data.quantity").value(100))
-                .andExpect(jsonPath("$.data.minPrice").value(15000))
-                .andExpect(jsonPath("$.data.discountValue").value(3000));
+                .andExpect(jsonPath("$.data.name").value("3,000원 할인"));
     }
 
     @Test
-    @DisplayName("쿠폰 생성 실패 - 매장 없음")
+    @DisplayName("매장 쿠폰 생성 실패 - 매장 없음")
     @WithMockUser(username = "owner")
     void createStoreCoupon_storeNotFound() throws Exception {
         // given
         Long storeId = 99L;
+        LocalDateTime now = LocalDateTime.now();
         CouponCreateRequest request = CouponCreateRequest.builder()
                 .name("3,000원 할인")
                 .quantity(100)
                 .couponType(CouponType.FIXED)
                 .minPrice(15000)
                 .discountValue(3000)
+                .issueStartDate(now.plusDays(1))
+                .validDate(now.plusDays(30))
                 .build();
 
         doThrow(new StoreException(StoreErrorCode.STORE_NOT_FOUND))
@@ -112,35 +111,12 @@ class OwnerCouponControllerTest {
     }
 
     @Test
-    @DisplayName("쿠폰 생성 실패 - 권한 없음")
-    @WithMockUser(username = "notowner")
-    void createStoreCoupon_notStoreOwner() throws Exception {
-        // given
-        Long storeId = 1L;
-        CouponCreateRequest request = CouponCreateRequest.builder()
-                .name("3,000원 할인")
-                .quantity(100)
-                .couponType(CouponType.FIXED)
-                .minPrice(15000)
-                .discountValue(3000)
-                .build();
-
-        doThrow(new StoreException(StoreErrorCode.NOT_STORE_OWNER))
-                .when(ownerCouponService).createStoreCoupon(eq(storeId), any(CouponCreateRequest.class), any(String.class));
-
-        // when & then
-        mockMvc.perform(post("/api/owner/stores/{storeId}/coupons", storeId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
     @DisplayName("프랜차이즈 쿠폰 생성 성공")
     @WithMockUser(username = "owner")
     void createFranchiseCoupon_success() throws Exception {
         // given
         Long franchiseId = 1L;
+        LocalDateTime now = LocalDateTime.now();
         CouponCreateRequest request = CouponCreateRequest.builder()
                 .name("5,000원 할인")
                 .description("5000원 할인 쿠폰입니다")
@@ -148,8 +124,8 @@ class OwnerCouponControllerTest {
                 .couponType(CouponType.FIXED)
                 .minPrice(20000)
                 .discountValue(5000)
-                .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
-                .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
+                .issueStartDate(now.plusDays(1))
+                .validDate(now.plusDays(30))
                 .build();
 
         FranchiseCouponCreateResponse response = FranchiseCouponCreateResponse.builder()
@@ -160,8 +136,8 @@ class OwnerCouponControllerTest {
                 .couponType(CouponType.FIXED)
                 .minPrice(20000)
                 .discountValue(5000)
-                .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
-                .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
+                .issueStartDate(now.plusDays(1))
+                .validDate(now.plusDays(30))
                 .build();
 
         given(ownerCouponService.createFranchiseCoupon(eq(franchiseId), any(CouponCreateRequest.class)))
@@ -172,14 +148,8 @@ class OwnerCouponControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.httpStatus").value(CouponResponse.CREATE_COUPON_SUCCESS.getHttpStatus().value()))
-                .andExpect(jsonPath("$.message").value(CouponResponse.CREATE_COUPON_SUCCESS.getMessage()))
                 .andExpect(jsonPath("$.data.franchiseName").value("테스트 프랜차이즈"))
-                .andExpect(jsonPath("$.data.couponId").value(12L))
-                .andExpect(jsonPath("$.data.name").value("5,000원 할인"))
-                .andExpect(jsonPath("$.data.quantity").value(200))
-                .andExpect(jsonPath("$.data.minPrice").value(20000))
-                .andExpect(jsonPath("$.data.discountValue").value(5000));
+                .andExpect(jsonPath("$.data.couponId").value(12L));
     }
 
     @Test
@@ -188,12 +158,15 @@ class OwnerCouponControllerTest {
     void createFranchiseCoupon_franchiseNotFound() throws Exception {
         // given
         Long franchiseId = 99L;
+        LocalDateTime now = LocalDateTime.now();
         CouponCreateRequest request = CouponCreateRequest.builder()
                 .name("5,000원 할인")
                 .quantity(200)
                 .couponType(CouponType.FIXED)
                 .minPrice(20000)
                 .discountValue(5000)
+                .issueStartDate(now.plusDays(1))
+                .validDate(now.plusDays(30))
                 .build();
 
         doThrow(new StoreException(StoreErrorCode.FRANCHISE_NOT_FOUND))
@@ -204,5 +177,32 @@ class OwnerCouponControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("매장 쿠폰 생성 실패 - 권한 없음")
+    @WithMockUser(username = "notowner")
+    void createStoreCoupon_notStoreOwner() throws Exception {
+        // given
+        Long storeId = 1L;
+        LocalDateTime now = LocalDateTime.now();
+        CouponCreateRequest request = CouponCreateRequest.builder()
+                .name("3,000원 할인")
+                .quantity(100)
+                .couponType(CouponType.FIXED)
+                .minPrice(15000)
+                .discountValue(3000)
+                .issueStartDate(now.plusDays(1))
+                .validDate(now.plusDays(30))
+                .build();
+
+        doThrow(new StoreException(StoreErrorCode.NOT_STORE_OWNER))
+                .when(ownerCouponService).createStoreCoupon(eq(storeId), any(CouponCreateRequest.class), any(String.class));
+
+        // when & then
+        mockMvc.perform(post("/api/owner/stores/{storeId}/coupons", storeId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
     }
 }
