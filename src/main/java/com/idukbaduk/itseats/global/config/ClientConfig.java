@@ -27,7 +27,7 @@ public class ClientConfig {
     private String tossBaseUrl;
 
     @Bean
-    public RestClient TossRestClient() {
+    public RestClient tossRestClient() {
         return RestClient.builder()
 //                .requestFactory(getRequestFactory())
                 .baseUrl(tossBaseUrl)
