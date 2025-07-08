@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 import java.nio.charset.StandardCharsets;
@@ -29,21 +29,20 @@ public class ClientConfig {
     @Bean
     public RestClient tossRestClient() {
         return RestClient.builder()
-//                .requestFactory(getRequestFactory())
+                .requestFactory(getRequestFactory())
                 .baseUrl(tossBaseUrl)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, AUTH_HEADER_PREFIX + getEncodedAuth())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 
-    // TODO : Factory에 관해 고민해볼것
-//    private ClientHttpRequestFactory getRequestFactory() {
-//        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-//        factory.setConnectTimeout(CONNECT_TIMEOUT);
-//        factory.setReadTimeout(READ_TIMEOUT);
-//
-//        return factory;
-//    }
+    private ClientHttpRequestFactory getRequestFactory() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(CONNECT_TIMEOUT);
+        factory.setReadTimeout(READ_TIMEOUT);
+
+        return factory;
+    }
 
     private String getEncodedAuth() {
         return Base64.getEncoder().encodeToString((secretKey + BASIC_DELIMITER).getBytes(StandardCharsets.UTF_8));
