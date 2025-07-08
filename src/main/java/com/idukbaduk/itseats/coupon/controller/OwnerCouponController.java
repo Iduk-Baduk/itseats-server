@@ -6,6 +6,7 @@ import com.idukbaduk.itseats.coupon.dto.StoreCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.dto.enums.CouponResponse;
 import com.idukbaduk.itseats.coupon.service.OwnerCouponService;
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +23,7 @@ public class OwnerCouponController {
     @PostMapping("/stores/{storeId}/coupons")
     public ResponseEntity<BaseResponse> createStoreCoupon(
             @PathVariable("storeId") Long storeId,
-            @RequestBody CouponCreateRequest request,
+            @RequestBody @Valid CouponCreateRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         StoreCouponCreateResponse response =
@@ -33,7 +34,7 @@ public class OwnerCouponController {
     @PostMapping("franchises/{franchiseId}/coupons")
     public ResponseEntity<BaseResponse> createFranchiseCoupon(
             @PathVariable("franchiseId") Long franchiseId,
-            @RequestBody CouponCreateRequest request
+            @RequestBody @Valid CouponCreateRequest request
     ) {
         FranchiseCouponCreateResponse response = ownerCouponService.createFranchiseCoupon(franchiseId, request);
         return BaseResponse.toResponseEntity(CouponResponse.CREATE_COUPON_SUCCESS, response);

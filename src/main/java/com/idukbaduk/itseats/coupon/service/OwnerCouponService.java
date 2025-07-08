@@ -5,6 +5,8 @@ import com.idukbaduk.itseats.coupon.dto.FranchiseCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.dto.StoreCouponCreateResponse;
 import com.idukbaduk.itseats.coupon.entity.Coupon;
 import com.idukbaduk.itseats.coupon.entity.enums.TargetType;
+import com.idukbaduk.itseats.coupon.error.CouponException;
+import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
 import com.idukbaduk.itseats.coupon.repository.CouponRepository;
 import com.idukbaduk.itseats.store.entity.Franchise;
 import com.idukbaduk.itseats.store.entity.Store;
@@ -32,6 +34,10 @@ public class OwnerCouponService {
 
         if (!store.getMember().getUsername().equals(username)) {
             throw new StoreException(StoreErrorCode.NOT_STORE_OWNER);
+        }
+
+        if (request.getValidDate().isBefore(request.getIssueStartDate())) {
+            throw new CouponException(CouponErrorCode.INVALID_DATE_RANGE);
         }
 
         Coupon coupon = Coupon.builder()
@@ -66,6 +72,10 @@ public class OwnerCouponService {
 
         Franchise franchise = franchiseRepository.findById(franchiseId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.FRANCHISE_NOT_FOUND));
+
+        if (request.getValidDate().isBefore(request.getIssueStartDate())) {
+            throw new CouponException(CouponErrorCode.INVALID_DATE_RANGE);
+        }
 
         Coupon coupon = Coupon.builder()
                 .franchise(franchise)
