@@ -41,6 +41,9 @@ public class CouponCreateRequest {
     @FutureOrPresent(message = "발급 시작일은 현재 이후여야 합니다.")
     private LocalDateTime issueStartDate;
 
+    @NotNull(message = "발급 종료일은 필수 입니다.")
+    private LocalDateTime issueEndDate;
+
     @NotNull(message = "만료일은 필수입니다.")
     private LocalDateTime validDate;
 }

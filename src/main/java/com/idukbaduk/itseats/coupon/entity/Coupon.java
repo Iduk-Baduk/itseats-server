@@ -59,6 +59,9 @@ public class Coupon extends BaseEntity {
     @Column(name = "issue_start_date", nullable = false)
     private LocalDateTime issueStartDate;
 
+    @Column(name = "issue_end_date", nullable = false)
+    private LocalDateTime issueEndDate;  // 발급 종료 일시
+
     @Column(name = "valid_date", nullable = false)
     private LocalDateTime validDate;
 

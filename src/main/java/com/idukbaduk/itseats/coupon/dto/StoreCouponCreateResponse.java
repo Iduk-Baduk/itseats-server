@@ -16,5 +16,6 @@ public class StoreCouponCreateResponse {
     private int minPrice;
     private int discountValue;
     private LocalDateTime issueStartDate;
+    private LocalDateTime issueEndDate;
     private LocalDateTime validDate;
 }

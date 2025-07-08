@@ -57,6 +57,7 @@ class OwnerCouponControllerTest {
                 .minPrice(15000)
                 .discountValue(3000)
                 .issueStartDate(now.plusDays(1))
+                .issueEndDate(now.plusDays(7))
                 .validDate(now.plusDays(30))
                 .build();
 
@@ -68,6 +69,7 @@ class OwnerCouponControllerTest {
                 .minPrice(15000)
                 .discountValue(3000)
                 .issueStartDate(now.plusDays(1))
+                .issueEndDate(now.plusDays(7))
                 .validDate(now.plusDays(30))
                 .build();
 
@@ -97,6 +99,7 @@ class OwnerCouponControllerTest {
                 .minPrice(15000)
                 .discountValue(3000)
                 .issueStartDate(now.plusDays(1))
+                .issueEndDate(now.plusDays(7))
                 .validDate(now.plusDays(30))
                 .build();
 
@@ -125,6 +128,7 @@ class OwnerCouponControllerTest {
                 .minPrice(20000)
                 .discountValue(5000)
                 .issueStartDate(now.plusDays(1))
+                .issueEndDate(now.plusDays(7))
                 .validDate(now.plusDays(30))
                 .build();
 
@@ -137,6 +141,7 @@ class OwnerCouponControllerTest {
                 .minPrice(20000)
                 .discountValue(5000)
                 .issueStartDate(now.plusDays(1))
+                .issueEndDate(now.plusDays(7))
                 .validDate(now.plusDays(30))
                 .build();
 
@@ -166,6 +171,7 @@ class OwnerCouponControllerTest {
                 .minPrice(20000)
                 .discountValue(5000)
                 .issueStartDate(now.plusDays(1))
+                .issueEndDate(now.plusDays(7))
                 .validDate(now.plusDays(30))
                 .build();
 
@@ -193,6 +199,7 @@ class OwnerCouponControllerTest {
                 .minPrice(15000)
                 .discountValue(3000)
                 .issueStartDate(now.plusDays(1))
+                .issueEndDate(now.plusDays(7))
                 .validDate(now.plusDays(30))
                 .build();
 

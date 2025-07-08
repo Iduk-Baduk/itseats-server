@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum CouponErrorCode implements ErrorCode {
 
-    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "만료일은 발급 시작일 이후여야 합니다."),
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "날짜 입력이 올바르지 않습니다."),
     ;
 
     private final HttpStatus httpStatus;
