@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +24,8 @@ public class RiderService {
     private final RiderRepository riderRepository;
     private final RiderAssignmentRepository riderAssignmentRepository;
     private final OrderRepository orderRepository;
+
+    private final int DEFAULT_SEARCH_RADIUS_KM = 10;
 
 
     @Transactional
@@ -76,11 +77,11 @@ public class RiderService {
 
     @Transactional(readOnly = true)
     public List<ReadyOrderResponse> findNearbyOrders(NearByOrderRequest request) {
-        final int searchRadiusMeters = 10 * 1000; // 10km
+        final int searchRadiusMeters = DEFAULT_SEARCH_RADIUS_KM * 1000; // 10km
 
         List<NearbyOrderDTO> nearbyOrders = orderRepository.findNearbyOrders(
-                request.getLongitude(),
                 request.getLatitude(),
+                request.getLongitude(),
                 searchRadiusMeters
         );
 
