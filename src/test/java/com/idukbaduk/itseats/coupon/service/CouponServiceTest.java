@@ -52,6 +52,7 @@ class CouponServiceTest {
                 .minPrice(15000)
                 .quantity(100)
                 .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
+                .issueEndDate(LocalDateTime.of(2025, 7, 15, 0, 0))
                 .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
                 .build();
 

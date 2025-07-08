@@ -45,7 +45,7 @@ public class CouponService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(coupon.getIssueStartDate()) || now.isAfter(coupon.getValidDate())) {
+        if (now.isBefore(coupon.getIssueStartDate()) || now.isAfter(coupon.getIssueEndDate())) {
             throw new CouponException(CouponErrorCode.INVALID_PERIOD);
         }
 
