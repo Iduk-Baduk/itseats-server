@@ -74,7 +74,7 @@ class OwnerCouponControllerTest {
                 .willReturn(response);
 
         // when & then
-        mockMvc.perform(post("/api/owner/{storeId}/coupons", storeId)
+        mockMvc.perform(post("/api/owner/stores/{storeId}/coupons", storeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -105,7 +105,7 @@ class OwnerCouponControllerTest {
                 .when(ownerCouponService).createStoreCoupon(eq(storeId), any(CouponCreateRequest.class), any(String.class));
 
         // when & then
-        mockMvc.perform(post("/api/owner/{storeId}/coupons", storeId)
+        mockMvc.perform(post("/api/owner/stores/{storeId}/coupons", storeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -129,7 +129,7 @@ class OwnerCouponControllerTest {
                 .when(ownerCouponService).createStoreCoupon(eq(storeId), any(CouponCreateRequest.class), any(String.class));
 
         // when & then
-        mockMvc.perform(post("/api/owner/{storeId}/coupons", storeId)
+        mockMvc.perform(post("/api/owner/stores/{storeId}/coupons", storeId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
@@ -168,7 +168,7 @@ class OwnerCouponControllerTest {
                 .willReturn(response);
 
         // when & then
-        mockMvc.perform(post("/api/owner/{franchiseId}/coupons", franchiseId)
+        mockMvc.perform(post("/api/owner/franchises/{franchiseId}/coupons", franchiseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -200,7 +200,7 @@ class OwnerCouponControllerTest {
                 .when(ownerCouponService).createFranchiseCoupon(eq(franchiseId), any(CouponCreateRequest.class));
 
         // when & then
-        mockMvc.perform(post("/api/owner/{franchiseId}/coupons", franchiseId)
+        mockMvc.perform(post("/api/owner/franchises/{franchiseId}/coupons", franchiseId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
