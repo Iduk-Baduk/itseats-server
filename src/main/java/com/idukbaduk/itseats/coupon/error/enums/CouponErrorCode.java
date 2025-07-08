@@ -1,0 +1,27 @@
+package com.idukbaduk.itseats.coupon.error.enums;
+
+import com.idukbaduk.itseats.global.error.core.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+
+@RequiredArgsConstructor
+public enum CouponErrorCode implements ErrorCode {
+    COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "쿠폰을 찾을 수 없습니다."),
+    ALREADY_ISSUED(HttpStatus.CONFLICT, "이미 발급받은 쿠폰입니다."),
+    QUANTITY_EXCEEDED(HttpStatus.CONFLICT, "쿠폰 발급 수량을 초과했습니다."),
+    INVALID_PERIOD(HttpStatus.BAD_REQUEST, "쿠폰 발급 가능 기간이 아닙니다."),
+    ;
+
+    private final HttpStatus httpStatus;
+    private final String message;
+
+    @Override
+    public HttpStatus getStatus() {
+        return httpStatus;
+    }
+
+    @Override
+    public String getMessage() {
+        return "[COUPON ERROR] " + message;
+    }
+}
