@@ -15,6 +15,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class PaymentClient {
 
+    private static final String PAYMENT_SUCCESS_STATUS = "DONE";
+
     private final RestClient restClient;
 
     public PaymentClientResponse confirmPayment(PaymentConfirmRequest confirmRequest) {
@@ -31,7 +33,7 @@ public class PaymentClient {
     }
 
     private void validatePaymentStatus(String status) {
-        if (!status.equals("DONE")) {
+        if (!PAYMENT_SUCCESS_STATUS.equals(status)) {
             throw new PaymentException(PaymentErrorCode.PAYMENT_FAIL);
         }
     }
