@@ -5,6 +5,10 @@ import com.idukbaduk.itseats.external.jwt.service.JwtTokenParser;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,6 +34,7 @@ import java.io.IOException;
  * 2. 토큰 유효성 검증 및 Claims 파싱
  * 3. 토큰의 subject(memberId)로 사용자 정보 조회
  * 4. SecurityContextHolder에 인증 정보 설정
+ * 5. 인증 실패 시 403 상태코드 반환
  * 
  * @author 개발팀
  * @since 2025-07-09
@@ -50,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 2. 토큰이 존재하면 검증 및 파싱
      * 3. 토큰의 subject(memberId)로 사용자 조회
      * 4. 유효한 사용자인 경우 SecurityContextHolder에 인증 정보 설정
-     * 5. 예외 발생 시 로그만 남기고 필터 체인 계속 진행
+     * 5. 인증 실패 시 403 상태코드 반환
      * 
      * @param request HTTP 요청
      * @param response HTTP 응답
@@ -90,17 +95,57 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     log.debug("사용자 인증 정보 설정 완료: {}", member.getUsername());
                 } else {
                     log.warn("JWT 토큰의 memberId({})에 해당하는 사용자를 찾을 수 없습니다.", memberId);
+                    // 사용자를 찾을 수 없는 경우 403 반환
+                    sendForbiddenResponse(response, "유효하지 않은 사용자입니다.");
+                    return;
                 }
             } else {
                 log.debug("Authorization 헤더에 JWT 토큰이 없습니다.");
             }
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT 토큰이 만료되었습니다: {}", e.getMessage());
+            sendForbiddenResponse(response, "토큰이 만료되었습니다.");
+            return;
+        } catch (UnsupportedJwtException e) {
+            log.warn("지원하지 않는 JWT 토큰입니다: {}", e.getMessage());
+            sendForbiddenResponse(response, "지원하지 않는 토큰 형식입니다.");
+            return;
+        } catch (MalformedJwtException e) {
+            log.warn("잘못된 JWT 토큰 형식입니다: {}", e.getMessage());
+            sendForbiddenResponse(response, "잘못된 토큰 형식입니다.");
+            return;
+        } catch (SignatureException e) {
+            log.warn("JWT 토큰 서명이 유효하지 않습니다: {}", e.getMessage());
+            sendForbiddenResponse(response, "토큰 서명이 유효하지 않습니다.");
+            return;
+        } catch (IllegalArgumentException e) {
+            log.warn("JWT 토큰이 비어있습니다: {}", e.getMessage());
+            sendForbiddenResponse(response, "토큰이 비어있습니다.");
+            return;
         } catch (Exception e) {
-            // 6. JWT 토큰 처리 중 오류 발생 시 로그만 남기고 필터 체인 계속 진행
-            // (인증되지 않은 요청도 정상적으로 처리되도록 함)
-            log.debug("JWT 토큰 처리 중 오류 발생: {}", e.getMessage());
+            log.warn("JWT 토큰 처리 중 예상치 못한 오류 발생: {}", e.getMessage());
+            sendForbiddenResponse(response, "토큰 처리 중 오류가 발생했습니다.");
+            return;
         }
         
-        // 7. 필터 체인 계속 진행
+        // 6. 필터 체인 계속 진행
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * 403 Forbidden 응답을 전송합니다.
+     * 
+     * @param response HTTP 응답 객체
+     * @param message 오류 메시지
+     * @throws IOException IO 예외
+     */
+    private void sendForbiddenResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("""
+            {
+              "message": "%s"
+            }
+        """.formatted(message));
     }
 } 
