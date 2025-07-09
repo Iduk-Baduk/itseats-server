@@ -11,21 +11,32 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class CouponServiceTest {
 
     @Mock
@@ -34,9 +45,24 @@ class CouponServiceTest {
     private MemberRepository memberRepository;
     @Mock
     private MemberCouponRepository memberCouponRepository;
+    @Mock
+    private RedissonClient redissonClient;
+    @Mock
+    private RLock rLock;
 
     @InjectMocks
     private CouponService couponService;
+
+    @BeforeEach
+    void setUp() {
+        given(redissonClient.getLock(anyString())).willReturn(rLock);
+        try {
+            given(rLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).willReturn(true);
+            given(rLock.isHeldByCurrentThread()).willReturn(true);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Test
     @DisplayName("쿠폰 발급 성공")
@@ -51,9 +77,9 @@ class CouponServiceTest {
                 .discountValue(3000)
                 .minPrice(15000)
                 .quantity(100)
-                .issueStartDate(LocalDateTime.of(2025, 7, 8, 0, 0))
-                .issueEndDate(LocalDateTime.of(2025, 7, 15, 0, 0))
-                .validDate(LocalDateTime.of(2025, 7, 31, 23, 59))
+                .issueStartDate(LocalDateTime.now().minusDays(1))
+                .issueEndDate(LocalDateTime.now().plusDays(7))
+                .validDate(LocalDateTime.now().plusDays(30))
                 .build();
 
         given(memberRepository.findByUsername(username)).willReturn(Optional.of(member));
@@ -85,6 +111,23 @@ class CouponServiceTest {
         assertThat(response.getDiscountValue()).isEqualTo(3000);
         assertThat(response.getMinPrice()).isEqualTo(15000);
         assertThat(response.isUsed()).isFalse();
+
+        verify(rLock).unlock();
+    }
+
+    @Test
+    @DisplayName("락 획득 실패 시 예외 발생")
+    void issueCoupon_lockAcquisitionFailed() throws InterruptedException {
+        // given
+        Long couponId = 10L;
+        String username = "user1";
+
+        given(rLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> couponService.issueCoupon(couponId, username))
+                .isInstanceOf(CouponException.class)
+                .hasMessageContaining(CouponErrorCode.LOCK_ACQUISITION_FAILED.getMessage());
     }
 
     @Test
@@ -94,7 +137,11 @@ class CouponServiceTest {
         Long couponId = 10L;
         String username = "user1";
         Member member = Member.builder().username(username).build();
-        Coupon coupon = Coupon.builder().couponId(couponId).build();
+        Coupon coupon = Coupon.builder()
+                .couponId(couponId)
+                .issueStartDate(LocalDateTime.now().minusDays(1))
+                .issueEndDate(LocalDateTime.now().plusDays(7))
+                .build();
 
         given(memberRepository.findByUsername(username)).willReturn(Optional.of(member));
         given(couponRepository.findById(couponId)).willReturn(Optional.of(coupon));
@@ -104,6 +151,8 @@ class CouponServiceTest {
         assertThatThrownBy(() -> couponService.issueCoupon(couponId, username))
                 .isInstanceOf(CouponException.class)
                 .hasMessageContaining(CouponErrorCode.ALREADY_ISSUED.getMessage());
+
+        verify(rLock).unlock();
     }
 
     @Test
@@ -113,7 +162,12 @@ class CouponServiceTest {
         Long couponId = 10L;
         String username = "user1";
         Member member = Member.builder().username(username).build();
-        Coupon coupon = Coupon.builder().couponId(couponId).quantity(100).build();
+        Coupon coupon = Coupon.builder()
+                .couponId(couponId)
+                .quantity(100)
+                .issueStartDate(LocalDateTime.now().minusDays(1))
+                .issueEndDate(LocalDateTime.now().plusDays(7))
+                .build();
 
         given(memberRepository.findByUsername(username)).willReturn(Optional.of(member));
         given(couponRepository.findById(couponId)).willReturn(Optional.of(coupon));
@@ -124,6 +178,8 @@ class CouponServiceTest {
         assertThatThrownBy(() -> couponService.issueCoupon(couponId, username))
                 .isInstanceOf(CouponException.class)
                 .hasMessageContaining(CouponErrorCode.QUANTITY_EXCEEDED.getMessage());
+
+        verify(rLock).unlock();
     }
 
     @Test
@@ -134,17 +190,17 @@ class CouponServiceTest {
         String username = "user1";
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime futureStartDate = now.plusYears(1); // 현재보다 미래의 시점
+        LocalDateTime futureStartDate = now.plusDays(1);
 
         Member member = Member.builder().username(username).build();
         Coupon coupon = Coupon.builder()
                 .couponId(couponId)
                 .quantity(100)
-                .issueStartDate(futureStartDate)  // 미래의 발급 시작일
+                .issueStartDate(futureStartDate)
+                .issueEndDate(futureStartDate.plusDays(7))
                 .validDate(futureStartDate.plusDays(30))
                 .build();
 
-        // 실제로 사용되는 stub만 정의
         given(memberRepository.findByUsername(username)).willReturn(Optional.of(member));
         given(couponRepository.findById(couponId)).willReturn(Optional.of(coupon));
 
@@ -152,5 +208,90 @@ class CouponServiceTest {
         assertThatThrownBy(() -> couponService.issueCoupon(couponId, username))
                 .isInstanceOf(CouponException.class)
                 .hasMessageContaining(CouponErrorCode.INVALID_PERIOD.getMessage());
+
+        verify(rLock).unlock();
+    }
+
+    @Test
+    @DisplayName("유효기간 종료 후 발급 시 예외 발생")
+    void issueCoupon_afterIssueEndDate() {
+        // given
+        Long couponId = 10L;
+        String username = "user1";
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime pastEndDate = now.minusDays(1);
+
+        Member member = Member.builder().username(username).build();
+        Coupon coupon = Coupon.builder()
+                .couponId(couponId)
+                .quantity(100)
+                .issueStartDate(pastEndDate.minusDays(7))
+                .issueEndDate(pastEndDate)
+                .validDate(now.plusDays(30))
+                .build();
+
+        given(memberRepository.findByUsername(username)).willReturn(Optional.of(member));
+        given(couponRepository.findById(couponId)).willReturn(Optional.of(coupon));
+
+        // when & then
+        assertThatThrownBy(() -> couponService.issueCoupon(couponId, username))
+                .isInstanceOf(CouponException.class)
+                .hasMessageContaining(CouponErrorCode.INVALID_PERIOD.getMessage());
+
+        verify(rLock).unlock();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 회원일 경우 예외 발생")
+    void issueCoupon_memberNotFound() {
+        // given
+        Long couponId = 10L;
+        String username = "nonexistent";
+
+        given(memberRepository.findByUsername(username)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> couponService.issueCoupon(couponId, username))
+                .isInstanceOf(MemberException.class)
+                .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+
+        verify(rLock).unlock();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 쿠폰일 경우 예외 발생")
+    void issueCoupon_couponNotFound() {
+        // given
+        Long couponId = 999L;
+        String username = "user1";
+        Member member = Member.builder().username(username).build();
+
+        given(memberRepository.findByUsername(username)).willReturn(Optional.of(member));
+        given(couponRepository.findById(couponId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> couponService.issueCoupon(couponId, username))
+                .isInstanceOf(CouponException.class)
+                .hasMessageContaining(CouponErrorCode.COUPON_NOT_FOUND.getMessage());
+
+        verify(rLock).unlock();
+    }
+
+    @Test
+    @DisplayName("락 획득 중 인터럽트 발생 시 예외 처리")
+    void issueCoupon_lockInterrupted() throws InterruptedException {
+        // given
+        Long couponId = 10L;
+        String username = "user1";
+
+        given(redissonClient.getLock(anyString())).willReturn(rLock);
+        given(rLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class)))
+                .willThrow(new InterruptedException());
+
+        // when & then
+        assertThatThrownBy(() -> couponService.issueCoupon(couponId, username))
+                .isInstanceOf(CouponException.class)
+                .hasMessageContaining(CouponErrorCode.LOCK_INTERRUPTED.getMessage());
     }
 }
