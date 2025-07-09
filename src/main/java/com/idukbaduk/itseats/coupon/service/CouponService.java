@@ -57,10 +57,10 @@ public class CouponService {
                 throw new CouponException(CouponErrorCode.ALREADY_ISSUED);
             }
 
-            Long issuedCount = memberCouponRepository.countByCoupon(coupon);
-            if (issuedCount >= coupon.getQuantity()) {
+            if (!coupon.canIssue()) {
                 throw new CouponException(CouponErrorCode.QUANTITY_EXCEEDED);
             }
+            coupon.increaseIssuedCount();
 
             MemberCoupon memberCoupon = MemberCoupon.builder()
                     .member(member)

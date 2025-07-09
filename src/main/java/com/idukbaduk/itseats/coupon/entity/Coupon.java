@@ -2,6 +2,8 @@ package com.idukbaduk.itseats.coupon.entity;
 
 import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
 import com.idukbaduk.itseats.coupon.entity.enums.TargetType;
+import com.idukbaduk.itseats.coupon.error.CouponException;
+import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
 import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.store.entity.Franchise;
 import com.idukbaduk.itseats.store.entity.Store;
@@ -68,4 +70,18 @@ public class Coupon extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "target_type", nullable = false)
     private TargetType targetType;
+
+    @Column(name = "issued_count", nullable = false)
+    private int issuedCount = 0;
+
+    public boolean canIssue() {
+        return issuedCount < quantity;
+    }
+
+    public void increaseIssuedCount() {
+        if (!canIssue()) {
+            throw new CouponException(CouponErrorCode.QUANTITY_EXCEEDED);
+        }
+        this.issuedCount++;
+    }
 }

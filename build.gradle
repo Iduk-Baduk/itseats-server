@@ -88,7 +88,7 @@ dependencies {
     /**
      * Redis 분산 락 관련 의존성
      */
-    implementation 'org.redisson:redisson-spring-boot-starter:3.17.1'
+    implementation 'org.redisson:redisson-spring-boot-starter:3.50.0'
 }
 
 
