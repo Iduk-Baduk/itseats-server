@@ -202,6 +202,50 @@ class FindNearbyOrdersServiceTest {
                 .hasMessageContaining("현재 주변에 배정 가능한 배달이 없습니다");
     }
 
+    @Test
+    @DisplayName("조회된 배달 목록은 거리순으로 정렬, DTO의 값이 정확하다.")
+    void findNearbyOrders_VerifySortAndData() {
+        // given
+        // 0.7km
+        Store storeA = createStore("서울특별시 종로구 관철동 13-22", 126.9858, 37.5693, "종로점");
+        createOrder(
+                "ORDER_A001",
+                storeA.getLocation().getX(),
+                storeA.getLocation().getY(),
+                OrderStatus.COOKED,
+                21000,
+                storeA.getStoreAddress(),
+                storeA
+        );
+
+        // 0.8km
+        Store storeB = createStore("서울 중구 을지로2가 185", 126.9863, 37.5659, "을지로점");
+        createOrder(
+                "ORDER_B001",
+                storeB.getLocation().getX(),
+                storeB.getLocation().getY(),
+                OrderStatus.COOKED,
+                18000,
+                storeB.getStoreAddress(),
+                storeB
+        );
+
+        //  when
+        NearByOrderRequest request = new NearByOrderRequest(riderLat, riderLng);
+        List<ReadyOrderResponse> nearbyOrders = riderService.findNearbyOrders(request);
+
+        // then
+        assertThat(nearbyOrders).hasSize(2);
+        assertThat(nearbyOrders)
+                .extracting("storeName")
+                .containsExactly("종로점", "을지로점");
+        ReadyOrderResponse firstOrder = nearbyOrders.get(0);
+        assertThat(firstOrder.getStoreName()).isEqualTo("종로점");
+        assertThat(firstOrder.getDeliveryFee()).isEqualTo(deliveryFee);
+        assertThat(firstOrder.getDeliveryAddress()).isEqualTo("서울특별시 종로구 관철동 13-22");
+    }
+
+
     private Store createStore(String address, double lng, double lat, String name) {
         Store store = Store.builder()
                 .member(member)
