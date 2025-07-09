@@ -62,28 +62,12 @@ public class StoreService {
         PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted());
         Slice<Store> stores = storeRepository.findAllOrderByOrderCount(pageRequest);
 
-        List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
-        Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
-
-        Map<Long, StoreReviewStats> reviewStatsMap = reviewStatsService.getReviewStatsForStores(storeIds);
-
-        List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, reviewStatsMap);
-
-        return StoreListResponse.builder()
-                .stores(storeDtos)
-                .currentPage(pageable.getPageNumber())
-                .hasNext(stores.hasNext())
-                .build();
+        return getStoreListResponse(stores, pageable);
     }
 
     @Transactional(readOnly = true)
-    public StoreCategoryListResponse getStoresByCategory(
-            String username,
-            String categoryCode,
-            Pageable pageable,
-            StoreSortOption sort,
-            Long addressId
-    ) {
+    public StoreCategoryListResponse getStoresByCategory(String username, String categoryCode, Pageable pageable,
+                                                         StoreSortOption sort, Long addressId) {
 
         StoreCategory category = storeCategoryRepository.findByCategoryCode(categoryCode)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.CATEGORY_NOT_FOUND));
@@ -120,6 +104,56 @@ public class StoreService {
         return StoreCategoryListResponse.builder()
                 .category(categoryCode)
                 .categoryName(category.getCategoryName())
+                .stores(storeDtos)
+                .currentPage(pageable.getPageNumber())
+                .hasNext(stores.hasNext())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public StoreListResponse searchStores(String username, String keyword, Pageable pageable, StoreSortOption sort,
+                                          Long addressId) {
+        if (keyword == null || keyword.isEmpty()) {
+            return StoreListResponse.builder()
+                    .stores(Collections.emptyList())
+                    .currentPage(pageable.getPageNumber())
+                    .hasNext(false)
+                    .build();
+        }
+
+        // 기본 정렬 무시
+        PageRequest pageRequest = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted());
+        Slice<Store> stores = switch(sort) {
+            case DISTANCE -> {
+                Member member = memberRepository.findByUsername(username).orElse(null);
+                Point myLocation = getMyLocation(addressId, member); // 존재하지 않을시 기본 값: 서울시청
+                yield storeRepository.searchNearByStores(keyword, GeoUtil.toString(myLocation), pageRequest);
+            }
+            case RATING -> storeRepository.searchStoresOrderByRating(keyword, pageRequest);
+            case ORDER_COUNT -> storeRepository.searchStoresOrderByOrderCount(keyword, pageRequest);
+            case RECENT -> storeRepository.searchStoresOrderByCreatedAt(keyword, pageRequest);
+        };
+
+        return getStoreListResponse(stores, pageable);
+    }
+
+    private StoreListResponse getStoreListResponse(Slice<Store> stores, Pageable pageable) {
+        if (stores == null || stores.getContent().isEmpty()) {
+            return StoreListResponse.builder()
+                    .stores(Collections.emptyList())
+                    .currentPage(pageable.getPageNumber())
+                    .hasNext(false)
+                    .build();
+        }
+
+        List<Long> storeIds = stores.stream().map(Store::getStoreId).toList();
+        Map<Long, List<String>> storeIdToImages = buildStoreImageMap(storeIds);
+
+        Map<Long, StoreReviewStats> reviewStatsMap = reviewStatsService.getReviewStatsForStores(storeIds);
+
+        List<StoreDto> storeDtos = buildStoreDtos(stores.getContent(), storeIdToImages, reviewStatsMap);
+
+        return StoreListResponse.builder()
                 .stores(storeDtos)
                 .currentPage(pageable.getPageNumber())
                 .hasNext(stores.hasNext())
