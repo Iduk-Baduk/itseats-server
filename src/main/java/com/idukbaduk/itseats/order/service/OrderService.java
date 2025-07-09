@@ -1,6 +1,12 @@
 package com.idukbaduk.itseats.order.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.idukbaduk.itseats.coupon.entity.Coupon;
+import com.idukbaduk.itseats.coupon.entity.MemberCoupon;
+import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
+import com.idukbaduk.itseats.coupon.error.CouponException;
+import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
+import com.idukbaduk.itseats.coupon.repository.MemberCouponRepository;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
@@ -60,6 +66,7 @@ public class OrderService {
     private final PaymentRepository paymentRepository;
 
     private final ObjectMapper objectMapper;
+    private final MemberCouponRepository memberCouponRepository;
 
     @Transactional
     public OrderNewResponse getOrderNew(String username, OrderNewRequest orderNewRequest) {
@@ -75,6 +82,30 @@ public class OrderService {
 
         int orderPrice = getOrderPrice(orderNewRequest.getOrderMenus());
         int deliveryFee = getDeliveryFee(store, orderNewRequest.getDeliveryType());
+
+        int discountValue = 0;
+        if (orderNewRequest.getMemberCouponId() != null) {
+            MemberCoupon memberCoupon = memberCouponRepository.findById(orderNewRequest.getMemberCouponId())
+                    .filter(mc -> mc.getMember().equals(member))
+                    .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
+
+            if (memberCoupon.getIsUsed() || LocalDateTime.now().isAfter(memberCoupon.getValidDate()) ||
+                orderPrice < memberCoupon.getCoupon().getMinPrice()) {
+                throw new CouponException(CouponErrorCode.INVALID_COUPON_USE);
+            }
+
+            Coupon coupon = memberCoupon.getCoupon();
+            if (coupon.getCouponType() == CouponType.FIXED) {
+                discountValue = coupon.getDiscountValue();
+            }
+            if (coupon.getCouponType() == CouponType.RATE) {
+                discountValue = orderPrice * coupon.getDiscountValue() / 100;
+            }
+
+            discountValue = Math.min(discountValue, orderPrice);
+        }
+
+        int totalCost = orderPrice - discountValue + deliveryFee;
 
         return OrderNewResponse.builder()
                 .orderId(order.getOrderId())
@@ -95,10 +126,9 @@ public class OrderService {
                                 .orElse(30)
                 )
                 .orderPrice(orderPrice)
-                .deliveryFee(deliveryFee)
-                // TODO: 쿠폰 관련 로직은 추후 구현
+                .deliveryFee(discountValue)
                 .discountValue(0)
-                .totalCost(orderPrice + deliveryFee)
+                .totalCost(totalCost)
                 .build();
     }
 
