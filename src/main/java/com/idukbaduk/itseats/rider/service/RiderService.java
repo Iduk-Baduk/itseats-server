@@ -81,7 +81,7 @@ public class RiderService {
         Order order = orderRepository.findByIdForUpdate(orderId)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.ORDER_NOT_FOUND));
 
-        order.updateOrderStatusAccept(rider, OrderStatus.DELIVERING);
+        order.updateOrderStatusAccept(rider, OrderStatus.RIDER_READY);
 
         RiderAssignment riderAssignment = riderAssignmentRepository.findByUsernameAndOrderId(username, orderId)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_ASSIGNMENT_NOT_FOUND));
