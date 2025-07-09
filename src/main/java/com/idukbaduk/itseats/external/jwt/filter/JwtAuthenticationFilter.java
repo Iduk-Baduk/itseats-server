@@ -140,10 +140,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void sendForbiddenResponse(HttpServletResponse response, String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("""
+        
+        // 애플리케이션의 BaseResponse 형식과 일치하는 JSON 응답
+        String jsonResponse = String.format("""
             {
-              "message": "%s"
+              "httpStatus": 403,
+              "message": "%s",
+              "data": null
             }
-        """.formatted(message));
+            """, message);
+        
+        response.getWriter().write(jsonResponse);
     }
 } 
