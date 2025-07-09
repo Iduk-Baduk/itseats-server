@@ -148,6 +148,7 @@ public class OwnerOrderService {
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         order.updateStatus(OrderStatus.COOKING);
+        order.updateCookStartTime(LocalDateTime.now());
 
         LocalDateTime deliveryEta = LocalDateTime.now().plusMinutes(cookTime);
         order.updateDeliveryEta(deliveryEta);
