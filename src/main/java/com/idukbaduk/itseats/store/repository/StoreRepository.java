@@ -24,6 +24,8 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
   
     List<Store> findAllByStoreCategory_CategoryCodeAndDeletedFalse(String categoryCode);
 
+    Optional<Store> findByStoreId(Long storeId);
+
     @Query(value = """
         SELECT s.* FROM store s 
         LEFT JOIN orders o ON o.store_id = s.store_id
