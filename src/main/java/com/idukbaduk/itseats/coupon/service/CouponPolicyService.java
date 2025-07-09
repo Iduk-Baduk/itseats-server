@@ -32,9 +32,9 @@ public class CouponPolicyService {
             return Math.min(coupon.getDiscountValue(), orderPrice);
         }
         if (coupon.getCouponType() == CouponType.RATE) {
-            int discount = (int) Math.round(orderPrice * coupon.getDiscountValue() / 100.0);
+            int discount = orderPrice * coupon.getDiscountValue() / 100;
             return Math.min(discount, orderPrice);
         }
-        return 0;
+        throw new CouponException(CouponErrorCode.COUPON_NOT_FOUND);
     }
 }
