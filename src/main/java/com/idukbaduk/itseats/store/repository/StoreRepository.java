@@ -16,6 +16,8 @@ import java.util.Optional;
 @Repository
 public interface StoreRepository extends JpaRepository<Store, Long> {
 
+    List<Store> findByMember(Member member);
+
     Optional<Store> findByMemberAndStoreId(Member member, Long storeId);
 
     List<Store> findAllByDeletedFalse();

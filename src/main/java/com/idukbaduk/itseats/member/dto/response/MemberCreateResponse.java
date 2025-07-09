@@ -4,12 +4,12 @@ import lombok.AccessLevel;
 import lombok.Builder;
 
 @Builder(access = AccessLevel.PRIVATE)
-public record CustomerCreateResponse(
+public record MemberCreateResponse(
         Long memberId
 )
 {
-    public static CustomerCreateResponse of(Long memberId) {
-        return CustomerCreateResponse.builder()
+    public static MemberCreateResponse of(Long memberId) {
+        return MemberCreateResponse.builder()
                 .memberId(memberId)
                 .build();
     }

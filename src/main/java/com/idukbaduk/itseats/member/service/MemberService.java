@@ -2,7 +2,7 @@ package com.idukbaduk.itseats.member.service;
 
 import com.idukbaduk.itseats.member.dto.CustomerDto;
 import com.idukbaduk.itseats.member.dto.response.CurrentMemberResponse;
-import com.idukbaduk.itseats.member.dto.response.CustomerCreateResponse;
+import com.idukbaduk.itseats.member.dto.response.MemberCreateResponse;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
@@ -29,7 +29,7 @@ public class MemberService {
     }
 
     @Transactional
-    public CustomerCreateResponse createCustomer(CustomerDto customerDto) {
+    public MemberCreateResponse createCustomer(CustomerDto customerDto) {
 
         if (memberRepository.existsByUsername(customerDto.getUsername())) {
             throw new MemberException(MemberErrorCode.MEMBER_USERNAME_DUPLICATED);
@@ -45,7 +45,7 @@ public class MemberService {
 
         String encryptedPassword = passwordEncoder.encode(customerDto.getPassword());
         Member newCustomer = memberRepository.save(customerDto.toEntity(encryptedPassword));
-        return CustomerCreateResponse.of(newCustomer.getMemberId());
+        return MemberCreateResponse.of(newCustomer.getMemberId());
     }
 
     public CurrentMemberResponse getCurrentMember(String username) {

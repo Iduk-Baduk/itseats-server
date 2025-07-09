@@ -2,7 +2,7 @@ package com.idukbaduk.itseats.member.service;
 
 import com.idukbaduk.itseats.member.dto.CustomerDto;
 import com.idukbaduk.itseats.member.dto.response.CurrentMemberResponse;
-import com.idukbaduk.itseats.member.dto.response.CustomerCreateResponse;
+import com.idukbaduk.itseats.member.dto.response.MemberCreateResponse;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.entity.enums.MemberType;
 import com.idukbaduk.itseats.member.error.MemberException;
@@ -91,7 +91,7 @@ class MemberServiceTest {
 
         // when
         when(passwordEncoder.encode("rawPass")).thenReturn(encryptedPassword);
-        CustomerCreateResponse response = memberService.createCustomer(dto);
+        MemberCreateResponse response = memberService.createCustomer(dto);
 
         // then
         assertThat(expectedMember.getMemberId()).isEqualTo(response.memberId());
