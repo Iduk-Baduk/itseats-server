@@ -322,7 +322,7 @@ class RiderServiceTest {
         // when & then
         assertThatThrownBy(() -> riderService.acceptDelivery(username, orderId))
                 .isInstanceOf(OrderException.class)
-                .hasMessageContaining("해당 주문은 이미 라이더가 배정되었습니다.");
+                .hasMessageContaining(OrderErrorCode.ORDER_ALREADY_ASSIGNED.getMessage());
     }
 
 }
