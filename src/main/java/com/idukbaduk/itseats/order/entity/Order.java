@@ -106,6 +106,10 @@ public class Order extends BaseEntity {
         this.orderStatus = orderStatus;
     }
 
+    public void updateOrderReceivedTime(LocalDateTime orderReceivedTime) {
+        this.orderReceivedTime = orderReceivedTime;
+    }
+
     public void updateCookStartTime(LocalDateTime cookStartTime) {
         this.cookStartTime = cookStartTime;
     }

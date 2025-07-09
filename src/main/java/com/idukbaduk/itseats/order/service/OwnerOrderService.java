@@ -128,6 +128,7 @@ public class OwnerOrderService {
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         order.updateStatus(OrderStatus.ACCEPTED);
+        order.updateOrderReceivedTime(LocalDateTime.now());
 
         return new OrderAcceptResponse(true);
     }
