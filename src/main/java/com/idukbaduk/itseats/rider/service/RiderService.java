@@ -12,6 +12,8 @@ import com.idukbaduk.itseats.rider.error.RiderException;
 import com.idukbaduk.itseats.rider.error.enums.RiderErrorCode;
 import com.idukbaduk.itseats.rider.repository.RiderAssignmentRepository;
 import com.idukbaduk.itseats.rider.repository.RiderRepository;
+import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class RiderService {
 
     private final RiderRepository riderRepository;
     private final RiderAssignmentRepository riderAssignmentRepository;
+    private final OrderRepository orderRepository;
 
     @Transactional
     public WorkingInfoResponse modifyWorking(String username, ModifyWorkingRequest modifyWorkingRequest) {
@@ -68,5 +71,21 @@ public class RiderService {
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_ASSIGNMENT_NOT_FOUND));
 
         riderAssignment.updateAssignmentStatus(assignmentStatus);
+    }
+
+    @Transactional
+    public void acceptOrder(String username, Long orderId) {
+        Rider rider = riderRepository.findByUsername(username)
+                .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
+
+        Order order = orderRepository.findByIdForUpdate(orderId)
+                .orElseThrow(() -> new RiderException(RiderErrorCode.ORDER_NOT_FOUND));
+
+        order.updateOrderStatusAccept(rider, OrderStatus.DELIVERING);
+
+        RiderAssignment riderAssignment = riderAssignmentRepository.findByUsernameAndOrderId(username, orderId)
+                .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_ASSIGNMENT_NOT_FOUND));
+
+        riderAssignment.updateAssignmentStatus(AssignmentStatus.ACCEPTED);
     }
 }
