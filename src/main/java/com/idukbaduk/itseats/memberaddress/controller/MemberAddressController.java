@@ -27,14 +27,26 @@ public class MemberAddressController {
         );
     }
 
+    /**
+     * 사용자의 주소 목록 조회
+     * 
+     * 로그인한 사용자의 주소 목록을 반환합니다.
+     * 로그인하지 않은 사용자의 경우 빈 목록을 반환합니다.
+     * 
+     * @param userDetails Spring Security에서 주입하는 사용자 정보
+     *                    JWT 인증 필터에서 설정된 인증 정보 (null일 수 있음)
+     * @return 주소 목록 (로그인하지 않은 경우 빈 목록)
+     */
     @GetMapping
     public ResponseEntity<BaseResponse> getAddressList(@AuthenticationPrincipal UserDetails userDetails) {
+        // JWT 인증 필터에서 설정된 인증 정보가 없는 경우 (로그인하지 않은 사용자)
         if (userDetails == null) {
             return BaseResponse.toResponseEntity(
                     AddressResponse.GET_ADDRESS_LIST_SUCCESS,
                     memberAddressService.getAddressList(null)
             );
         }
+        // 로그인한 사용자의 경우 해당 사용자의 주소 목록 반환
         return BaseResponse.toResponseEntity(
                 AddressResponse.GET_ADDRESS_LIST_SUCCESS,
                 memberAddressService.getAddressList(userDetails.getUsername())

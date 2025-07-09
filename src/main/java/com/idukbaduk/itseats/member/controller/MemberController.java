@@ -28,8 +28,19 @@ public class MemberController {
         );
     }
 
+    /**
+     * 현재 로그인한 사용자 정보 조회
+     * 
+     * JWT 토큰을 통해 인증된 사용자의 정보를 반환합니다.
+     * 
+     * @param userDetails Spring Security에서 주입하는 사용자 정보
+     *                    JWT 인증 필터에서 설정된 인증 정보
+     * @return 현재 사용자 정보
+     * @throws RuntimeException 인증되지 않은 사용자인 경우
+     */
     @GetMapping("/me")
     public ResponseEntity<BaseResponse> getCurrentMember(@AuthenticationPrincipal UserDetails userDetails) {
+        // JWT 인증 필터에서 설정된 인증 정보가 없는 경우 처리
         if (userDetails == null) {
             throw new RuntimeException("인증되지 않은 사용자입니다.");
         }
