@@ -14,7 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkException;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -90,13 +92,18 @@ public class StoreMediaService {
     private List<StoreImage> saveStoreImages(Store store, List<MultipartFile> images) throws IOException {
         List<StoreImage> storeImages = new ArrayList<>();
         for (int i = 0; i < images.size(); i++) {
-            String imageUrl = s3Utils.uploadFileAndGetUrl(PATH, images.get(i));
+
+            String imageUrl = "text/plain".equalsIgnoreCase(images.get(i).getContentType())
+                    ? new String(images.get(i).getBytes(), StandardCharsets.UTF_8).trim() // 이미지 링크 업로드
+                    : s3Utils.uploadFileAndGetUrl(PATH, images.get(i)); // 이미지 파일 업로드
+
             StoreImage storeImage = StoreImage.builder()
                     .store(store)
                     .imageUrl(imageUrl)
                     .displayOrder(i)
                     .build();
             storeImages.add(storeImage);
+
         }
         return storeImageRepository.saveAll(storeImages);
     }

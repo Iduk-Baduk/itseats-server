@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkException;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -91,7 +92,11 @@ public class MenuMediaService {
     private List<MenuImage> saveMenuImages(Menu menu, List<MultipartFile> images) throws IOException {
         List<MenuImage> menuImages = new ArrayList<>();
         for (int i = 0; i < images.size(); i++) {
-            String imageUrl = s3Utils.uploadFileAndGetUrl(PATH, images.get(i));
+            
+            String imageUrl = "text/plain".equalsIgnoreCase(images.get(i).getContentType())
+                    ? new String(images.get(i).getBytes(), StandardCharsets.UTF_8).trim() // 이미지 링크 업로드
+                    : s3Utils.uploadFileAndGetUrl(PATH, images.get(i)); // 이미지 파일 업로드
+
             MenuImage menuImage = MenuImage.builder()
                     .menu(menu)
                     .imageUrl(imageUrl)
