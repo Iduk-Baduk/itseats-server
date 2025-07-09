@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,7 +61,8 @@ class CouponServiceTest {
             given(rLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class))).willReturn(true);
             given(rLock.isHeldByCurrentThread()).willReturn(true);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("테스트 설정 중 인터럽트 발생", e);
         }
     }
 
@@ -165,6 +167,7 @@ class CouponServiceTest {
         Coupon coupon = Coupon.builder()
                 .couponId(couponId)
                 .quantity(100)
+                .issuedCount(100)    // 이미 최대 수량만큼 발급됨
                 .issueStartDate(LocalDateTime.now().minusDays(1))
                 .issueEndDate(LocalDateTime.now().plusDays(7))
                 .build();
@@ -172,7 +175,6 @@ class CouponServiceTest {
         given(memberRepository.findByUsername(username)).willReturn(Optional.of(member));
         given(couponRepository.findById(couponId)).willReturn(Optional.of(coupon));
         given(memberCouponRepository.existsByMemberAndCoupon(member, coupon)).willReturn(false);
-        given(memberCouponRepository.countByCoupon(coupon)).willReturn(100L);
 
         // when & then
         assertThatThrownBy(() -> couponService.issueCoupon(couponId, username))
@@ -288,10 +290,14 @@ class CouponServiceTest {
         given(redissonClient.getLock(anyString())).willReturn(rLock);
         given(rLock.tryLock(anyLong(), anyLong(), any(TimeUnit.class)))
                 .willThrow(new InterruptedException());
+        given(rLock.isHeldByCurrentThread()).willReturn(false); // 인터럽트 시 락 미보유
 
         // when & then
         assertThatThrownBy(() -> couponService.issueCoupon(couponId, username))
                 .isInstanceOf(CouponException.class)
                 .hasMessageContaining(CouponErrorCode.LOCK_INTERRUPTED.getMessage());
+
+        // 인터럽트 발생 시 락 해제 시도하지 않음을 확인
+        verify(rLock, never()).unlock();
     }
 }
