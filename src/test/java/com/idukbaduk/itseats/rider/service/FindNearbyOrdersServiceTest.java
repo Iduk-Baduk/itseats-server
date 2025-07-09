@@ -140,6 +140,18 @@ class FindNearbyOrdersServiceTest {
                 storeD
         );
 
+        // 27.1km
+        Store storeF = createStore("경기도 성남시 분당구", 127.111384, 37.394595, "판교역");
+        createOrder(
+                "ORDER_F012",
+                storeF.getLocation().getX(),
+                storeF.getLocation().getY(),
+                OrderStatus.COOKED,
+                22000,
+                storeF.getStoreAddress(),
+                storeF
+        );
+
         // when
         NearByOrderRequest request = new NearByOrderRequest(riderLat, riderLng);
         List<ReadyOrderResponse> nearbyOrders = riderService.findNearbyOrders(request);
