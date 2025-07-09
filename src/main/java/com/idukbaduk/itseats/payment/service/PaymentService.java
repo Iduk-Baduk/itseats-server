@@ -1,5 +1,12 @@
 package com.idukbaduk.itseats.payment.service;
 
+import com.idukbaduk.itseats.coupon.entity.MemberCoupon;
+import com.idukbaduk.itseats.coupon.entity.PaymentCoupon;
+import com.idukbaduk.itseats.coupon.error.CouponException;
+import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
+import com.idukbaduk.itseats.coupon.repository.MemberCouponRepository;
+import com.idukbaduk.itseats.coupon.repository.PaymentCouponRepository;
+import com.idukbaduk.itseats.coupon.service.CouponPolicyService;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
@@ -26,6 +33,9 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final MemberRepository memberRepository;
+    private final MemberCouponRepository memberCouponRepository;
+    private final PaymentCouponRepository paymentCouponRepository;
+    private final CouponPolicyService couponPolicyService;
 
     public PaymentCreateResponse createPayment(String username, PaymentInfoRequest paymentInfoRequest) {
         Member member = memberRepository.findByUsername(username).
@@ -42,18 +52,41 @@ public class PaymentService {
         Order order = orderRepository.findById(paymentInfoRequest.getOrderId())
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
+        int discountValue = 0;
+        MemberCoupon memberCoupon = null;
+
+        if (paymentInfoRequest.getMemberCouponId() != null) {
+            memberCoupon = memberCouponRepository.findById(paymentInfoRequest.getMemberCouponId())
+                    .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
+
+            couponPolicyService.validateCoupon(memberCoupon, member, paymentInfoRequest.getTotalCost());
+
+            discountValue = couponPolicyService.calculateDiscount(memberCoupon.getCoupon(), order.getOrderPrice());
+        }
+
         Payment payment = Payment.builder()
                 .member(member)
                 .order(order)
-                // TODO: 쿠폰 관련 로직 추후 구현
-                .discountValue(0)
-                .totalCost(paymentInfoRequest.getTotalCost())
+                .discountValue(discountValue)
+                .totalCost(paymentInfoRequest.getTotalCost() - discountValue)
                 .paymentMethod(PaymentMethod.valueOf(paymentInfoRequest.getPaymentMethod()))
                 .paymentStatus(PaymentStatus.valueOf(paymentInfoRequest.getPaymentStatus()))
                 .storeRequest(paymentInfoRequest.getStoreRequest())
                 .riderRequest(paymentInfoRequest.getRiderRequest())
                 .build();
-        return paymentRepository.save(payment);
+
+        Payment savedPayment = paymentRepository.save(payment);
+
+        if (memberCoupon != null) {
+            PaymentCoupon paymentCoupon = PaymentCoupon.builder()
+                    .payment(savedPayment)
+                    .usedCoupon(memberCoupon)
+                    .build();
+
+            paymentCouponRepository.save(paymentCoupon);
+            memberCoupon.markAsUsed();
+        }
+        return savedPayment;
     }
 
     public Payment getPaymentByOrder(Order order) {

@@ -14,7 +14,7 @@ import java.util.List;
 public class PaymentInfoRequest {
 
     private Long orderId;
-    private List<Long> coupons;
+    private Long memberCouponId; // 쿠폰 적용 시 사용, 쿠폰 적용 안할 시 null
     private int totalCost;
     private String paymentMethod;
     private String paymentStatus;
