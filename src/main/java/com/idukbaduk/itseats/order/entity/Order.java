@@ -114,6 +114,10 @@ public class Order extends BaseEntity {
         this.cookStartTime = cookStartTime;
     }
 
+    public void updateOrderEndTime(LocalDateTime orderEndTime) {
+        this.orderEndTime = orderEndTime;
+    }
+
     public void reject(String reason) {
         OrderStatus.REJECTED.validateTransitionFrom(this.orderStatus);
         this.orderStatus = OrderStatus.REJECTED;
