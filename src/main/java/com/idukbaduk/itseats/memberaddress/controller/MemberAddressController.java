@@ -29,6 +29,12 @@ public class MemberAddressController {
 
     @GetMapping
     public ResponseEntity<BaseResponse> getAddressList(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return BaseResponse.toResponseEntity(
+                    AddressResponse.GET_ADDRESS_LIST_SUCCESS,
+                    memberAddressService.getAddressList(null)
+            );
+        }
         return BaseResponse.toResponseEntity(
                 AddressResponse.GET_ADDRESS_LIST_SUCCESS,
                 memberAddressService.getAddressList(userDetails.getUsername())

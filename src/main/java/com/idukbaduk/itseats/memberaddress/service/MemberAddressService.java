@@ -79,6 +79,10 @@ public class MemberAddressService {
 
     @Transactional(readOnly = true)
     public List<AddressResponse> getAddressList(String username) {
+        if (username == null) {
+            return List.of();
+        }
+        
         Member member = getMember(username);
         List<MemberAddress> memberAddresses = memberAddressRepository.findAllByMember(member);
 

@@ -30,6 +30,9 @@ public class MemberController {
 
     @GetMapping("/me")
     public ResponseEntity<BaseResponse> getCurrentMember(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            throw new RuntimeException("인증되지 않은 사용자입니다.");
+        }
         return BaseResponse.toResponseEntity(
                 MemberResponse.GET_CURRENT_MEMBER_SUCCESS,
                 memberService.getCurrentMember(userDetails.getUsername())
