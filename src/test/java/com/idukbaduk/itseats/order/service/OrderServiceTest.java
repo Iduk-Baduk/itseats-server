@@ -80,9 +80,6 @@ class OrderServiceTest {
     @Mock
     private MemberCouponRepository memberCouponRepository;
 
-    @Mock
-    private CouponRepository couponRepository;
-
     @InjectMocks
     private OrderService orderService;
 
