@@ -46,10 +46,10 @@ public class RiderController {
     }
 
     @PostMapping("/{orderId}/accept")
-    public ResponseEntity<BaseResponse> acceptDelivery(
+    public ResponseEntity<BaseResponse> updateDeliveryStatusAccept(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long orderId) {
-        riderService.acceptOrder(userDetails.getUsername(), orderId);
+        riderService.acceptDelivery(userDetails.getUsername(), orderId);
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_ACCEPT_SUCCESS);
     }
 }

@@ -207,7 +207,7 @@ class RiderServiceConcurrencyIntegrationTest {
                     startLatch.await();
 
                     try {
-                        riderService.acceptOrder(riderName, testOrder.getOrderId());
+                        riderService.acceptDelivery(riderName, testOrder.getOrderId());
                         successCount.incrementAndGet();
                     } catch (Exception e) {
                         log.error("주문 수락 실패: rider={}, error={}", riderName, e.getMessage());

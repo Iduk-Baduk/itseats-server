@@ -1,6 +1,12 @@
 package com.idukbaduk.itseats.rider.service;
 
+import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.error.OrderException;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
 import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
@@ -22,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class RiderService {
 
+    private final MemberRepository memberRepository;
     private final RiderRepository riderRepository;
     private final RiderAssignmentRepository riderAssignmentRepository;
     private final OrderRepository orderRepository;
@@ -74,18 +81,15 @@ public class RiderService {
     }
 
     @Transactional
-    public void acceptOrder(String username, Long orderId) {
-        Rider rider = riderRepository.findByUsername(username)
+    public void acceptDelivery(String username, Long orderId) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Rider rider = riderRepository.findByMember(member)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
 
         Order order = orderRepository.findByIdForUpdate(orderId)
-                .orElseThrow(() -> new RiderException(RiderErrorCode.ORDER_NOT_FOUND));
+                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         order.updateOrderStatusAccept(rider, OrderStatus.RIDER_READY);
-
-        RiderAssignment riderAssignment = riderAssignmentRepository.findByUsernameAndOrderId(username, orderId)
-                .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_ASSIGNMENT_NOT_FOUND));
-
-        riderAssignment.updateAssignmentStatus(AssignmentStatus.ACCEPTED);
     }
 }

@@ -1,7 +1,9 @@
 package com.idukbaduk.itseats.rider.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
@@ -26,6 +28,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.swing.text.html.Option;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +42,8 @@ class RiderServiceTest {
 
     @Mock
     private RiderRepository riderRepository;
+    @Mock
+    private MemberRepository memberRepository;
     @Mock
     private RiderAssignmentRepository riderAssignmentRepository;
     @Mock
@@ -237,18 +242,20 @@ class RiderServiceTest {
                 .build();
 
         RiderAssignment riderAssignment = RiderAssignment.builder()
-                .assignmentId(1L)
+                .assignmentId(orderId)
                 .rider(rider)
                 .order(order)
                 .assignmentStatus(AssignmentStatus.PENDING)
                 .build();
 
-        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
+        when(riderAssignmentRepository.findByRiderAndOrder(rider, order)).thenReturn(Optional.of(riderAssignment));
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
         when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
-        when(riderAssignmentRepository.findByUsernameAndOrderId(username, orderId)).thenReturn(Optional.of(riderAssignment));
 
         // when
-        riderService.acceptOrder(username, orderId);
+        riderService.updateRiderAssignment(rider, order, AssignmentStatus.ACCEPTED);
+        riderService.acceptDelivery(username, orderId);
 
         // then
         assertThat(order.getRider()).isEqualTo(rider);
@@ -260,11 +267,16 @@ class RiderServiceTest {
     @DisplayName("주문 수락 실패 - 라이더를 찾을 수 없음")
     void acceptOrder_riderNotFound() {
         // given
+        String username = "testuser";
         Long orderId = 1L;
-        when(riderRepository.findByUsername(username)).thenReturn(Optional.empty());
+        Member mockMember = Member.builder().username(username).build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(mockMember));
+
+        when(riderRepository.findByMember(mockMember)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> riderService.acceptOrder(username, orderId))
+        assertThatThrownBy(() -> riderService.acceptDelivery(username, orderId))
                 .isInstanceOf(RiderException.class)
                 .hasMessageContaining(RiderErrorCode.RIDER_NOT_FOUND.getMessage());
     }
@@ -273,53 +285,46 @@ class RiderServiceTest {
     @DisplayName("주문 수락 실패 - 주문을 찾을 수 없음")
     void acceptOrder_orderNotFound() {
         // given
+        String username = "testuser";
         Long orderId = 1L;
-        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
+        Member mockMember = Member.builder().username(username).build();
+        Rider mockRider = Rider.builder().member(mockMember).build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(mockMember));
+        when(riderRepository.findByMember(mockMember)).thenReturn(Optional.of(mockRider));
         when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> riderService.acceptOrder(username, orderId))
-                .isInstanceOf(RiderException.class)
-                .hasMessageContaining(RiderErrorCode.ORDER_NOT_FOUND.getMessage());
+        assertThatThrownBy(() -> riderService.acceptDelivery(username, orderId))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
 
     @Test
     @DisplayName("주문 수락 실패 - 주문이 이미 배정됨")
     void acceptOrder_orderAlreadyAssigned() {
         // given
+        String username = "testuser";
         Long orderId = 1L;
-        Order order = Order.builder()
+
+        Member mockMember = Member.builder().username(username).build();
+        Rider tryingRider = Rider.builder().riderId(1L).member(mockMember).build();
+        Rider assignedRider = Rider.builder().riderId(2L).build();
+
+        Order alreadyAssignedOrder = Order.builder()
                 .orderId(orderId)
                 .orderStatus(OrderStatus.COOKED)
-                .rider(Rider.builder().riderId(2L).build())
+                .rider(assignedRider)
                 .build();
 
-        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
-        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(mockMember));
+        when(riderRepository.findByMember(mockMember)).thenReturn(Optional.of(tryingRider));
+        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(alreadyAssignedOrder));
 
         // when & then
-        assertThatThrownBy(() -> riderService.acceptOrder(username, orderId))
+        assertThatThrownBy(() -> riderService.acceptDelivery(username, orderId))
                 .isInstanceOf(OrderException.class)
-                .hasMessageContaining("해당 주문은 이미 라이더가 배정되었습니다."); // Message from OrderErrorCode.ORDER_ALREADY_ASSIGNED
+                .hasMessageContaining("해당 주문은 이미 라이더가 배정되었습니다.");
     }
-
-    @Test
-    @DisplayName("주문 수락 실패 - 라이더 할당을 찾을 수 없음")
-    void acceptOrder_riderAssignmentNotFound() {
-        // given
-        Long orderId = 1L;
-        Order order = Order.builder()
-                .orderId(orderId)
-                .orderStatus(OrderStatus.COOKED)
-                .build();
-
-        when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
-        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
-        when(riderAssignmentRepository.findByUsernameAndOrderId(username, orderId)).thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> riderService.acceptOrder(username, orderId))
-                .isInstanceOf(RiderException.class)
-                .hasMessageContaining(RiderErrorCode.RIDER_ASSIGNMENT_NOT_FOUND.getMessage());
-    }
+    
 }
