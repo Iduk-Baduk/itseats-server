@@ -86,24 +86,40 @@ public class OrderService {
         int discountValue = 0;
         if (orderNewRequest.getMemberCouponId() != null) {
             MemberCoupon memberCoupon = memberCouponRepository.findById(orderNewRequest.getMemberCouponId())
-                    .filter(mc -> mc.getMember().equals(member))
                     .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
 
-            if (memberCoupon.getIsUsed() || LocalDateTime.now().isAfter(memberCoupon.getValidDate()) ||
-                orderPrice < memberCoupon.getCoupon().getMinPrice()) {
-                throw new CouponException(CouponErrorCode.INVALID_COUPON_USE);
+            // 소유권 검증
+            if (!memberCoupon.getMember().equals(member)) {
+                throw new CouponException(CouponErrorCode.COUPON_NOT_FOUND);
+            }
+
+            // 사용 여부 검증
+            if (memberCoupon.getIsUsed()) {
+                throw new CouponException(CouponErrorCode.COUPON_ALREADY_USED);
+            }
+
+            // 유효 기간 검증
+            if (LocalDateTime.now().isAfter(memberCoupon.getValidDate())) {
+                throw new CouponException(CouponErrorCode.COUPON_EXPIRED);
             }
 
             Coupon coupon = memberCoupon.getCoupon();
+
+            // 최소 주문 금액 검증
+            if (orderPrice < coupon.getMinPrice()) {
+                throw new CouponException(CouponErrorCode.INSUFFICIENT_ORDER_AMOUNT);
+            }
+
+            // 할인 계산
             if (coupon.getCouponType() == CouponType.FIXED) {
                 discountValue = coupon.getDiscountValue();
-            }
-            if (coupon.getCouponType() == CouponType.RATE) {
-                discountValue = orderPrice * coupon.getDiscountValue() / 100;
+            } else if (coupon.getCouponType() == CouponType.RATE) {
+                discountValue = (int) Math.round(orderPrice * coupon.getDiscountValue() / 100.0);
             }
 
             discountValue = Math.min(discountValue, orderPrice);
         }
+
 
         int totalCost = orderPrice - discountValue + deliveryFee;
 
