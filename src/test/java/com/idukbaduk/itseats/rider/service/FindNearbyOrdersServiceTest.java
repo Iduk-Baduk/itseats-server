@@ -10,6 +10,7 @@ import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.rider.dto.NearByOrderRequest;
 import com.idukbaduk.itseats.rider.dto.ReadyOrderResponse;
+import com.idukbaduk.itseats.rider.error.RiderException;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.entity.StoreCategory;
 import com.idukbaduk.itseats.store.entity.enums.BusinessStatus;
@@ -27,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -163,6 +165,41 @@ class FindNearbyOrdersServiceTest {
                 .extracting("storeName")
                 .containsExactlyInAnyOrder("을지로점", "인사동점");
 
+    }
+
+    @Test
+    @DisplayName("라이더 주변 10km 반경 내에 배달이 없으면 에러를 반환한다.")
+    void findNearByOrders_EmptyResult() {
+        // given
+        Store storeA = createStore("경기도 수원시 팔달구", 127.0292, 37.2636, "수원역점"); // 30km 이상
+        createOrder(
+                "ORDER_F012",
+                storeA.getLocation().getX(),
+                storeA.getLocation().getY(),
+                OrderStatus.COOKED,
+                22000,
+                storeA.getStoreAddress(),
+                storeA
+        );
+
+        Store storeB = createStore("경기도 성남시 분당구", 127.111384, 37.394595, "판교역");
+        createOrder(
+                "ORDER_F013",
+                storeB.getLocation().getX(),
+                storeB.getLocation().getY(),
+                OrderStatus.COOKED,
+                22000,
+                storeB.getStoreAddress(),
+                storeB
+        );
+
+        // when
+        NearByOrderRequest request = new NearByOrderRequest(riderLat, riderLng);
+
+        // then
+        assertThatThrownBy(() -> riderService.findNearbyOrders(request))
+                .isInstanceOf(RiderException.class)
+                .hasMessageContaining("현재 주변에 배정 가능한 배달이 없습니다");
     }
 
     private Store createStore(String address, double lng, double lat, String name) {
