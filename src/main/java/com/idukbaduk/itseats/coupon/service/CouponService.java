@@ -12,62 +12,91 @@ import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CouponService {
-
     private final CouponRepository couponRepository;
     private final MemberRepository memberRepository;
     private final MemberCouponRepository memberCouponRepository;
+    private final RedissonClient redissonClient;
+
+    private static final String COUPON_LOCK_PREFIX = "coupon:lock:";
+    private static final Long WAIT_TIME = 5L;
+    private static final Long LEASE_TIME = 3L;
 
     @Transactional
     public CouponIssueResponse issueCoupon(Long couponId, String username) {
+        RLock lock = redissonClient.getLock(COUPON_LOCK_PREFIX + couponId);
 
-        // TODO: 동시성 제어 (Redis 활용 분산 락, DB 락, 낙관적 락 등) 관련 추가
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        try {
+            // 락 획득 시도 (5초 대기, 3초 후 자동 해제)
+            boolean isLocked = lock.tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS);
+            if (!isLocked) {
+                throw new CouponException(CouponErrorCode.LOCK_ACQUISITION_FAILED);
+            }
 
-        Coupon coupon = couponRepository.findById(couponId)
-                .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
+            Member member = memberRepository.findByUsername(username)
+                    .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        if (memberCouponRepository.existsByMemberAndCoupon(member, coupon)) {
-            throw new CouponException(CouponErrorCode.ALREADY_ISSUED);
+            Coupon coupon = couponRepository.findById(couponId)
+                    .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
+
+            validateIssuePeriod(coupon);
+
+            if (memberCouponRepository.existsByMemberAndCoupon(member, coupon)) {
+                throw new CouponException(CouponErrorCode.ALREADY_ISSUED);
+            }
+
+            Long issuedCount = memberCouponRepository.countByCoupon(coupon);
+            if (issuedCount >= coupon.getQuantity()) {
+                throw new CouponException(CouponErrorCode.QUANTITY_EXCEEDED);
+            }
+
+            MemberCoupon memberCoupon = MemberCoupon.builder()
+                    .member(member)
+                    .coupon(coupon)
+                    .isUsed(false)
+                    .issueDate(LocalDateTime.now())
+                    .validDate(coupon.getValidDate())
+                    .build();
+
+            MemberCoupon savedMemberCoupon = memberCouponRepository.save(memberCoupon);
+
+            return CouponIssueResponse.builder()
+                    .memberCouponId(savedMemberCoupon.getMemberCouponId())
+                    .couponId(coupon.getCouponId())
+                    .name(coupon.getCouponName())
+                    .discountValue(coupon.getDiscountValue())
+                    .minPrice(coupon.getMinPrice())
+                    .issueDate(savedMemberCoupon.getIssueDate())
+                    .validDate(savedMemberCoupon.getValidDate())
+                    .isUsed(false)
+                    .build();
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CouponException(CouponErrorCode.LOCK_INTERRUPTED);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
+    }
 
-        Long issuedCount = memberCouponRepository.countByCoupon(coupon);
-        if (issuedCount >= coupon.getQuantity()) {
-            throw new CouponException(CouponErrorCode.QUANTITY_EXCEEDED);
-        }
-
+    private void validateIssuePeriod(Coupon coupon) {
         LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(coupon.getIssueStartDate()) || now.isAfter(coupon.getIssueEndDate())) {
             throw new CouponException(CouponErrorCode.INVALID_PERIOD);
         }
-
-        MemberCoupon memberCoupon = MemberCoupon.builder()
-                .member(member)
-                .coupon(coupon)
-                .isUsed(false)
-                .issueDate(now)
-                .validDate(coupon.getValidDate())
-                .build();
-
-        MemberCoupon savedMemberCoupon = memberCouponRepository.save(memberCoupon);
-
-        return CouponIssueResponse.builder()
-                .memberCouponId(savedMemberCoupon.getMemberCouponId())
-                .couponId(coupon.getCouponId())
-                .name(coupon.getCouponName())
-                .discountValue(coupon.getDiscountValue())
-                .minPrice(coupon.getMinPrice())
-                .issueDate(savedMemberCoupon.getIssueDate())
-                .validDate(savedMemberCoupon.getValidDate())
-                .isUsed(false)
-                .build();
     }
 }
