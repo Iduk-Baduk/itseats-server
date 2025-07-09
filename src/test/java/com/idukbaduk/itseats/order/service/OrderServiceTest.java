@@ -1,6 +1,13 @@
 package com.idukbaduk.itseats.order.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.idukbaduk.itseats.coupon.entity.Coupon;
+import com.idukbaduk.itseats.coupon.entity.MemberCoupon;
+import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
+import com.idukbaduk.itseats.coupon.error.CouponException;
+import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
+import com.idukbaduk.itseats.coupon.repository.CouponRepository;
+import com.idukbaduk.itseats.coupon.repository.MemberCouponRepository;
 import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
@@ -70,6 +77,12 @@ class OrderServiceTest {
     @Mock
     private PaymentRepository paymentRepository;
 
+    @Mock
+    private MemberCouponRepository memberCouponRepository;
+
+    @Mock
+    private CouponRepository couponRepository;
+
     @InjectMocks
     private OrderService orderService;
 
@@ -91,7 +104,8 @@ class OrderServiceTest {
                 memberRepository,
                 memberAddressRepository,
                 paymentRepository,
-                new ObjectMapper()
+                new ObjectMapper(),
+                memberCouponRepository
         );
 
         member = Member.builder()
@@ -155,6 +169,7 @@ class OrderServiceTest {
                 .storeId(1L)
                 .deliveryType(DeliveryType.DEFAULT.name())
                 .orderMenus(List.of(orderMenuDTO1, orderMenuDTO2))
+                .memberCouponId(null) // 기본: 쿠폰 미적용
                 .build();
     }
 
@@ -190,6 +205,159 @@ class OrderServiceTest {
     }
 
     @Test
+    @DisplayName("쿠폰 할인 적용 주문 정보 조회 성공")
+    void getOrderNew_withCoupon_success() {
+        // given
+        Long couponId = 100L;
+        Coupon coupon = Coupon.builder()
+                .couponId(couponId)
+                .couponType(CouponType.FIXED)
+                .discountValue(2000)
+                .minPrice(5000)
+                .build();
+        MemberCoupon memberCoupon = MemberCoupon.builder()
+                .memberCouponId(couponId)
+                .member(member)
+                .coupon(coupon)
+                .isUsed(false)
+                .validDate(LocalDateTime.now().plusDays(3))
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
+        when(memberAddressRepository.findByMemberAndAddressId(member, 1L)).thenReturn(Optional.ofNullable(address));
+        when(storeRepository.findByMemberAndStoreId(member, 1L)).thenReturn(Optional.ofNullable(store));
+        when(memberCouponRepository.findById(couponId)).thenReturn(Optional.of(memberCoupon));
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(new Menu()));
+        when(menuRepository.findById(2L)).thenReturn(Optional.of(new Menu()));
+        when(orderRepository.findMinDeliveryTimeByType(DeliveryType.DEFAULT.name())).thenReturn(20);
+        when(orderRepository.findMaxDeliveryTimeByType(DeliveryType.DEFAULT.name())).thenReturn(40);
+        when(orderRepository.findMinDeliveryTimeByType(DeliveryType.ONLY_ONE.name())).thenReturn(25);
+        when(orderRepository.findMaxDeliveryTimeByType(DeliveryType.ONLY_ONE.name())).thenReturn(45);
+        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+
+        orderNewRequest = OrderNewRequest.builder()
+                .addrId(1L)
+                .storeId(1L)
+                .deliveryType(DeliveryType.DEFAULT.name())
+                .orderMenus(orderNewRequest.getOrderMenus())
+                .memberCouponId(couponId)
+                .build();
+
+        // when
+        OrderNewResponse response = orderService.getOrderNew(username, orderNewRequest);
+
+        // then
+        assertThat(response.getDiscountValue()).isEqualTo(2000);
+        assertThat(response.getTotalCost()).isEqualTo(response.getOrderPrice() - 2000 + response.getDeliveryFee());
+    }
+
+    @Test
+    @DisplayName("쿠폰이 없거나 본인 소유가 아니면 예외 발생")
+    void getOrderNew_couponNotFound() {
+        // given
+        Long couponId = 100L;
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
+        when(memberAddressRepository.findByMemberAndAddressId(member, 1L)).thenReturn(Optional.ofNullable(address));
+        when(storeRepository.findByMemberAndStoreId(member, 1L)).thenReturn(Optional.ofNullable(store));
+        when(memberCouponRepository.findById(couponId)).thenReturn(Optional.empty());
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(Menu.builder().build()));
+        when(menuRepository.findById(2L)).thenReturn(Optional.of(Menu.builder().build()));
+
+        orderNewRequest = OrderNewRequest.builder()
+                .addrId(1L)
+                .storeId(1L)
+                .deliveryType(DeliveryType.DEFAULT.name())
+                .orderMenus(orderNewRequest.getOrderMenus())
+                .memberCouponId(couponId)
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> orderService.getOrderNew(username, orderNewRequest))
+                .isInstanceOf(CouponException.class)
+                .hasMessageContaining(CouponErrorCode.COUPON_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("이미 사용된 쿠폰이면 예외 발생")
+    void getOrderNew_couponAlreadyUsed() {
+        // given
+        Long couponId = 100L;
+        Coupon coupon = Coupon.builder()
+                .couponId(couponId)
+                .couponType(CouponType.FIXED)
+                .discountValue(2000)
+                .minPrice(5000)
+                .build();
+        MemberCoupon memberCoupon = MemberCoupon.builder()
+                .memberCouponId(couponId)
+                .member(member)
+                .coupon(coupon)
+                .isUsed(true) // 이미 사용됨
+                .validDate(LocalDateTime.now().plusDays(3))
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
+        when(memberAddressRepository.findByMemberAndAddressId(member, 1L)).thenReturn(Optional.ofNullable(address));
+        when(storeRepository.findByMemberAndStoreId(member, 1L)).thenReturn(Optional.ofNullable(store));
+        when(memberCouponRepository.findById(couponId)).thenReturn(Optional.of(memberCoupon));
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(Menu.builder().build()));
+        when(menuRepository.findById(2L)).thenReturn(Optional.of(Menu.builder().build()));
+
+        orderNewRequest = OrderNewRequest.builder()
+                .addrId(1L)
+                .storeId(1L)
+                .deliveryType(DeliveryType.DEFAULT.name())
+                .orderMenus(orderNewRequest.getOrderMenus())
+                .memberCouponId(couponId)
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> orderService.getOrderNew(username, orderNewRequest))
+                .isInstanceOf(CouponException.class)
+                .hasMessageContaining(CouponErrorCode.INVALID_COUPON_USE.getMessage());
+    }
+
+    @Test
+    @DisplayName("유효기간이 지난 쿠폰이면 예외 발생")
+    void getOrderNew_couponExpired() {
+        // given
+        Long couponId = 100L;
+        Coupon coupon = Coupon.builder()
+                .couponId(couponId)
+                .couponType(CouponType.FIXED)
+                .discountValue(2000)
+                .minPrice(5000)
+                .build();
+        MemberCoupon memberCoupon = MemberCoupon.builder()
+                .memberCouponId(couponId)
+                .member(member)
+                .coupon(coupon)
+                .isUsed(false)
+                .validDate(LocalDateTime.now().minusDays(1)) // 만료
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
+        when(memberAddressRepository.findByMemberAndAddressId(member, 1L)).thenReturn(Optional.ofNullable(address));
+        when(storeRepository.findByMemberAndStoreId(member, 1L)).thenReturn(Optional.ofNullable(store));
+        when(memberCouponRepository.findById(couponId)).thenReturn(Optional.of(memberCoupon));
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(Menu.builder().build()));
+        when(menuRepository.findById(2L)).thenReturn(Optional.of(Menu.builder().build()));
+
+        orderNewRequest = OrderNewRequest.builder()
+                .addrId(1L)
+                .storeId(1L)
+                .deliveryType(DeliveryType.DEFAULT.name())
+                .orderMenus(orderNewRequest.getOrderMenus())
+                .memberCouponId(couponId)
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> orderService.getOrderNew(username, orderNewRequest))
+                .isInstanceOf(CouponException.class)
+                .hasMessageContaining(CouponErrorCode.INVALID_COUPON_USE.getMessage());
+    }
+
+    @Test
     @DisplayName("ObjectMapper가 null일 때 menuOption 직렬화 실패 예외 발생")
     void getOrderNew_serializationException() {
         // given
@@ -202,7 +370,8 @@ class OrderServiceTest {
                 memberRepository,
                 memberAddressRepository,
                 paymentRepository,
-                null
+                null,
+                memberCouponRepository
         );
 
         when(memberRepository.findByUsername(any())).thenReturn(Optional.ofNullable(member));

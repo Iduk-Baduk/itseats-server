@@ -126,8 +126,8 @@ public class OrderService {
                                 .orElse(30)
                 )
                 .orderPrice(orderPrice)
-                .deliveryFee(discountValue)
-                .discountValue(0)
+                .deliveryFee(deliveryFee)
+                .discountValue(discountValue)
                 .totalCost(totalCost)
                 .build();
     }
