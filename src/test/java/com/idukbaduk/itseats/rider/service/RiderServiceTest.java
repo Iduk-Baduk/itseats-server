@@ -3,6 +3,8 @@ package com.idukbaduk.itseats.rider.service;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
+import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
@@ -14,9 +16,6 @@ import com.idukbaduk.itseats.rider.entity.RiderAssignment;
 import com.idukbaduk.itseats.rider.entity.enums.AssignmentStatus;
 import com.idukbaduk.itseats.rider.error.RiderException;
 import com.idukbaduk.itseats.rider.error.enums.RiderErrorCode;
-import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
-import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.rider.repository.RiderAssignmentRepository;
 import com.idukbaduk.itseats.rider.repository.RiderRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +27,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -326,5 +324,5 @@ class RiderServiceTest {
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining("해당 주문은 이미 라이더가 배정되었습니다.");
     }
-    
+
 }
