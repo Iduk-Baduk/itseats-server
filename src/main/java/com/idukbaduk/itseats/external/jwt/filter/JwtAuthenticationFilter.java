@@ -16,9 +16,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -40,7 +39,6 @@ import java.io.IOException;
  * @since 2025-07-09
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -72,7 +70,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = jwtTokenParser.resolveToken(request);
             
             // 2. 토큰이 존재하고 유효한 경우에만 처리
-            if (StringUtils.hasText(token)) {
+            if (token != null) { // Changed from StringUtils.hasText(token) to token != null
                 log.debug("JWT 토큰 발견: {}", token.substring(0, Math.min(20, token.length())) + "...");
                 
                 // 3. JWT 토큰 검증 및 Claims 파싱

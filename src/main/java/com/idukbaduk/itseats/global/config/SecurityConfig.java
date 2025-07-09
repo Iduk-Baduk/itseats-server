@@ -3,6 +3,8 @@ package com.idukbaduk.itseats.global.config;
 import com.idukbaduk.itseats.auths.filter.AuthenticationFilter;
 import com.idukbaduk.itseats.auths.usecase.AuthUseCase;
 import com.idukbaduk.itseats.external.jwt.filter.JwtAuthenticationFilter;
+import com.idukbaduk.itseats.external.jwt.service.JwtTokenParser;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +48,8 @@ public class SecurityConfig {
     };
 
     private final AuthUseCase authUseCase;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtTokenParser jwtTokenParser;
+    private final MemberRepository memberRepository;
 
     /**
      * Spring Security 필터 체인 설정
@@ -80,7 +83,7 @@ public class SecurityConfig {
                 .addFilter(getAuthenticationFilter(authenticationManager))
                 // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 이전에 추가
                 // 모든 요청에 대해 JWT 토큰을 먼저 검증하도록 함
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenParser, memberRepository), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
