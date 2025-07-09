@@ -28,7 +28,6 @@ public class OwnerCouponService {
 
     @Transactional
     public StoreCouponCreateResponse createStoreCoupon(Long storeId, CouponCreateRequest request, String username) {
-
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
 
@@ -36,27 +35,9 @@ public class OwnerCouponService {
             throw new StoreException(StoreErrorCode.NOT_STORE_OWNER);
         }
 
-        if (request.getIssueEndDate().isBefore(request.getIssueStartDate())) {
-            throw new CouponException(CouponErrorCode.INVALID_DATE_RANGE);
-        }
-        if (request.getValidDate().isBefore(request.getIssueEndDate())) {
-            throw new CouponException(CouponErrorCode.INVALID_DATE_RANGE);
-        }
+        validateDateRange(request);
 
-        Coupon coupon = Coupon.builder()
-                .store(store)
-                .couponName(request.getName())
-                .description(request.getDescription())
-                .discountValue(request.getDiscountValue())
-                .couponType(request.getCouponType())
-                .quantity(request.getQuantity())
-                .minPrice(request.getMinPrice())
-                .issueStartDate(request.getIssueStartDate())
-                .issueEndDate(request.getIssueEndDate())
-                .validDate(request.getValidDate())
-                .targetType(TargetType.STORE)
-                .build();
-
+        Coupon coupon = buildCoupon(request, store, null);
         Coupon savedCoupon = couponRepository.save(coupon);
 
         return StoreCouponCreateResponse.builder()
@@ -74,31 +55,12 @@ public class OwnerCouponService {
 
     @Transactional
     public FranchiseCouponCreateResponse createFranchiseCoupon(Long franchiseId, CouponCreateRequest request) {
-
         Franchise franchise = franchiseRepository.findById(franchiseId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.FRANCHISE_NOT_FOUND));
 
-        if (request.getIssueEndDate().isBefore(request.getIssueStartDate())) {
-            throw new CouponException(CouponErrorCode.INVALID_DATE_RANGE);
-        }
-        if (request.getValidDate().isBefore(request.getIssueEndDate())) {
-            throw new CouponException(CouponErrorCode.INVALID_DATE_RANGE);
-        }
+        validateDateRange(request);
 
-        Coupon coupon = Coupon.builder()
-                .franchise(franchise)
-                .couponName(request.getName())
-                .description(request.getDescription())
-                .discountValue(request.getDiscountValue())
-                .couponType(request.getCouponType())
-                .quantity(request.getQuantity())
-                .minPrice(request.getMinPrice())
-                .issueStartDate(request.getIssueStartDate())
-                .issueEndDate(request.getIssueEndDate())
-                .validDate(request.getValidDate())
-                .targetType(TargetType.FRANCHISE)
-                .build();
-
+        Coupon coupon = buildCoupon(request, null, franchise);
         Coupon savedCoupon = couponRepository.save(coupon);
 
         return FranchiseCouponCreateResponse.builder()
@@ -112,6 +74,32 @@ public class OwnerCouponService {
                 .issueStartDate(savedCoupon.getIssueStartDate())
                 .issueEndDate(savedCoupon.getIssueEndDate())
                 .validDate(savedCoupon.getValidDate())
+                .build();
+    }
+
+    private void validateDateRange(CouponCreateRequest request) {
+        if (request.getIssueEndDate().isBefore(request.getIssueStartDate())) {
+            throw new CouponException(CouponErrorCode.INVALID_DATE_RANGE);
+        }
+        if (request.getValidDate().isBefore(request.getIssueEndDate())) {
+            throw new CouponException(CouponErrorCode.INVALID_DATE_RANGE);
+        }
+    }
+
+    private Coupon buildCoupon(CouponCreateRequest request, Store store, Franchise franchise) {
+        return Coupon.builder()
+                .store(store)
+                .franchise(franchise)
+                .couponName(request.getName())
+                .description(request.getDescription())
+                .discountValue(request.getDiscountValue())
+                .couponType(request.getCouponType())
+                .quantity(request.getQuantity())
+                .minPrice(request.getMinPrice())
+                .issueStartDate(request.getIssueStartDate())
+                .issueEndDate(request.getIssueEndDate())
+                .validDate(request.getValidDate())
+                .targetType(store != null ? TargetType.STORE : TargetType.FRANCHISE)
                 .build();
     }
 }
