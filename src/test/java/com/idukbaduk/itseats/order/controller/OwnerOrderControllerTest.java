@@ -1,9 +1,7 @@
 package com.idukbaduk.itseats.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.idukbaduk.itseats.global.error.handler.GlobalExceptionHandler;
 import com.idukbaduk.itseats.order.dto.*;
-import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.order.dto.enums.OrderResponse;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
@@ -13,17 +11,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
@@ -46,6 +42,7 @@ class OwnerOrderControllerTest {
 
     @Test
     @DisplayName("주문 상세 조회 성공")
+    @WithMockUser(username = "testuser")
     void getOrderDetail_success() throws Exception {
         OrderMenuItemDTO menu1 = OrderMenuItemDTO.builder()
                 .menuId(11L)
@@ -73,7 +70,7 @@ class OwnerOrderControllerTest {
                 .menuItems(List.of(menu1, menu2))
                 .build();
 
-        when(ownerOrderService.getOrderDetail(anyLong())).thenReturn(response);
+        when(ownerOrderService.getOrderDetail(any(), anyLong())).thenReturn(response);
 
         mockMvc.perform(get("/api/owner/orders/{orderId}", 3)
                         .accept(MediaType.APPLICATION_JSON))
@@ -87,8 +84,9 @@ class OwnerOrderControllerTest {
 
     @Test
     @DisplayName("주문이 없으면 404 반환")
+    @WithMockUser(username = "testuser")
     void getOrderDetail_notFound() throws Exception {
-        when(ownerOrderService.getOrderDetail(anyLong()))
+        when(ownerOrderService.getOrderDetail(any(), anyLong()))
                 .thenThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         mockMvc.perform(get("/api/owner/orders/{orderId}", 999)
@@ -111,7 +109,7 @@ class OwnerOrderControllerTest {
                 .riderPhone("010-1234-5678")
                 .build();
 
-        when(ownerOrderService.getOrders(anyLong())).thenReturn(List.of(response));
+        when(ownerOrderService.getOrders(any(), anyLong())).thenReturn(List.of(response));
 
         mockMvc.perform(get("/api/owner/1/orders")
                         .accept(MediaType.APPLICATION_JSON))
@@ -124,8 +122,9 @@ class OwnerOrderControllerTest {
 
     @Test
     @DisplayName("주문이 없을 때 빈 리스트 반환")
+    @WithMockUser(username = "testuser")
     void getOrders_empty() throws Exception {
-        when(ownerOrderService.getOrders(anyLong())).thenReturn(List.of());
+        when(ownerOrderService.getOrders(any(), anyLong())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/owner/1/orders")
                         .accept(MediaType.APPLICATION_JSON))
@@ -136,13 +135,14 @@ class OwnerOrderControllerTest {
 
     @Test
     @DisplayName("주문 거절 성공 응답")
+    @WithMockUser(username = "testuser")
     void rejectOrder_success() throws Exception {
         // given: 거절 사유를 포함한 요청과 서비스의 정상 동작
         Long orderId = 1L;
         String reason = "재고 부족";
         OrderRejectRequest request = new OrderRejectRequest(reason);
 
-        given(ownerOrderService.rejectOrder(orderId, reason))
+        given(ownerOrderService.rejectOrder(any(), any(), any()))
                 .willReturn(new OrderRejectResponse(true, reason));
 
         // when & then: API 호출 결과 정상 응답 검증
@@ -158,13 +158,14 @@ class OwnerOrderControllerTest {
 
     @Test
     @DisplayName("주문 거절 시 주문이 존재하지 않으면 에러 응답")
+    @WithMockUser(username = "testuser")
     void rejectOrder_orderNotFound() throws Exception {
         // given
         Long orderId = 2L;
         String reason = "재고 부족";
         OrderRejectRequest request = new OrderRejectRequest(reason);
 
-        given(ownerOrderService.rejectOrder(orderId, reason))
+        given(ownerOrderService.rejectOrder(any(), any(), any()))
                 .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         // when & then
@@ -178,14 +179,13 @@ class OwnerOrderControllerTest {
   
     @Test
     @DisplayName("주문 수락 성공")
+    @WithMockUser(username = "testuser")
     void acceptOrder_success() throws Exception {
         // given
         Long orderId = 1L;
-        given(ownerOrderService.acceptOrder(orderId)).willReturn(new OrderAcceptResponse(true));
+        given(ownerOrderService.acceptOrder(any(), any())).willReturn(new OrderAcceptResponse(true));
 
         // when & then
-
-
         mockMvc.perform(post("/api/owner/orders/" + orderId + "/accept")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -199,10 +199,11 @@ class OwnerOrderControllerTest {
 
     @Test
     @DisplayName("주문 수락 시 주문이 존재하지 않는 경우 에러 발생")
+    @WithMockUser(username = "testuser")
     void acceptOrder_orderNotFound() throws Exception {
         // given
         Long orderId = 2L;
-        given(ownerOrderService.acceptOrder(orderId))
+        given(ownerOrderService.acceptOrder(any(), any()))
                 .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         // when & then
@@ -215,10 +216,11 @@ class OwnerOrderControllerTest {
 
     @Test
     @DisplayName("조리 완료 성공 응답")
+    @WithMockUser(username = "testuser")
     void markAsCooked_success() throws Exception {
         // given
         Long orderId = 1L;
-        given(ownerOrderService.markAsCooked(orderId))
+        given(ownerOrderService.markAsCooked(any(), any()))
                 .willReturn(new OrderCookedResponse(true));
 
         // when & then
@@ -232,10 +234,11 @@ class OwnerOrderControllerTest {
 
     @Test
     @DisplayName("조리 완료 상태 변경 시 주문이 존재하지 않으면 에러 응답")
+    @WithMockUser(username = "testuser")
     void markAsCooked_orderNotFound() throws Exception {
         // given
         Long orderId = 2L;
-        given(ownerOrderService.markAsCooked(orderId))
+        given(ownerOrderService.markAsCooked(any(), any()))
                 .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         // when & then
@@ -248,11 +251,12 @@ class OwnerOrderControllerTest {
 
     @Test
     @DisplayName("예상 조리 시간 설정 성공 응답")
+    @WithMockUser(username = "testuser")
     void setCookTime_success() throws Exception {
         // given
         Long orderId = 12L;
         int cookTime = 15;
-        CookTimeRequest request = new CookTimeRequest().builder()
+        CookTimeRequest request = CookTimeRequest.builder()
                 .cookTime(cookTime)
                 .build();
         CookTimeResponse response = CookTimeResponse.builder()
@@ -260,7 +264,7 @@ class OwnerOrderControllerTest {
                 .deliveryEta("06.10 14:46")
                 .build();
 
-        given(ownerOrderService.setCookTime(orderId, cookTime)).willReturn(response);
+        given(ownerOrderService.setCookTime(any(), any(), anyInt())).willReturn(response);
 
         // when & then
         mockMvc.perform(post("/api/owner/orders/{order_id}/cooktime", orderId)
@@ -275,19 +279,20 @@ class OwnerOrderControllerTest {
 
     @Test
     @DisplayName("주문이 없으면 404 에러 응답")
+    @WithMockUser(username = "testuser")
     void setCookTime_orderNotFound() throws Exception {
         // given
         Long orderId = 99L;
         int cookTime = 10;
-        CookTimeRequest request = new CookTimeRequest().builder()
+        CookTimeRequest request = CookTimeRequest.builder()
                 .cookTime(cookTime)
                 .build();
 
-        given(ownerOrderService.setCookTime(orderId, cookTime))
+        given(ownerOrderService.setCookTime(any(), anyLong(), anyInt()))
                 .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         // when & then
-        mockMvc.perform(post("/api/owner/orders/{order_id}/cooktime", orderId)
+        mockMvc.perform(post("/api/owner/orders/" + orderId + "/cooktime")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())
