@@ -7,6 +7,7 @@ import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
 import com.idukbaduk.itseats.coupon.error.CouponException;
 import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
 import com.idukbaduk.itseats.coupon.repository.MemberCouponRepository;
+import com.idukbaduk.itseats.coupon.service.CouponPolicyService;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
@@ -67,6 +68,7 @@ public class OrderService {
 
     private final ObjectMapper objectMapper;
     private final MemberCouponRepository memberCouponRepository;
+    private final CouponPolicyService couponPolicyService;
 
     @Transactional
     public OrderNewResponse getOrderNew(String username, OrderNewRequest orderNewRequest) {
@@ -88,38 +90,9 @@ public class OrderService {
             MemberCoupon memberCoupon = memberCouponRepository.findById(orderNewRequest.getMemberCouponId())
                     .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
 
-            // 소유권 검증
-            if (!memberCoupon.getMember().equals(member)) {
-                throw new CouponException(CouponErrorCode.COUPON_NOT_FOUND);
-            }
-
-            // 사용 여부 검증
-            if (memberCoupon.getIsUsed()) {
-                throw new CouponException(CouponErrorCode.COUPON_ALREADY_USED);
-            }
-
-            // 유효 기간 검증
-            if (LocalDateTime.now().isAfter(memberCoupon.getValidDate())) {
-                throw new CouponException(CouponErrorCode.COUPON_EXPIRED);
-            }
-
-            Coupon coupon = memberCoupon.getCoupon();
-
-            // 최소 주문 금액 검증
-            if (orderPrice < coupon.getMinPrice()) {
-                throw new CouponException(CouponErrorCode.INSUFFICIENT_ORDER_AMOUNT);
-            }
-
-            // 할인 계산
-            if (coupon.getCouponType() == CouponType.FIXED) {
-                discountValue = coupon.getDiscountValue();
-            } else if (coupon.getCouponType() == CouponType.RATE) {
-                discountValue = (int) Math.round(orderPrice * coupon.getDiscountValue() / 100.0);
-            }
-
-            discountValue = Math.min(discountValue, orderPrice);
+            couponPolicyService.validateCoupon(memberCoupon, member, orderPrice);
+            discountValue = couponPolicyService.calculateDiscount(memberCoupon.getCoupon(), orderPrice);
         }
-
 
         int totalCost = orderPrice - discountValue + deliveryFee;
 

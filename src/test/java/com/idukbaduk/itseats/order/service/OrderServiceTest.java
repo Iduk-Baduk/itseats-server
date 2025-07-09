@@ -8,6 +8,7 @@ import com.idukbaduk.itseats.coupon.error.CouponException;
 import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
 import com.idukbaduk.itseats.coupon.repository.CouponRepository;
 import com.idukbaduk.itseats.coupon.repository.MemberCouponRepository;
+import com.idukbaduk.itseats.coupon.service.CouponPolicyService;
 import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
@@ -80,6 +81,9 @@ class OrderServiceTest {
     @Mock
     private MemberCouponRepository memberCouponRepository;
 
+    @Mock
+    private CouponPolicyService couponPolicyService;
+
     @InjectMocks
     private OrderService orderService;
 
@@ -102,7 +106,8 @@ class OrderServiceTest {
                 memberAddressRepository,
                 paymentRepository,
                 new ObjectMapper(),
-                memberCouponRepository
+                memberCouponRepository,
+                couponPolicyService
         );
 
         member = Member.builder()
@@ -166,7 +171,7 @@ class OrderServiceTest {
                 .storeId(1L)
                 .deliveryType(DeliveryType.DEFAULT.name())
                 .orderMenus(List.of(orderMenuDTO1, orderMenuDTO2))
-                .memberCouponId(null) // 기본: 쿠폰 미적용
+                .memberCouponId(null)
                 .build();
     }
 
@@ -232,6 +237,9 @@ class OrderServiceTest {
         when(orderRepository.findMaxDeliveryTimeByType(DeliveryType.ONLY_ONE.name())).thenReturn(45);
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
 
+        doNothing().when(couponPolicyService).validateCoupon(memberCoupon, member, 7000);
+        when(couponPolicyService.calculateDiscount(coupon, 7000)).thenReturn(2000);
+
         orderNewRequest = OrderNewRequest.builder()
                 .addrId(1L)
                 .storeId(1L)
@@ -289,7 +297,7 @@ class OrderServiceTest {
                 .memberCouponId(couponId)
                 .member(member)
                 .coupon(coupon)
-                .isUsed(true) // 이미 사용됨
+                .isUsed(true)
                 .validDate(LocalDateTime.now().plusDays(3))
                 .build();
 
@@ -299,6 +307,9 @@ class OrderServiceTest {
         when(memberCouponRepository.findById(couponId)).thenReturn(Optional.of(memberCoupon));
         when(menuRepository.findById(1L)).thenReturn(Optional.of(Menu.builder().build()));
         when(menuRepository.findById(2L)).thenReturn(Optional.of(Menu.builder().build()));
+
+        doThrow(new CouponException(CouponErrorCode.COUPON_ALREADY_USED))
+                .when(couponPolicyService).validateCoupon(memberCoupon, member, 7000);
 
         orderNewRequest = OrderNewRequest.builder()
                 .addrId(1L)
@@ -311,7 +322,7 @@ class OrderServiceTest {
         // when & then
         assertThatThrownBy(() -> orderService.getOrderNew(username, orderNewRequest))
                 .isInstanceOf(CouponException.class)
-                .hasMessageContaining(CouponErrorCode.INVALID_COUPON_USE.getMessage());
+                .hasMessageContaining(CouponErrorCode.COUPON_ALREADY_USED.getMessage());
     }
 
     @Test
@@ -330,7 +341,7 @@ class OrderServiceTest {
                 .member(member)
                 .coupon(coupon)
                 .isUsed(false)
-                .validDate(LocalDateTime.now().minusDays(1)) // 만료
+                .validDate(LocalDateTime.now().minusDays(1))
                 .build();
 
         when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
@@ -339,6 +350,9 @@ class OrderServiceTest {
         when(memberCouponRepository.findById(couponId)).thenReturn(Optional.of(memberCoupon));
         when(menuRepository.findById(1L)).thenReturn(Optional.of(Menu.builder().build()));
         when(menuRepository.findById(2L)).thenReturn(Optional.of(Menu.builder().build()));
+
+        doThrow(new CouponException(CouponErrorCode.COUPON_EXPIRED))
+                .when(couponPolicyService).validateCoupon(memberCoupon, member, 7000);
 
         orderNewRequest = OrderNewRequest.builder()
                 .addrId(1L)
@@ -351,7 +365,7 @@ class OrderServiceTest {
         // when & then
         assertThatThrownBy(() -> orderService.getOrderNew(username, orderNewRequest))
                 .isInstanceOf(CouponException.class)
-                .hasMessageContaining(CouponErrorCode.INVALID_COUPON_USE.getMessage());
+                .hasMessageContaining(CouponErrorCode.COUPON_EXPIRED.getMessage());
     }
 
     @Test
@@ -368,7 +382,8 @@ class OrderServiceTest {
                 memberAddressRepository,
                 paymentRepository,
                 null,
-                memberCouponRepository
+                memberCouponRepository,
+                couponPolicyService
         );
 
         when(memberRepository.findByUsername(any())).thenReturn(Optional.ofNullable(member));
@@ -459,7 +474,7 @@ class OrderServiceTest {
                 .isInstanceOf(OrderException.class)
                 .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
-    
+
     @Test
     @DisplayName("과거 주문내역 조회 성공")
     void getOrders_success() {
@@ -481,7 +496,7 @@ class OrderServiceTest {
 
         when(orderRepository.findOrdersByUsernameWithKeyword(anyString(), anyString(), eq(pageRequest)))
                 .thenReturn(orders);
-    
+
         // when
         OrderHistoryResponse data = orderService.getOrders("username", "keyword", pageRequest);
 
