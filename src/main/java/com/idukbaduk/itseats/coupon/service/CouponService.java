@@ -10,6 +10,7 @@ import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +22,7 @@ public class CouponService {
     private final MemberRepository memberRepository;
     private final MemberCouponRepository memberCouponRepository;
 
+    @Transactional(readOnly = true)
     public MyCouponListResponse getMyCoupons(String username) {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
