@@ -122,6 +122,7 @@ public class OwnerOrderService {
         return new OrderRejectResponse(true, reason);
     }
 
+    @Transactional
     public OrderAcceptResponse acceptOrder(String username, Long orderId) {
         Order order = orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
