@@ -262,7 +262,7 @@ class RiderServiceTest {
     }
 
     @Test
-    @DisplayName("주문 수락 실패 - 라이더를 찾을 수 없음")
+    @DisplayName("배달 수락 실패 - 라이더를 찾을 수 없음")
     void acceptOrder_riderNotFound() {
         // given
         String username = "testuser";
@@ -280,7 +280,7 @@ class RiderServiceTest {
     }
 
     @Test
-    @DisplayName("주문 수락 실패 - 주문을 찾을 수 없음")
+    @DisplayName("배달 수락 실패 - 주문을 찾을 수 없음")
     void acceptOrder_orderNotFound() {
         // given
         String username = "testuser";
