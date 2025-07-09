@@ -146,8 +146,7 @@ public class OwnerOrderService {
         Order order = orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
-        OrderStatus nextStatus = OrderStatus.COOKING;
-        nextStatus.validateTransitionFrom(order.getOrderStatus());
+        order.updateStatus(OrderStatus.COOKING);
 
         LocalDateTime deliveryEta = LocalDateTime.now().plusMinutes(cookTime);
         order.updateDeliveryEta(deliveryEta);
