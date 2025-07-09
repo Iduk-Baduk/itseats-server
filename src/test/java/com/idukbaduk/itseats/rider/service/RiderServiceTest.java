@@ -230,7 +230,7 @@ class RiderServiceTest {
     }
 
     @Test
-    @DisplayName("주문 수락 성공")
+    @DisplayName("배달 수락 성공")
     void acceptOrder_success() {
         // given
         Long orderId = 1L;
@@ -299,7 +299,7 @@ class RiderServiceTest {
     }
 
     @Test
-    @DisplayName("주문 수락 실패 - 주문이 이미 배정됨")
+    @DisplayName("배달 수락 실패 - 주문이 이미 배정됨")
     void acceptOrder_orderAlreadyAssigned() {
         // given
         String username = "testuser";
