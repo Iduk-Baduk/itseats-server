@@ -84,6 +84,11 @@ dependencies {
      * - Amazon S3
      */
     implementation 'software.amazon.awssdk:s3:2.31.69'
+
+    /**
+     * Redis 분산 락 관련 의존성
+     */
+    implementation 'org.redisson:redisson-spring-boot-starter:3.17.1'
 }
 
 
