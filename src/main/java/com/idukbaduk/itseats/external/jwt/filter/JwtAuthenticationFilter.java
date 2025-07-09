@@ -71,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             // 2. 토큰이 존재하고 유효한 경우에만 처리
             if (token != null) { // Changed from StringUtils.hasText(token) to token != null
-                log.debug("JWT 토큰 발견: {}", token.substring(0, Math.min(20, token.length())) + "...");
+                log.debug("JWT 토큰이 발견되었습니다.");
                 
                 // 3. JWT 토큰 검증 및 Claims 파싱
                 Claims claims = jwtTokenParser.parseClaims(token);
