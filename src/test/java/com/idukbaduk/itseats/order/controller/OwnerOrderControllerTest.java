@@ -25,6 +25,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OwnerOrderController.class)
@@ -146,7 +147,7 @@ class OwnerOrderControllerTest {
                 .willReturn(new OrderRejectResponse(true, reason));
 
         // when & then: API 호출 결과 정상 응답 검증
-        mockMvc.perform(post("/api/owner/orders/{orderId}/reject", orderId)
+        mockMvc.perform(put("/api/owner/orders/{orderId}/reject", orderId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -169,7 +170,7 @@ class OwnerOrderControllerTest {
                 .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         // when & then
-        mockMvc.perform(post("/api/owner/orders/{orderId}/reject", orderId)
+        mockMvc.perform(put("/api/owner/orders/{orderId}/reject", orderId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isNotFound())
@@ -186,7 +187,7 @@ class OwnerOrderControllerTest {
         given(ownerOrderService.acceptOrder(any(), any())).willReturn(new OrderAcceptResponse(true));
 
         // when & then
-        mockMvc.perform(post("/api/owner/orders/" + orderId + "/accept")
+        mockMvc.perform(put("/api/owner/orders/" + orderId + "/accept")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.httpStatus")
@@ -207,7 +208,7 @@ class OwnerOrderControllerTest {
                 .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         // when & then
-        mockMvc.perform(post("/api/owner/orders/{orderId}/accept", orderId)
+        mockMvc.perform(put("/api/owner/orders/{orderId}/accept", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(OrderErrorCode.ORDER_NOT_FOUND.getStatus().value()))
@@ -224,7 +225,7 @@ class OwnerOrderControllerTest {
                 .willReturn(new OrderCookedResponse(true));
 
         // when & then
-        mockMvc.perform(post("/api/owner/orders/{orderId}/ready", orderId)
+        mockMvc.perform(put("/api/owner/orders/{orderId}/ready", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.httpStatus").value(OrderResponse.COOKED_SUCCESS.getHttpStatus().value()))
@@ -242,7 +243,7 @@ class OwnerOrderControllerTest {
                 .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         // when & then
-        mockMvc.perform(post("/api/owner/orders/{orderId}/ready", orderId)
+        mockMvc.perform(put("/api/owner/orders/{orderId}/ready", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(OrderErrorCode.ORDER_NOT_FOUND.getStatus().value()))
@@ -267,7 +268,7 @@ class OwnerOrderControllerTest {
         given(ownerOrderService.setCookTime(any(), any(), anyInt())).willReturn(response);
 
         // when & then
-        mockMvc.perform(post("/api/owner/orders/{order_id}/cooktime", orderId)
+        mockMvc.perform(put("/api/owner/orders/{order_id}/cooktime", orderId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -292,7 +293,7 @@ class OwnerOrderControllerTest {
                 .willThrow(new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         // when & then
-        mockMvc.perform(post("/api/owner/orders/" + orderId + "/cooktime")
+        mockMvc.perform(put("/api/owner/orders/" + orderId + "/cooktime")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound())

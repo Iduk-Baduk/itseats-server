@@ -36,7 +36,7 @@ public class OwnerOrderController {
         return BaseResponse.toResponseEntity(OrderResponse.GET_STORE_ORDERS_SUCCESS, orders);
     }
 
-    @PostMapping("/orders/{orderId}/reject")
+    @PutMapping("/orders/{orderId}/reject")
     public ResponseEntity<BaseResponse> rejectOrder(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId,
@@ -46,7 +46,7 @@ public class OwnerOrderController {
         return BaseResponse.toResponseEntity(OrderResponse.REJECT_ORDER_SUCCESS, response);
     }
 
-    @PostMapping("/orders/{orderId}/accept")
+    @PutMapping("/orders/{orderId}/accept")
     public ResponseEntity<BaseResponse> acceptOrder(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
@@ -54,7 +54,7 @@ public class OwnerOrderController {
         return BaseResponse.toResponseEntity(OrderResponse.ACCEPT_ORDER_SUCCESS, response);
     }
 
-    @PostMapping("/orders/{orderId}/ready")
+    @PutMapping("/orders/{orderId}/ready")
     public ResponseEntity<BaseResponse> cookingComplete(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
@@ -62,7 +62,7 @@ public class OwnerOrderController {
         return BaseResponse.toResponseEntity(OrderResponse.COOKED_SUCCESS, response);
     }
 
-    @PostMapping("/orders/{orderId}/cooktime")
+    @PutMapping("/orders/{orderId}/cooktime")
     public ResponseEntity<BaseResponse> setCookTime(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId,
