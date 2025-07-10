@@ -107,6 +107,7 @@ public class OwnerOrderService {
         }
 
         return OrderReceptionResponse.builder()
+                .orderId(order.getOrderId())
                 .orderNumber(order.getOrderNumber())
                 .orderTime(order.getOrderReceivedTime().toString())
                 .menuCount(menuCount)
