@@ -59,9 +59,7 @@ public class PaymentService {
             memberCoupon = memberCouponRepository.findById(paymentInfoRequest.getMemberCouponId())
                     .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
 
-            couponPolicyService.validateCoupon(memberCoupon, member, order.getOrderPrice());
-
-            discountValue = couponPolicyService.calculateDiscount(memberCoupon.getCoupon(), order.getOrderPrice());
+            discountValue = couponPolicyService.applyCouponDiscount(memberCoupon, member, order.getOrderPrice());
         }
 
         Payment payment = Payment.builder()

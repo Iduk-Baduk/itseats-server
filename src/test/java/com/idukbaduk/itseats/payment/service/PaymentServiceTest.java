@@ -147,9 +147,7 @@ class PaymentServiceTest {
                 .thenReturn(Optional.of(order));
         when(memberCouponRepository.findById(memberCouponId))
                 .thenReturn(Optional.of(memberCoupon));
-        doNothing().when(couponPolicyService)
-                .validateCoupon(any(MemberCoupon.class), any(Member.class), anyInt());
-        when(couponPolicyService.calculateDiscount(any(Coupon.class), anyInt()))
+        when(couponPolicyService.applyCouponDiscount(any(MemberCoupon.class), any(Member.class), anyInt()))
                 .thenReturn(1000);
         when(paymentRepository.save(any(Payment.class)))
                 .thenAnswer(i -> i.getArgument(0));
