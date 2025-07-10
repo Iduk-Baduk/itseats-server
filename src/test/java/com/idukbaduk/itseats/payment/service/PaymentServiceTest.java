@@ -82,7 +82,7 @@ class PaymentServiceTest {
         paymentInfoRequest = PaymentInfoRequest.builder()
                 .orderId(1L)
                 .memberCouponId(null) // 기본 테스트는 쿠폰 미사용
-                .totalCost(10000)
+                .totalCost(10000L)
                 .paymentMethod(PaymentMethod.COUPAY.name())
                 .storeRequest("맛있게 만들어주세요")
                 .riderRequest("문 앞에 두고 가주세요")
@@ -133,9 +133,8 @@ class PaymentServiceTest {
         paymentInfoRequest = PaymentInfoRequest.builder()
                 .orderId(1L)
                 .memberCouponId(memberCouponId)
-                .totalCost(10000)
+                .totalCost(10000L)
                 .paymentMethod(PaymentMethod.COUPAY.name())
-                .paymentStatus(PaymentStatus.COMPLETED.name())
                 .storeRequest("맛있게 만들어주세요")
                 .riderRequest("문 앞에 두고 가주세요")
                 .build();

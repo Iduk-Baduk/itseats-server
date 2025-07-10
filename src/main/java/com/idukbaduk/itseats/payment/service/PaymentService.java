@@ -57,7 +57,7 @@ public class PaymentService {
         Order order = orderRepository.findById(paymentInfoRequest.getOrderId())
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
-        int discountValue = 0;
+        long discountValue = 0;
         MemberCoupon memberCoupon = null;
 
         if (paymentInfoRequest.getMemberCouponId() != null) {
