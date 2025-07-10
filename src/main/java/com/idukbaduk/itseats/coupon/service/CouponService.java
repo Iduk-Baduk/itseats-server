@@ -1,8 +1,10 @@
 package com.idukbaduk.itseats.coupon.service;
 
+import com.idukbaduk.itseats.coupon.dto.MyCouponDto;
+import com.idukbaduk.itseats.coupon.dto.MyCouponListResponse;
+import com.idukbaduk.itseats.coupon.entity.MemberCoupon;
 import com.idukbaduk.itseats.coupon.dto.CouponIssueResponse;
 import com.idukbaduk.itseats.coupon.entity.Coupon;
-import com.idukbaduk.itseats.coupon.entity.MemberCoupon;
 import com.idukbaduk.itseats.coupon.error.CouponException;
 import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
 import com.idukbaduk.itseats.coupon.repository.CouponRepository;
@@ -19,12 +21,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CouponService {
+
     private final CouponRepository couponRepository;
     private final MemberRepository memberRepository;
     private final MemberCouponRepository memberCouponRepository;
@@ -33,6 +37,33 @@ public class CouponService {
     private static final String COUPON_LOCK_PREFIX = "coupon:lock:";
     private static final Long WAIT_TIME = 5L;
     private static final Long LEASE_TIME = 3L;
+
+    @Transactional(readOnly = true)
+    public MyCouponListResponse getMyCoupons(String username) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        List<MemberCoupon> myCoupons = memberCouponRepository.findAllByMember(member);
+
+        List<MyCouponDto> couponDtos = myCoupons.stream()
+                .map(mc -> MyCouponDto.builder()
+                        .couponType(mc.getCoupon().getCouponType())
+                        .minPrice(mc.getCoupon().getMinPrice())
+                        .discountValue(mc.getCoupon().getDiscountValue())
+                        .issueDate(mc.getIssueDate())
+                        .validDate(mc.getValidDate())
+                        .canUsed(canUse(mc))
+                        .build())
+                .toList();
+
+        return MyCouponListResponse.builder().myCouponDtos(couponDtos).build();
+    }
+
+    private boolean canUse(MemberCoupon memberCoupon) {
+        return !memberCoupon.getIsUsed()
+                && LocalDateTime.now().isBefore(memberCoupon.getValidDate())
+                && LocalDateTime.now().isAfter(memberCoupon.getIssueDate());
+    }
 
     @Transactional
     public CouponIssueResponse issueCoupon(Long couponId, String username) {
