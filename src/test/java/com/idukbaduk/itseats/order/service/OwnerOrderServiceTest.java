@@ -1,6 +1,6 @@
 package com.idukbaduk.itseats.order.service;
 
-import com.idukbaduk.itseats.menu.entity.Menu;
+import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.OrderMenu;
@@ -8,9 +8,9 @@ import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
-import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -18,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +39,8 @@ class OwnerOrderServiceTest {
 
     @InjectMocks
     private OwnerOrderService ownerOrderService;
+
+    private final String username = "testuser";
 
     @Test
     @DisplayName("가게 주문 목록 정상 조회")
@@ -63,11 +64,11 @@ class OwnerOrderServiceTest {
                 .storeRequest("빨리 주세요")
                 .build();
 
-        when(orderRepository.findAllWithMenusByStoreId(1L)).thenReturn(List.of(order));
+        when(orderRepository.findAllWithMenusByStoreUsernameAndStoreId(username, 1L)).thenReturn(List.of(order));
         when(paymentRepository.findByOrder(order)).thenReturn(Optional.of(payment));
 
         // when
-        List<OrderReceptionResponse> result = ownerOrderService.getOrders(1L);
+        List<OrderReceptionResponse> result = ownerOrderService.getOrders(username, 1L);
 
         // then
         assertThat(result).hasSize(1);
@@ -81,8 +82,8 @@ class OwnerOrderServiceTest {
     @Test
     @DisplayName("주문이 없는 경우 빈 리스트 반환")
     void getOrders_empty() {
-        when(orderRepository.findAllWithMenusByStoreId(1L)).thenReturn(Collections.emptyList());
-        List<OrderReceptionResponse> result = ownerOrderService.getOrders(1L);
+        when(orderRepository.findAllWithMenusByStoreUsernameAndStoreId(username, 1L)).thenReturn(Collections.emptyList());
+        List<OrderReceptionResponse> result = ownerOrderService.getOrders(username, 1L);
         assertThat(result).isEmpty();
     }
 
@@ -96,10 +97,10 @@ class OwnerOrderServiceTest {
                 .orderMenus(Collections.emptyList())
                 .build();
 
-        when(orderRepository.findAllWithMenusByStoreId(1L)).thenReturn(List.of(order));
+        when(orderRepository.findAllWithMenusByStoreUsernameAndStoreId(username, 1L)).thenReturn(List.of(order));
         when(paymentRepository.findByOrder(order)).thenReturn(Optional.empty());
 
-        List<OrderReceptionResponse> result = ownerOrderService.getOrders(1L);
+        List<OrderReceptionResponse> result = ownerOrderService.getOrders(username, 1L);
         assertThat(result.get(0).getCustomerRequest()).isEmpty();
     }
 
@@ -110,10 +111,10 @@ class OwnerOrderServiceTest {
         Long orderId = 1L;
         String reason = "재고 부족";
         Order order = mock(Order.class);
-        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+        given(orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)).willReturn(Optional.of(order));
 
         // when
-        OrderRejectResponse response = ownerOrderService.rejectOrder(orderId, reason);
+        OrderRejectResponse response = ownerOrderService.rejectOrder(username, orderId, reason);
 
         // then
         assertThat(response.isSuccess()).isTrue();
@@ -127,10 +128,10 @@ class OwnerOrderServiceTest {
         // given: 주문이 존재하지 않음
         Long orderId = 1L;
         String reason = "재고 부족";
-        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+        given(orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> ownerOrderService.rejectOrder(orderId, reason))
+        assertThatThrownBy(() -> ownerOrderService.rejectOrder(username, orderId, reason))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
@@ -141,10 +142,10 @@ class OwnerOrderServiceTest {
         // given
         Long orderId = 1L;
         Order order = mock(Order.class);
-        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+        given(orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)).willReturn(Optional.of(order));
 
         // when
-        OrderAcceptResponse response = ownerOrderService.acceptOrder(orderId);
+        OrderAcceptResponse response = ownerOrderService.acceptOrder(username, orderId);
 
         // then
         assertThat(response.isSuccess()).isTrue();
@@ -156,10 +157,10 @@ class OwnerOrderServiceTest {
     void acceptOrder_orderNotFound() {
         // given
         Long orderId = 1L;
-        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+        given(orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> ownerOrderService.acceptOrder(orderId))
+        assertThatThrownBy(() -> ownerOrderService.acceptOrder(username, orderId))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
@@ -170,10 +171,10 @@ class OwnerOrderServiceTest {
         // given
         Long orderId = 1L;
         Order order = mock(Order.class);
-        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+        given(orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)).willReturn(Optional.of(order));
 
         // when
-        OrderCookedResponse response = ownerOrderService.markAsCooked(orderId);
+        OrderCookedResponse response = ownerOrderService.markAsCooked(username, orderId);
 
         // then
         assertThat(response.isSuccess()).isTrue();
@@ -185,10 +186,10 @@ class OwnerOrderServiceTest {
     void markAsCooked_orderNotFound() {
         // given
         Long orderId = 1L;
-        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+        given(orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> ownerOrderService.markAsCooked(orderId))
+        assertThatThrownBy(() -> ownerOrderService.markAsCooked(username, orderId))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
@@ -199,10 +200,10 @@ class OwnerOrderServiceTest {
         // given
         Long orderId = 99L;
         int cookTime = 10;
-        given(orderRepository.findById(orderId)).willReturn(Optional.empty());
+        given(orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> ownerOrderService.setCookTime(orderId, cookTime))
+        assertThatThrownBy(() -> ownerOrderService.setCookTime(username, orderId, cookTime))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
     }
@@ -217,10 +218,10 @@ class OwnerOrderServiceTest {
                 .orderId(orderId)
                 .orderStatus(OrderStatus.ACCEPTED) // COOKING 전이 가능 상태
                 .build();
-        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+        given(orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)).willReturn(Optional.of(order));
 
         // when
-        CookTimeResponse response = ownerOrderService.setCookTime(orderId, cookTime);
+        CookTimeResponse response = ownerOrderService.setCookTime(username, orderId, cookTime);
 
         // then
         assertThat(response.getOrderId()).isEqualTo(orderId);
@@ -237,10 +238,10 @@ class OwnerOrderServiceTest {
                 .orderId(orderId)
                 .orderStatus(OrderStatus.COMPLETED) // COOKING 전이 불가 상태
                 .build();
-        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+        given(orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)).willReturn(Optional.of(order));
 
         // when & then
-        assertThatThrownBy(() -> ownerOrderService.setCookTime(orderId, cookTime))
+        assertThatThrownBy(() -> ownerOrderService.setCookTime(username, orderId, cookTime))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL.getMessage());
     }
@@ -255,10 +256,10 @@ class OwnerOrderServiceTest {
                 .orderId(orderId)
                 .orderStatus(OrderStatus.REJECTED) // COOKING 전이 불가 상태
                 .build();
-        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+        given(orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)).willReturn(Optional.of(order));
 
         // when & then
-        assertThatThrownBy(() -> ownerOrderService.setCookTime(orderId, cookTime))
+        assertThatThrownBy(() -> ownerOrderService.setCookTime(username, orderId, cookTime))
                 .isInstanceOf(OrderException.class)
                 .hasMessage(OrderErrorCode.ORDER_STATUS_UPDATE_FAIL.getMessage());
     }

@@ -2,6 +2,8 @@ package com.idukbaduk.itseats.coupon.entity;
 
 import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
 import com.idukbaduk.itseats.coupon.entity.enums.TargetType;
+import com.idukbaduk.itseats.coupon.error.CouponException;
+import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
 import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.store.entity.Franchise;
 import com.idukbaduk.itseats.store.entity.Store;
@@ -34,6 +36,12 @@ public class Coupon extends BaseEntity {
     @JoinColumn(name = "franchise_id")
     private Franchise franchise;
 
+    @Column(name = "coupon_name", nullable = false)
+    private String couponName;
+
+    @Column(name = "description", nullable = false)
+    private String description;
+
     @Column(name = "discount_value", nullable = false)
     private int discountValue;
 
@@ -47,16 +55,36 @@ public class Coupon extends BaseEntity {
     @Column(name = "min_price", nullable = false)
     private int minPrice;
 
-    @Column(name = "max_discount_value", nullable = false)
+    @Column(name = "max_discount_value")
     private int maxDiscountValue;
 
     @Column(name = "issue_start_date", nullable = false)
-    private LocalDateTime issueStartDate;
+    private LocalDateTime issueStartDate;  // 발급 시작 일시
+
+    @Column(name = "issue_end_date", nullable = false)
+    private LocalDateTime issueEndDate;  // 발급 종료 일시
+
+    @Column(name = "issue_end_date", nullable = false)
+    private LocalDateTime issueEndDate;  // 발급 종료 일시
 
     @Column(name = "valid_date", nullable = false)
-    private LocalDateTime validDate;
+    private LocalDateTime validDate;  // 쿠폰 유효 기간
 
     @Enumerated(EnumType.STRING)
     @Column(name = "target_type", nullable = false)
     private TargetType targetType;
+
+    @Column(name = "issued_count", nullable = false)
+    private int issuedCount = 0;
+
+    public boolean canIssue() {
+        return issuedCount < quantity;
+    }
+
+    public void increaseIssuedCount() {
+        if (!canIssue()) {
+            throw new CouponException(CouponErrorCode.QUANTITY_EXCEEDED);
+        }
+        this.issuedCount++;
+    }
 }
