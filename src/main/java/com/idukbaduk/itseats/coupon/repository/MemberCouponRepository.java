@@ -11,4 +11,3 @@ public interface MemberCouponRepository extends JpaRepository<MemberCoupon, Long
 
     Long countByCoupon(Coupon coupon);
 }
-
