@@ -1,12 +1,7 @@
 package com.idukbaduk.itseats.rider.service;
 
-import com.idukbaduk.itseats.member.entity.Member;
-import com.idukbaduk.itseats.member.error.MemberException;
-import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
-import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.order.error.OrderException;
-import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
+import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
 import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
@@ -18,8 +13,6 @@ import com.idukbaduk.itseats.rider.error.RiderException;
 import com.idukbaduk.itseats.rider.error.enums.RiderErrorCode;
 import com.idukbaduk.itseats.rider.repository.RiderAssignmentRepository;
 import com.idukbaduk.itseats.rider.repository.RiderRepository;
-import com.idukbaduk.itseats.order.repository.OrderRepository;
-import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,10 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class RiderService {
 
-    private final MemberRepository memberRepository;
     private final RiderRepository riderRepository;
     private final RiderAssignmentRepository riderAssignmentRepository;
     private final OrderRepository orderRepository;
+    private static final int DEFAULT_SEARCH_RADIUS_KM = 10;
+
 
     @Transactional
     public WorkingInfoResponse modifyWorking(String username, ModifyWorkingRequest modifyWorkingRequest) {
@@ -80,16 +74,4 @@ public class RiderService {
         riderAssignment.updateAssignmentStatus(assignmentStatus);
     }
 
-    @Transactional
-    public void acceptDelivery(String username, Long orderId) {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-        Rider rider = riderRepository.findByMember(member)
-                .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
-
-        Order order = orderRepository.findByIdForUpdate(orderId)
-                .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
-
-        order.updateOrderStatusAccept(rider, OrderStatus.RIDER_READY);
-    }
 }
