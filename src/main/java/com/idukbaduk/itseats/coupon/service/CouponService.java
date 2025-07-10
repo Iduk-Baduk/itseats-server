@@ -29,8 +29,6 @@ public class CouponService {
 
         List<MemberCoupon> myCoupons = memberCouponRepository.findAllByMember(member);
 
-        LocalDateTime now = LocalDateTime.now();
-
         List<MyCouponDto> couponDtos = myCoupons.stream()
                 .map(mc -> MyCouponDto.builder()
                         .couponType(mc.getCoupon().getCouponType())
@@ -38,10 +36,16 @@ public class CouponService {
                         .discountValue(mc.getCoupon().getDiscountValue())
                         .issueDate(mc.getIssueDate())
                         .validDate(mc.getValidDate())
-                        .canUsed(!mc.getIsUsed() && now.isBefore(mc.getValidDate()) && now.isAfter(mc.getIssueDate()))
+                        .canUsed(canUse(mc))
                         .build())
                 .toList();
 
         return MyCouponListResponse.builder().myCouponDtos(couponDtos).build();
+    }
+
+    private boolean canUse(MemberCoupon memberCoupon) {
+        return !memberCoupon.getIsUsed()
+                && LocalDateTime.now().isBefore(memberCoupon.getValidDate())
+                && LocalDateTime.now().isAfter(memberCoupon.getIssueDate());
     }
 }
