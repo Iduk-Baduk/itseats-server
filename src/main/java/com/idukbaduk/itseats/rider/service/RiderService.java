@@ -1,11 +1,9 @@
 package com.idukbaduk.itseats.rider.service;
 
+import com.idukbaduk.itseats.order.dto.NearbyOrderDTO;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
-import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
-import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
-import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
-import com.idukbaduk.itseats.rider.dto.WorkingInfoResponse;
+import com.idukbaduk.itseats.rider.dto.*;
 import com.idukbaduk.itseats.rider.entity.Rider;
 import com.idukbaduk.itseats.rider.entity.RiderAssignment;
 import com.idukbaduk.itseats.rider.entity.enums.AssignmentStatus;
@@ -16,6 +14,8 @@ import com.idukbaduk.itseats.rider.repository.RiderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -74,4 +74,28 @@ public class RiderService {
         riderAssignment.updateAssignmentStatus(assignmentStatus);
     }
 
+    @Transactional(readOnly = true)
+    public List<ReadyOrderResponse> findNearbyOrders(NearByOrderRequest request) {
+        final int searchRadiusMeters = DEFAULT_SEARCH_RADIUS_KM * 1000; // 10km
+
+        List<NearbyOrderDTO> nearbyOrders = orderRepository.findNearbyOrders(
+                request.getLongitude(),
+                request.getLatitude(),
+                searchRadiusMeters
+        );
+
+        if (nearbyOrders.isEmpty()) {
+            throw new RiderException(RiderErrorCode.NEARBY_ORDERS_NOT_FOUND);
+        }
+
+        return nearbyOrders.stream()
+                .map(dto -> ReadyOrderResponse.builder()
+                        .deliveryType(dto.getDeliveryType())
+                        .storeName(dto.getStoreName())
+                        .deliveryDistance(Math.round(dto.getDistance() / 100.0) / 10.0)
+                        .deliveryFee(dto.getDeliveryFee())
+                        .deliveryAddress(dto.getDeliveryAddress())
+                        .build())
+                .toList();
+    }
 }

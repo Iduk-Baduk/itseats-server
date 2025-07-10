@@ -1,6 +1,13 @@
 package com.idukbaduk.itseats.order.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.idukbaduk.itseats.coupon.entity.Coupon;
+import com.idukbaduk.itseats.coupon.entity.MemberCoupon;
+import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
+import com.idukbaduk.itseats.coupon.error.CouponException;
+import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
+import com.idukbaduk.itseats.coupon.repository.MemberCouponRepository;
+import com.idukbaduk.itseats.coupon.service.CouponPolicyService;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
@@ -60,6 +67,8 @@ public class OrderService {
     private final PaymentRepository paymentRepository;
 
     private final ObjectMapper objectMapper;
+    private final MemberCouponRepository memberCouponRepository;
+    private final CouponPolicyService couponPolicyService;
 
     @Transactional
     public OrderNewResponse getOrderNew(String username, OrderNewRequest orderNewRequest) {
@@ -67,7 +76,8 @@ public class OrderService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
         MemberAddress address = memberAddressRepository.findByMemberAndAddressId(member, orderNewRequest.getAddrId())
                 .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
-        Store store = storeRepository.findByMemberAndStoreId(member, orderNewRequest.getStoreId())
+
+        Store store = storeRepository.findByStoreId(orderNewRequest.getStoreId())
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
 
         Order order = saveOrder(member, store, address, orderNewRequest);
@@ -75,6 +85,16 @@ public class OrderService {
 
         int orderPrice = getOrderPrice(orderNewRequest.getOrderMenus());
         int deliveryFee = getDeliveryFee(store, orderNewRequest.getDeliveryType());
+
+        int discountValue = 0;
+        if (orderNewRequest.getMemberCouponId() != null) {
+            MemberCoupon memberCoupon = memberCouponRepository.findById(orderNewRequest.getMemberCouponId())
+                    .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
+
+            discountValue = couponPolicyService.applyCouponDiscount(memberCoupon, member, orderPrice);
+        }
+
+        int totalCost = orderPrice - discountValue + deliveryFee;
 
         return OrderNewResponse.builder()
                 .orderId(order.getOrderId())
@@ -96,9 +116,8 @@ public class OrderService {
                 )
                 .orderPrice(orderPrice)
                 .deliveryFee(deliveryFee)
-                // TODO: 쿠폰 관련 로직은 추후 구현
-                .discountValue(0)
-                .totalCost(orderPrice + deliveryFee)
+                .discountValue(discountValue)
+                .totalCost(totalCost)
                 .build();
     }
 
