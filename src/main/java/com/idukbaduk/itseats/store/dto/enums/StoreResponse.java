@@ -13,6 +13,7 @@ public enum StoreResponse implements Response {
     GET_STORES_SUCCESS(HttpStatus.OK, "전체 가게 목록 조회 성공"),
     GET_STORES_BY_CATEGORY_SUCCESS(HttpStatus.OK, "카테고리 별 가게 목록 조회 성공"),
     GET_STORE_DETAIL_SUCCESS(HttpStatus.OK, "가게 상세 조회 성공"),
+    SEARCH_STORES_SUCCESS(HttpStatus.OK, "가게 검색 성공"),
     ;
 
     private final HttpStatus httpStatus;

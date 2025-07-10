@@ -77,11 +77,25 @@ public class MemberAddressService {
         memberAddressRepository.delete(memberAddress);
     }
 
+    /**
+     * 사용자의 주소 목록 조회
+     * 
+     * @param username 사용자명 (null일 수 있음)
+     * @return 주소 목록 (username이 null인 경우 빈 목록)
+     */
     @Transactional(readOnly = true)
     public List<AddressResponse> getAddressList(String username) {
+        // 사용자명이 null인 경우 (로그인하지 않은 사용자) 빈 목록 반환
+        if (username == null) {
+            return List.of();
+        }
+        
+        // 사용자 정보 조회
         Member member = getMember(username);
+        // 해당 사용자의 주소 목록 조회
         List<MemberAddress> memberAddresses = memberAddressRepository.findAllByMember(member);
 
+        // 주소 정보를 응답 DTO로 변환
         return memberAddresses.stream()
                 .map(address -> AddressResponse.builder()
                         .addressId(address.getAddressId())

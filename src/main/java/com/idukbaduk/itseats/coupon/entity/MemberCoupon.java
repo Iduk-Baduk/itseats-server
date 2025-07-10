@@ -39,4 +39,8 @@ public class MemberCoupon extends BaseEntity {
 
     @Column(name = "valid_date")
     private LocalDateTime validDate;
+
+    public void markAsUsed() {
+        this.isUsed = true;
+    }
 }

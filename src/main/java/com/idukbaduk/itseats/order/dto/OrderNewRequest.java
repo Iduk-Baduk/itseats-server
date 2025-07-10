@@ -12,6 +12,6 @@ public class OrderNewRequest {
     private Long addrId;
     private Long storeId;
     private List<OrderMenuDTO> orderMenus;
-    private List<Long> coupons;
+    private Long memberCouponId;
     private String deliveryType;
 }

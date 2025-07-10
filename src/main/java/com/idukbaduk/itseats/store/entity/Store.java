@@ -45,7 +45,7 @@ public class Store extends BaseEntity {
     @Column(name = "store_address", nullable = false)
     private String storeAddress;
 
-    @Column(name = "location", columnDefinition = "POINT", nullable = false)
+    @Column(name = "location", columnDefinition = "POINT SRID 4326", nullable = false)
     private Point location;
 
     @Enumerated(EnumType.STRING)
