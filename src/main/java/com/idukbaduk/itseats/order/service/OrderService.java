@@ -76,7 +76,8 @@ public class OrderService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
         MemberAddress address = memberAddressRepository.findByMemberAndAddressId(member, orderNewRequest.getAddrId())
                 .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
-        Store store = storeRepository.findByMemberAndStoreId(member, orderNewRequest.getStoreId())
+
+        Store store = storeRepository.findByStoreId(orderNewRequest.getStoreId())
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
 
         Order order = saveOrder(member, store, address, orderNewRequest);
