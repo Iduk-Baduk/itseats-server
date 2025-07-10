@@ -137,7 +137,7 @@ class RiderOrderServiceConcurrencyIntegrationTest {
                 .member(findOrderMember)
                 .deliveryEta(LocalDateTime.now().plusHours(1))
                 .destinationLocation(GeoUtil.toPoint(0 ,0))
-                .storeLocation(GeoUtil.toPoint(0 ,0))
+                .storeLocation(GeoUtil.toPoint(0, 0))
                 .deliveryType(DeliveryType.DEFAULT)
                 .store(testStore)
                 .build();
