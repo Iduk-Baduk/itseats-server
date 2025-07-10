@@ -22,6 +22,8 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 
     List<Store> findAllByStoreCategory_CategoryCodeAndDeletedFalse(String categoryCode);
 
+    Optional<Store> findByStoreId(Long storeId);
+
     /*
      * 전체 가게 목록 조회
      */
