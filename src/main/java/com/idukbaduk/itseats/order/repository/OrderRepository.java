@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.order.repository;
 
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.order.dto.NearbyOrderDTO;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.rider.entity.Rider;
 import org.springframework.data.domain.Pageable;
@@ -146,4 +147,33 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         ORDER BY o.createdAt DESC
     """)
     Slice<Order> findOrdersByUsernameWithKeyword(String username, String keyword, Pageable pageable);
+
+    @Query(value = """
+            SELECT  order_id,
+                    store_name,
+                    distance,
+                    delivery_fee,
+                    delivery_address, 
+                    delivery_type
+            FROM (
+                SELECT  o.order_id,
+                        s.store_name,
+                        o.delivery_fee,
+                        o.delivery_address,
+                        o.delivery_type,
+                        ST_DISTANCE_SPHERE(
+                            ST_PointFromTEXT(CONCAT('POINT(', :lon, ' ', :lat, ')'), 4326),
+                            s.location
+                        ) AS distance
+                FROM orders o
+                    JOIN store s ON o.store_id = s.store_id
+                WHERE o.order_status = 'COOKED') AS nearbyOrders
+            WHERE distance <= :radiusInMeters
+            ORDER BY distance;
+    """, nativeQuery = true)
+    List<NearbyOrderDTO> findNearbyOrders(
+            @Param("lat") double latitude,
+            @Param("lon") double longitude,
+            @Param("radiusInMeters") int radiusInMeters
+    );
 }

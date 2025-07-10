@@ -24,7 +24,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "orders")
+@Table(
+  name = "orders",
+  indexes = @Index(name = "idx_store_location", columnList = "store_location")
+)
 public class Order extends BaseEntity {
 
     @Id
@@ -67,10 +70,10 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_address", nullable = false)
     private String deliveryAddress;
 
-    @Column(name = "destination_location", columnDefinition = "POINT", nullable = false)
+    @Column(name = "destination_location", columnDefinition = "POINT SRID 4326", nullable = false)
     private Point destinationLocation;
 
-    @Column(name = "store_location", columnDefinition = "POINT", nullable = false)
+    @Column(name = "store_location", columnDefinition = "POINT SRID 4326", nullable = false)
     private Point storeLocation;
 
     @Column(name = "order_received_time")
