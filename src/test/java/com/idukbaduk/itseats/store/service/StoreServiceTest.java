@@ -388,4 +388,53 @@ class StoreServiceTest {
         assertThat(response.getCategoryName()).isEqualTo("버거");
         assertThat(response.getStores()).isEmpty();
     }
+
+    @Test
+    @DisplayName("가게 검색 성공")
+    void searchStores_success() {
+        // given
+        String keyword = "버거";
+        Store store1 = Store.builder().storeId(1L).storeName("버거킹 구름점").build();
+        Store store2 = Store.builder().storeId(2L).storeName("맥도날드 구름점").build();
+
+        StoreImage image1 = StoreImage.builder().store(store1).imageUrl("s3 url 1").build();
+        StoreImage image2 = StoreImage.builder().store(store2).imageUrl("s3 url 2").build();
+
+        List<Long> storeIds = List.of(1L);
+
+        when(storeRepository.searchStoresOrderByRating(eq(keyword), any(Pageable.class)))
+                .thenReturn(new SliceImpl<>(List.of(store1)));
+        when(storeImageRepository.findImagesByStoreIds(storeIds))
+                .thenReturn(List.of(image1, image2));
+
+        // ReviewStatsService 배치 처리 동작 설정
+        Map<Long, StoreReviewStats> reviewStatsMap = Map.of(
+                1L, new StoreReviewStats(4.9, 1742)
+        );
+        when(reviewStatsService.getReviewStatsForStores(storeIds)).thenReturn(reviewStatsMap);
+
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        // when
+        StoreListResponse response = storeService.searchStores(
+                null,
+                keyword,
+                pageRequest,
+                StoreSortOption.RATING,
+                null
+        );
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getStores()).hasSize(1);
+
+        StoreDto dto1 = response.getStores().get(0);
+        assertThat(dto1.getImages()).hasSize(1)
+                .contains("s3 url 1");
+        assertThat(dto1.getName()).isEqualTo("버거킹 구름점");
+        assertThat(dto1.getReview()).isEqualTo(4.9);
+        assertThat(dto1.getReviewCount()).isEqualTo(1742);
+
+        verify(reviewStatsService, times(1)).getReviewStatsForStores(storeIds);
+    }
 }
