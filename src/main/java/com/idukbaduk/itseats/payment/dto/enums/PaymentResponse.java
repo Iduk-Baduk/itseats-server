@@ -7,7 +7,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum PaymentResponse implements Response {
 
-    CREATE_PAYMENT_SUCCESS(HttpStatus.CREATED, "결제 성공");
+    CREATE_PAYMENT_SUCCESS(HttpStatus.CREATED, "결제 생성 성공"),
+    CONFIRM_PAYMENT_SUCCESS(HttpStatus.OK, "결제 승인 성공");
 
     private final HttpStatus httpStatus;
     private final String message;

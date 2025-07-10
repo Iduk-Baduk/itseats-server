@@ -11,4 +11,6 @@ public class StoreCategoryListResponse {
     private String category;
     private String categoryName;
     private List<StoreDto> stores;
+    private Integer currentPage;
+    private Boolean hasNext;
 }

@@ -85,20 +85,33 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             """, nativeQuery = true)
     Long countAcceptedOrdersByStoreId(@Param("storeId") Long storeId);
 
-    @Query("SELECT o FROM Order o " +
-            "JOIN FETCH o.member m " +
-            "JOIN FETCH o.orderMenus om " +
-            "JOIN FETCH om.menu menu " +
-            "WHERE o.orderId = :orderId")
-    Optional<Order> findDetailById(@Param("orderId") Long orderId);
+    @Query("""
+        SELECT o FROM Order o
+          JOIN FETCH o.member m
+          JOIN FETCH o.orderMenus om
+          JOIN FETCH om.menu menu
+        WHERE o.store.member.username = :username
+          AND o.orderId = :orderId
+    """)
+    Optional<Order> findDetailByStoreUsernameAndId(
+            @Param("username") String username,
+            @Param("orderId") Long orderId
+    );
 
-    @Query("SELECT DISTINCT o FROM Order o " +
-            "JOIN FETCH o.orderMenus om " +
-            "JOIN FETCH om.menu m " +
-            "LEFT JOIN FETCH o.rider r " +
-            "LEFT JOIN FETCH r.member rm " +
-            "WHERE o.store.storeId = :storeId")
-    List<Order> findAllWithMenusByStoreId(@Param("storeId") Long storeId);
+    @Query("""
+        SELECT distinct o
+        FROM Order o
+        JOIN FETCH o.orderMenus om
+        JOIN FETCH om.menu m
+        WHERE o.store.member.username = :username
+          AND o.store.storeId = :storeId
+    """)
+    List<Order> findAllWithMenusByStoreUsernameAndStoreId(
+            @Param("username") String username,
+            @Param("storeId") Long storeId
+    );
+
+    Optional<Order> findByStoreMemberUsernameAndOrderId(String username, Long orderId);
 
     Optional<Order> findByRiderAndOrderId(Rider rider, Long orderId);
 

@@ -12,6 +12,7 @@ public enum StoreErrorCode implements ErrorCode {
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "카테고리 조회 실패"),
     FRANCHISE_NOT_FOUND(HttpStatus.NOT_FOUND, "프렌차이즈 조회 실패"),
     FRANCHISE_ID_REQUIRED(HttpStatus.BAD_REQUEST, "프랜차이즈 매장일 경우 franchiseId가 필요합니다."),
+    NOT_STORE_OWNER(HttpStatus.FORBIDDEN, "해당 가맹점의 소유자가 아닙니다."),
     ;
 
     private final HttpStatus httpStatus;
