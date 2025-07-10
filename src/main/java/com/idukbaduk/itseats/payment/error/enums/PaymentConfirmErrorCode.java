@@ -7,7 +7,8 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public class PaymentConfirmErrorCode implements ErrorCode {
+public enum PaymentConfirmErrorCode implements ErrorCode {
+    ;
 
     private HttpStatus httpStatus;
     private String message;
