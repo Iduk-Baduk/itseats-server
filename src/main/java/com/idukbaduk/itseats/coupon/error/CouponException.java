@@ -5,7 +5,7 @@ import com.idukbaduk.itseats.global.error.core.ErrorCode;
 
 public class CouponException extends BaseException {
 
-  public CouponException(ErrorCode errorCode) {
-    super(errorCode);
-  }
+    public CouponException(ErrorCode errorCode) {
+        super(errorCode);
+    }
 }
