@@ -6,12 +6,7 @@ import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
-import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
-import com.idukbaduk.itseats.order.error.OrderException;
-import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
-import com.idukbaduk.itseats.order.repository.OrderRepository;
 import com.idukbaduk.itseats.payment.entity.Payment;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +28,8 @@ public class OwnerOrderService {
     private final PaymentRepository paymentRepository;
 
     @Transactional(readOnly = true)
-    public OrderDetailResponse getOrderDetail(Long orderId) {
-
-        Order order = orderRepository.findDetailById(orderId)
+    public OrderDetailResponse getOrderDetail(String username, Long orderId) {
+        Order order = orderRepository.findDetailByStoreUsernameAndId(username, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         List<OrderMenuItemDTO> menuItems = order.getOrderMenus().stream()
@@ -72,8 +66,8 @@ public class OwnerOrderService {
     }
   
     @Transactional(readOnly = true)
-    public List<OrderReceptionResponse> getOrders(Long storeId) {
-        List<Order> orders = orderRepository.findAllWithMenusByStoreId(storeId);
+    public List<OrderReceptionResponse> getOrders(String username, Long storeId) {
+        List<Order> orders = orderRepository.findAllWithMenusByStoreUsernameAndStoreId(username, storeId);
 
         return orders.stream()
                 .map(this::convertToResponse)
@@ -107,6 +101,7 @@ public class OwnerOrderService {
         }
 
         return OrderReceptionResponse.builder()
+                .orderId(order.getOrderId())
                 .orderNumber(order.getOrderNumber())
                 .orderTime(order.getOrderReceivedTime().toString())
                 .menuCount(menuCount)
@@ -119,27 +114,29 @@ public class OwnerOrderService {
     }
 
     @Transactional
-    public OrderRejectResponse rejectOrder(Long orderId, String reason) {
-        Order order = orderRepository.findById(orderId)
+    public OrderRejectResponse rejectOrder(String username, Long orderId, String reason) {
+        Order order = orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         order.reject(reason);
 
         return new OrderRejectResponse(true, reason);
     }
-  
-    public OrderAcceptResponse acceptOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+
+    @Transactional
+    public OrderAcceptResponse acceptOrder(String username, Long orderId) {
+        Order order = orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         order.updateStatus(OrderStatus.ACCEPTED);
+        order.updateOrderReceivedTime(LocalDateTime.now());
 
         return new OrderAcceptResponse(true);
     }
 
     @Transactional
-    public OrderCookedResponse markAsCooked(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+    public OrderCookedResponse markAsCooked(String username, Long orderId) {
+        Order order = orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         order.updateStatus(OrderStatus.COOKED);
@@ -148,12 +145,12 @@ public class OwnerOrderService {
     }
 
     @Transactional
-    public CookTimeResponse setCookTime(Long orderId, int cookTime) {
-        Order order = orderRepository.findById(orderId)
+    public CookTimeResponse setCookTime(String username, Long orderId, int cookTime) {
+        Order order = orderRepository.findByStoreMemberUsernameAndOrderId(username, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
-        OrderStatus nextStatus = OrderStatus.COOKING;
-        nextStatus.validateTransitionFrom(order.getOrderStatus());
+        order.updateStatus(OrderStatus.COOKING);
+        order.updateCookStartTime(LocalDateTime.now());
 
         LocalDateTime deliveryEta = LocalDateTime.now().plusMinutes(cookTime);
         order.updateDeliveryEta(deliveryEta);

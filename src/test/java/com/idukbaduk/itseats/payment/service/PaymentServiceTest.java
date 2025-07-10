@@ -84,7 +84,6 @@ class PaymentServiceTest {
                 .memberCouponId(null) // 기본 테스트는 쿠폰 미사용
                 .totalCost(10000)
                 .paymentMethod(PaymentMethod.COUPAY.name())
-                .paymentStatus(PaymentStatus.COMPLETED.name())
                 .storeRequest("맛있게 만들어주세요")
                 .riderRequest("문 앞에 두고 가주세요")
                 .build();
@@ -198,7 +197,7 @@ class PaymentServiceTest {
         assertThat(savedPayment.getOrder()).isEqualTo(order);
         assertThat(savedPayment.getTotalCost()).isEqualTo(paymentInfoRequest.getTotalCost());
         assertThat(savedPayment.getPaymentMethod()).isEqualTo(PaymentMethod.valueOf(paymentInfoRequest.getPaymentMethod()));
-        assertThat(savedPayment.getPaymentStatus()).isEqualTo(PaymentStatus.valueOf(paymentInfoRequest.getPaymentStatus()));
+        assertThat(savedPayment.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
         assertThat(savedPayment.getStoreRequest()).isEqualTo(paymentInfoRequest.getStoreRequest());
         assertThat(savedPayment.getRiderRequest()).isEqualTo(paymentInfoRequest.getRiderRequest());
     }

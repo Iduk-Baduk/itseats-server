@@ -15,6 +15,8 @@ import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.payment.dto.PaymentClientResponse;
+import com.idukbaduk.itseats.payment.dto.PaymentConfirmRequest;
 import com.idukbaduk.itseats.payment.dto.PaymentCreateResponse;
 import com.idukbaduk.itseats.payment.dto.PaymentInfoRequest;
 import com.idukbaduk.itseats.payment.entity.Payment;
@@ -23,13 +25,16 @@ import com.idukbaduk.itseats.payment.entity.enums.PaymentStatus;
 import com.idukbaduk.itseats.payment.error.PaymentException;
 import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
 import com.idukbaduk.itseats.payment.repository.PaymentRepository;
+import com.idukbaduk.itseats.payment.service.client.PaymentClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
 
+    private final PaymentClient paymentClient;
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final MemberRepository memberRepository;
@@ -68,7 +73,7 @@ public class PaymentService {
                 .discountValue(discountValue)
                 .totalCost(paymentInfoRequest.getTotalCost() - discountValue)
                 .paymentMethod(PaymentMethod.valueOf(paymentInfoRequest.getPaymentMethod()))
-                .paymentStatus(PaymentStatus.valueOf(paymentInfoRequest.getPaymentStatus()))
+                .paymentStatus(PaymentStatus.PENDING)
                 .storeRequest(paymentInfoRequest.getStoreRequest())
                 .riderRequest(paymentInfoRequest.getRiderRequest())
                 .build();
@@ -90,5 +95,22 @@ public class PaymentService {
     public Payment getPaymentByOrder(Order order) {
         return paymentRepository.findByOrder(order)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+    }
+
+    public void confirmPayment(String username, Long paymentId, PaymentConfirmRequest paymentConfirmRequest) {
+        Payment payment = paymentRepository.findByPaymentIdAndUsername(username, paymentId)
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        PaymentClientResponse clientResponse = paymentClient.confirmPayment(paymentConfirmRequest);
+        validateAmount(payment.getTotalCost(), clientResponse.getTotalAmount());
+
+        payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
+        paymentRepository.save(payment);
+    }
+
+    private void validateAmount(Long totalCost, Long tossAmount) {
+        if (!totalCost.equals(tossAmount)) {
+            throw new PaymentException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
+        }
     }
 }

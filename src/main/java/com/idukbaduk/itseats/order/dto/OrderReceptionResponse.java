@@ -8,6 +8,7 @@ import java.util.List;
 @Getter
 @Builder
 public class OrderReceptionResponse {
+    private Long orderId;
     private String orderNumber;
     private String orderTime;
     private int menuCount;

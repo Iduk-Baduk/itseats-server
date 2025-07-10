@@ -1,14 +1,15 @@
-package com.idukbaduk.itseats.payment.dto.enums;
+package com.idukbaduk.itseats.coupon.dto.enums;
 
 import com.idukbaduk.itseats.global.response.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @RequiredArgsConstructor
-public enum PaymentResponse implements Response {
+public enum CouponResponse implements Response {
 
-    CREATE_PAYMENT_SUCCESS(HttpStatus.CREATED, "결제 생성 성공"),
-    CONFIRM_PAYMENT_SUCCESS(HttpStatus.OK, "결제 승인 성공");
+    ISSUE_COUPON_SUCCESS(HttpStatus.CREATED, "쿠폰이 발급되었습니다.")
+    CREATE_COUPON_SUCCESS(HttpStatus.CREATED, "쿠폰을 생성했습니다.")
+    ;
 
     private final HttpStatus httpStatus;
     private final String message;

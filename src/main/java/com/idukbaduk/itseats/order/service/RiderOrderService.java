@@ -98,6 +98,10 @@ public class RiderOrderService {
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         order.updateStatus(orderStatus);
+
+        if (orderStatus == OrderStatus.DELIVERED) {
+            order.updateOrderEndTime(LocalDateTime.now());
+        }
     }
 
     @Transactional
