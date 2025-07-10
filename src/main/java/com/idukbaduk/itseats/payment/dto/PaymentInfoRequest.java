@@ -15,9 +15,8 @@ public class PaymentInfoRequest {
 
     private Long orderId;
     private List<Long> coupons;
-    private int totalCost;
+    private Long totalCost;
     private String paymentMethod;
-    private String paymentStatus;
     private String storeRequest;
     private String riderRequest;
 }
