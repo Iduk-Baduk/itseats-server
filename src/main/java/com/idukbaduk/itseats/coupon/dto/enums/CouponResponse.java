@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum CouponResponse implements Response {
 
-    ISSUE_COUPON_SUCCESS(HttpStatus.CREATED, "쿠폰이 발급되었습니다.")
+    ISSUE_COUPON_SUCCESS(HttpStatus.CREATED, "쿠폰이 발급되었습니다."),
     CREATE_COUPON_SUCCESS(HttpStatus.CREATED, "쿠폰을 생성했습니다.")
     ;
 
