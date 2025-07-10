@@ -236,9 +236,8 @@ class OrderServiceTest {
         when(orderRepository.findMinDeliveryTimeByType(DeliveryType.ONLY_ONE.name())).thenReturn(25);
         when(orderRepository.findMaxDeliveryTimeByType(DeliveryType.ONLY_ONE.name())).thenReturn(45);
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+        when(couponPolicyService.applyCouponDiscount(memberCoupon, member, 7000)).thenReturn(2000);
 
-        doNothing().when(couponPolicyService).validateCoupon(memberCoupon, member, 7000);
-        when(couponPolicyService.calculateDiscount(coupon, 7000)).thenReturn(2000);
 
         orderNewRequest = OrderNewRequest.builder()
                 .addrId(1L)
@@ -309,7 +308,7 @@ class OrderServiceTest {
         when(menuRepository.findById(2L)).thenReturn(Optional.of(Menu.builder().build()));
 
         doThrow(new CouponException(CouponErrorCode.COUPON_ALREADY_USED))
-                .when(couponPolicyService).validateCoupon(memberCoupon, member, 7000);
+                .when(couponPolicyService).applyCouponDiscount(memberCoupon, member, 7000);
 
         orderNewRequest = OrderNewRequest.builder()
                 .addrId(1L)
@@ -352,7 +351,7 @@ class OrderServiceTest {
         when(menuRepository.findById(2L)).thenReturn(Optional.of(Menu.builder().build()));
 
         doThrow(new CouponException(CouponErrorCode.COUPON_EXPIRED))
-                .when(couponPolicyService).validateCoupon(memberCoupon, member, 7000);
+                .when(couponPolicyService).applyCouponDiscount(memberCoupon, member, 7000);
 
         orderNewRequest = OrderNewRequest.builder()
                 .addrId(1L)
