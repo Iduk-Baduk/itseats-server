@@ -102,8 +102,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         FROM Order o
         JOIN FETCH o.orderMenus om
         JOIN FETCH om.menu m
-        JOIN FETCH o.rider r
-        JOIN FETCH r.member rm
         WHERE o.store.member.username = :username
           AND o.store.storeId = :storeId
     """)
