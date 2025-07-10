@@ -3,10 +3,8 @@ package com.idukbaduk.itseats.rider.service;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.entity.Order;
-import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
-import com.idukbaduk.itseats.order.error.OrderException;
-import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.order.service.RiderOrderService;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
 import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
@@ -41,12 +39,7 @@ class RiderServiceTest {
     @Mock
     private RiderRepository riderRepository;
     @Mock
-    private MemberRepository memberRepository;
-    @Mock
     private RiderAssignmentRepository riderAssignmentRepository;
-    @Mock
-    private OrderRepository orderRepository;
-
     @InjectMocks
     private RiderService riderService;
 
@@ -143,7 +136,7 @@ class RiderServiceTest {
     }
 
     @Test
-        @DisplayName("배차 관리 상태가 직전 단계가 아닌 경우 변경시 예외 발생")
+    @DisplayName("배차 관리 상태가 직전 단계가 아닌 경우 변경시 예외 발생")
     void rejectDelivery_rejectStatusFail() {
         // given
         RejectReasonRequest request = RejectReasonRequest.builder()
@@ -227,102 +220,6 @@ class RiderServiceTest {
 
         // then
         assertThat(assignment.getAssignmentStatus()).isEqualTo(AssignmentStatus.ACCEPTED);
-    }
-
-    @Test
-    @DisplayName("배달 수락 성공")
-    void acceptOrder_success() {
-        // given
-        Long orderId = 1L;
-        Order order = Order.builder()
-                .orderId(orderId)
-                .orderStatus(OrderStatus.COOKED)
-                .build();
-
-        RiderAssignment riderAssignment = RiderAssignment.builder()
-                .assignmentId(orderId)
-                .rider(rider)
-                .order(order)
-                .assignmentStatus(AssignmentStatus.PENDING)
-                .build();
-
-        when(riderAssignmentRepository.findByRiderAndOrder(rider, order)).thenReturn(Optional.of(riderAssignment));
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
-        when(riderRepository.findByMember(member)).thenReturn(Optional.of(rider));
-        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
-
-        // when
-        riderService.updateRiderAssignment(rider, order, AssignmentStatus.ACCEPTED);
-        riderService.acceptDelivery(username, orderId);
-
-        // then
-        assertThat(order.getRider()).isEqualTo(rider);
-        assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.RIDER_READY);
-        assertThat(riderAssignment.getAssignmentStatus()).isEqualTo(AssignmentStatus.ACCEPTED);
-    }
-
-    @Test
-    @DisplayName("배달 수락 실패 - 라이더를 찾을 수 없음")
-    void acceptOrder_riderNotFound() {
-        // given
-        String username = "testuser";
-        Long orderId = 1L;
-        Member mockMember = Member.builder().username(username).build();
-
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(mockMember));
-
-        when(riderRepository.findByMember(mockMember)).thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> riderService.acceptDelivery(username, orderId))
-                .isInstanceOf(RiderException.class)
-                .hasMessageContaining(RiderErrorCode.RIDER_NOT_FOUND.getMessage());
-    }
-
-    @Test
-    @DisplayName("배달 수락 실패 - 주문을 찾을 수 없음")
-    void acceptOrder_orderNotFound() {
-        // given
-        String username = "testuser";
-        Long orderId = 1L;
-        Member mockMember = Member.builder().username(username).build();
-        Rider mockRider = Rider.builder().member(mockMember).build();
-
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(mockMember));
-        when(riderRepository.findByMember(mockMember)).thenReturn(Optional.of(mockRider));
-        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> riderService.acceptDelivery(username, orderId))
-                .isInstanceOf(OrderException.class)
-                .hasMessageContaining(OrderErrorCode.ORDER_NOT_FOUND.getMessage());
-    }
-
-    @Test
-    @DisplayName("배달 수락 실패 - 주문이 이미 배정됨")
-    void acceptOrder_orderAlreadyAssigned() {
-        // given
-        String username = "testuser";
-        Long orderId = 1L;
-
-        Member mockMember = Member.builder().username(username).build();
-        Rider tryingRider = Rider.builder().riderId(1L).member(mockMember).build();
-        Rider assignedRider = Rider.builder().riderId(2L).build();
-
-        Order alreadyAssignedOrder = Order.builder()
-                .orderId(orderId)
-                .orderStatus(OrderStatus.COOKED)
-                .rider(assignedRider)
-                .build();
-
-        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(mockMember));
-        when(riderRepository.findByMember(mockMember)).thenReturn(Optional.of(tryingRider));
-        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(alreadyAssignedOrder));
-
-        // when & then
-        assertThatThrownBy(() -> riderService.acceptDelivery(username, orderId))
-                .isInstanceOf(OrderException.class)
-                .hasMessageContaining(OrderErrorCode.ORDER_ALREADY_ASSIGNED.getMessage());
     }
 
 }
