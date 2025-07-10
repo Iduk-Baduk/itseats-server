@@ -23,6 +23,36 @@ services:
     networks:
       - local-bridge
 
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    networks:
+      - local-bridge
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - local-bridge
+
+  k6:
+    image: grafana/k6
+    container_name: k6
+    stdin_open: true
+    tty: true
+    networks:
+      - local-bridge
+    volumes:
+      - ./scripts:/scripts
+
 networks:
   local-bridge:
     driver: bridge
