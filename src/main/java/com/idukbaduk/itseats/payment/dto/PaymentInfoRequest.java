@@ -15,7 +15,7 @@ public class PaymentInfoRequest {
 
     private Long orderId;
     private Long memberCouponId; // 쿠폰 적용 시 사용, 쿠폰 적용 안할 시 null
-    private int totalCost;
+    private Long totalCost;
     private String paymentMethod;
     private String storeRequest;
     private String riderRequest;

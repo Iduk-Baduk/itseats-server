@@ -44,7 +44,7 @@ public class Payment extends BaseEntity {
     private Order order;
 
     @Column(name = "discount_value", nullable = false)
-    private int discountValue;
+    private Long discountValue;
 
     @Column(name = "total_cost", nullable = false)
     private Long totalCost;
