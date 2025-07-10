@@ -17,7 +17,10 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "member_address")
+@Table(
+  name = "member_address",
+  indexes = @Index(name = "idx_member_address_location", columnList = "location")
+)
 public class MemberAddress extends BaseEntity {
 
     @Id
@@ -35,7 +38,7 @@ public class MemberAddress extends BaseEntity {
     @Column(name = "detail_address", nullable = false)
     private String detailAddress;
 
-    @Column(name = "location", columnDefinition = "POINT", nullable = false)
+    @Column(name = "location", columnDefinition = "POINT SRID 4326", nullable = false)
     private Point location;
 
     @Enumerated(EnumType.STRING)

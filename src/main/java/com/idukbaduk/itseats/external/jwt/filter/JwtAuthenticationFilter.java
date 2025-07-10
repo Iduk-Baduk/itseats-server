@@ -70,12 +70,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = jwtTokenParser.resolveToken(request);
             
             // 2. 토큰이 존재하고 유효한 경우에만 처리
-            if (token != null) { // Changed from StringUtils.hasText(token) to token != null
-                log.debug("JWT 토큰 발견: {}", token.substring(0, Math.min(20, token.length())) + "...");
+            if (token != null && !token.trim().isEmpty()) {
+                log.debug("JWT 토큰이 발견되었습니다.");
                 
                 // 3. JWT 토큰 검증 및 Claims 파싱
                 Claims claims = jwtTokenParser.parseClaims(token);
-                Long memberId = Long.parseLong(claims.getSubject());
+                String subject = claims.getSubject();
+                
+                // subject가 null이거나 빈 문자열인 경우 처리
+                if (subject == null || subject.trim().isEmpty()) {
+                    log.warn("JWT 토큰에 subject가 없습니다.");
+                    sendForbiddenResponse(response, "유효하지 않은 토큰입니다.");
+                    return;
+                }
+                
+                Long memberId = Long.parseLong(subject);
                 
                 log.debug("JWT 토큰에서 추출한 memberId: {}", memberId);
                 
@@ -140,10 +149,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void sendForbiddenResponse(HttpServletResponse response, String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("""
+        
+        // 애플리케이션의 BaseResponse 형식과 일치하는 JSON 응답
+        String jsonResponse = String.format("""
             {
-              "message": "%s"
+              "httpStatus": 403,
+              "message": "%s",
+              "data": null
             }
-        """.formatted(message));
+            """, message);
+        
+        response.getWriter().write(jsonResponse);
     }
 } 

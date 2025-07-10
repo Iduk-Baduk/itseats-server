@@ -227,7 +227,7 @@ class OrderServiceTest {
 
         when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
         when(memberAddressRepository.findByMemberAndAddressId(member, 1L)).thenReturn(Optional.ofNullable(address));
-        when(storeRepository.findByMemberAndStoreId(member, 1L)).thenReturn(Optional.ofNullable(store));
+        when(storeRepository.findByStoreId(1L)).thenReturn(Optional.ofNullable(store));
         when(memberCouponRepository.findById(couponId)).thenReturn(Optional.of(memberCoupon));
         when(menuRepository.findById(1L)).thenReturn(Optional.of(new Menu()));
         when(menuRepository.findById(2L)).thenReturn(Optional.of(new Menu()));
@@ -236,9 +236,8 @@ class OrderServiceTest {
         when(orderRepository.findMinDeliveryTimeByType(DeliveryType.ONLY_ONE.name())).thenReturn(25);
         when(orderRepository.findMaxDeliveryTimeByType(DeliveryType.ONLY_ONE.name())).thenReturn(45);
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+        when(couponPolicyService.applyCouponDiscount(memberCoupon, member, 7000)).thenReturn(2000);
 
-        doNothing().when(couponPolicyService).validateCoupon(memberCoupon, member, 7000);
-        when(couponPolicyService.calculateDiscount(coupon, 7000)).thenReturn(2000);
 
         orderNewRequest = OrderNewRequest.builder()
                 .addrId(1L)
@@ -263,7 +262,7 @@ class OrderServiceTest {
         Long couponId = 100L;
         when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
         when(memberAddressRepository.findByMemberAndAddressId(member, 1L)).thenReturn(Optional.ofNullable(address));
-        when(storeRepository.findByMemberAndStoreId(member, 1L)).thenReturn(Optional.ofNullable(store));
+        when(storeRepository.findByStoreId(1L)).thenReturn(Optional.ofNullable(store));
         when(memberCouponRepository.findById(couponId)).thenReturn(Optional.empty());
         when(menuRepository.findById(1L)).thenReturn(Optional.of(Menu.builder().build()));
         when(menuRepository.findById(2L)).thenReturn(Optional.of(Menu.builder().build()));
@@ -303,13 +302,13 @@ class OrderServiceTest {
 
         when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
         when(memberAddressRepository.findByMemberAndAddressId(member, 1L)).thenReturn(Optional.ofNullable(address));
-        when(storeRepository.findByMemberAndStoreId(member, 1L)).thenReturn(Optional.ofNullable(store));
+        when(storeRepository.findByStoreId(1L)).thenReturn(Optional.ofNullable(store));
         when(memberCouponRepository.findById(couponId)).thenReturn(Optional.of(memberCoupon));
         when(menuRepository.findById(1L)).thenReturn(Optional.of(Menu.builder().build()));
         when(menuRepository.findById(2L)).thenReturn(Optional.of(Menu.builder().build()));
 
         doThrow(new CouponException(CouponErrorCode.COUPON_ALREADY_USED))
-                .when(couponPolicyService).validateCoupon(memberCoupon, member, 7000);
+                .when(couponPolicyService).applyCouponDiscount(memberCoupon, member, 7000);
 
         orderNewRequest = OrderNewRequest.builder()
                 .addrId(1L)
@@ -346,13 +345,13 @@ class OrderServiceTest {
 
         when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
         when(memberAddressRepository.findByMemberAndAddressId(member, 1L)).thenReturn(Optional.ofNullable(address));
-        when(storeRepository.findByMemberAndStoreId(member, 1L)).thenReturn(Optional.ofNullable(store));
+        when(storeRepository.findByStoreId(1L)).thenReturn(Optional.ofNullable(store));
         when(memberCouponRepository.findById(couponId)).thenReturn(Optional.of(memberCoupon));
         when(menuRepository.findById(1L)).thenReturn(Optional.of(Menu.builder().build()));
         when(menuRepository.findById(2L)).thenReturn(Optional.of(Menu.builder().build()));
 
         doThrow(new CouponException(CouponErrorCode.COUPON_EXPIRED))
-                .when(couponPolicyService).validateCoupon(memberCoupon, member, 7000);
+                .when(couponPolicyService).applyCouponDiscount(memberCoupon, member, 7000);
 
         orderNewRequest = OrderNewRequest.builder()
                 .addrId(1L)

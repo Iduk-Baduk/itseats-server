@@ -12,7 +12,13 @@ import java.time.LocalDateTime;
 
 @Service
 public class CouponPolicyService {
-    public void validateCoupon(MemberCoupon memberCoupon, Member member, int orderPrice) {
+
+    public int applyCouponDiscount(MemberCoupon memberCoupon, Member member, int orderPrice) {
+        validateCoupon(memberCoupon, member, orderPrice);
+        return calculateDiscount(memberCoupon.getCoupon(), orderPrice);
+    }
+
+    private void validateCoupon(MemberCoupon memberCoupon, Member member, int orderPrice) {
         if (memberCoupon == null || !memberCoupon.getMember().equals(member)) {
             throw new CouponException(CouponErrorCode.COUPON_NOT_FOUND);
         }
@@ -27,14 +33,14 @@ public class CouponPolicyService {
         }
     }
 
-    public int calculateDiscount(Coupon coupon, int orderPrice) {
+    private int calculateDiscount(Coupon coupon, int orderPrice) {
         if (coupon.getCouponType() == CouponType.FIXED) {
             return Math.min(coupon.getDiscountValue(), orderPrice);
         }
         if (coupon.getCouponType() == CouponType.RATE) {
-            int discount = (int) Math.round(orderPrice * coupon.getDiscountValue() / 100.0);
+            int discount = orderPrice * coupon.getDiscountValue() / 100;
             return Math.min(discount, orderPrice);
         }
-        return 0;
+        throw new CouponException(CouponErrorCode.COUPON_NOT_FOUND);
     }
 }

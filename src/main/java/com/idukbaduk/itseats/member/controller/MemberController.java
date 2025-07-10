@@ -3,6 +3,8 @@ package com.idukbaduk.itseats.member.controller;
 import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.member.dto.request.CustomerCreateRequest;
 import com.idukbaduk.itseats.member.dto.enums.MemberResponse;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +44,7 @@ public class MemberController {
     public ResponseEntity<BaseResponse> getCurrentMember(@AuthenticationPrincipal UserDetails userDetails) {
         // JWT 인증 필터에서 설정된 인증 정보가 없는 경우 처리
         if (userDetails == null) {
-            throw new RuntimeException("인증되지 않은 사용자입니다.");
+            throw new MemberException(MemberErrorCode.UNAUTHORIZED_USER);
         }
         return BaseResponse.toResponseEntity(
                 MemberResponse.GET_CURRENT_MEMBER_SUCCESS,

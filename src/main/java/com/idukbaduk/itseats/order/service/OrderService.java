@@ -91,8 +91,7 @@ public class OrderService {
             MemberCoupon memberCoupon = memberCouponRepository.findById(orderNewRequest.getMemberCouponId())
                     .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
 
-            couponPolicyService.validateCoupon(memberCoupon, member, orderPrice);
-            discountValue = couponPolicyService.calculateDiscount(memberCoupon.getCoupon(), orderPrice);
+            discountValue = couponPolicyService.applyCouponDiscount(memberCoupon, member, orderPrice);
         }
 
         int totalCost = orderPrice - discountValue + deliveryFee;

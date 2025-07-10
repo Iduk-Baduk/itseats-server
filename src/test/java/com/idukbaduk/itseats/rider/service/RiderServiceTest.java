@@ -134,7 +134,7 @@ class RiderServiceTest {
     }
 
     @Test
-        @DisplayName("배차 관리 상태가 직전 단계가 아닌 경우 변경시 예외 발생")
+    @DisplayName("배차 관리 상태가 직전 단계가 아닌 경우 변경시 예외 발생")
     void rejectDelivery_rejectStatusFail() {
         // given
         RejectReasonRequest request = RejectReasonRequest.builder()
