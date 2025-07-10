@@ -1,4 +1,4 @@
-package com.idukbaduk.itseats.rider.service;
+package com.idukbaduk.itseats.order.service;
 
 import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
@@ -45,10 +45,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-class RiderServiceConcurrencyIntegrationTest {
+class RiderOrderServiceConcurrencyIntegrationTest {
 
     @Autowired
-    private RiderService riderService;
+    private RiderOrderService riderOrderService;
     @Autowired
     private OrderRepository orderRepository;
     @Autowired
@@ -207,7 +207,7 @@ class RiderServiceConcurrencyIntegrationTest {
                     startLatch.await();
 
                     try {
-                        riderService.acceptDelivery(riderName, testOrder.getOrderId());
+                        riderOrderService.acceptDelivery(riderName, testOrder.getOrderId());
                         successCount.incrementAndGet();
                     } catch (Exception e) {
                         log.error("주문 수락 실패: rider={}, error={}", riderName, e.getMessage());
