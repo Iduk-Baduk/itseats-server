@@ -19,6 +19,7 @@ import com.idukbaduk.itseats.store.repository.FranchiseRepository;
 import com.idukbaduk.itseats.store.repository.StoreCategoryRepository;
 import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -50,9 +52,11 @@ public class OwnerStoreService {
         Double avgRating = reviewRepository.findAverageRatingByStoreId(storeId);
         double customerRating = avgRating != null ? avgRating : 0.0;
 
-        Double avgCookTime = orderRepository.findAverageCookTimeByStoreId(storeId);
+        Double avgCookTime = Optional.ofNullable(orderRepository.findAverageCookTimeByStoreId(storeId))
+                .orElse(0.0);
         Long accurateCount = orderRepository.countAccurateOrdersByStoreId(storeId);
-        Double avgPickupTime = orderRepository.findAveragePickupTimeByStoreId(storeId);
+        Double avgPickupTime = Optional.ofNullable(orderRepository.findAveragePickupTimeByStoreId(storeId))
+                .orElse(0.0);
         Long totalOrders = orderRepository.countTotalOrdersByStoreId(storeId);
         Long acceptedOrders = orderRepository.countAcceptedOrdersByStoreId(storeId);
 
