@@ -7,6 +7,12 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum CouponErrorCode implements ErrorCode {
 
+    COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "쿠폰을 찾을 수 없습니다."),
+    ALREADY_ISSUED(HttpStatus.CONFLICT, "이미 발급받은 쿠폰입니다."),
+    QUANTITY_EXCEEDED(HttpStatus.CONFLICT, "쿠폰 발급 수량을 초과했습니다."),
+    INVALID_PERIOD(HttpStatus.BAD_REQUEST, "쿠폰 발급 가능 기간이 아닙니다."),
+    LOCK_ACQUISITION_FAILED(HttpStatus.CONFLICT, "쿠폰 발급 처리 중입니다. 잠시 후 다시 시도해주세요."),
+    LOCK_INTERRUPTED(HttpStatus.INTERNAL_SERVER_ERROR, "쿠폰 발급 처리 중 오류가 발생했습니다."),
     INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "날짜 입력이 올바르지 않습니다."),
     ;
 
