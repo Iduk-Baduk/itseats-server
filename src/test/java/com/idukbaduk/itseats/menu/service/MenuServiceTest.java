@@ -92,6 +92,8 @@ class MenuServiceTest {
 
         when(menuRepository.findMenusByStore(storeId, "음료", "라떼"))
                 .thenReturn(mockMenus);
+        when(menuImageRepository.findByMenu_MenuIdInOrderByMenu_MenuIdAscDisplayOrderAsc(any()))
+                .thenReturn(Collections.emptyList());
 
         // when
         MenuListResponse response = menuService.getMenuList(storeId, request);
@@ -449,6 +451,8 @@ class MenuServiceTest {
                 Menu.builder().menuId(2L).menuPriority(2).menuStatus(MenuStatus.ON_SALE).menuGroup(menuGroup).build()
         ));
         when(menuRepository.findByStoreId(storeId)).thenReturn(menus);
+        when(menuImageRepository.findByMenu_MenuIdInOrderByMenu_MenuIdAscDisplayOrderAsc(any()))
+                .thenReturn(Collections.emptyList());
 
         List<MenuInfoDto> menuInfoDtos = List.of(
                 MenuInfoDto.builder().menuId(1L).menuPriority(2).build(),
