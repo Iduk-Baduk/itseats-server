@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -144,11 +145,13 @@ public class MenuService {
     }
 
     private MenuListResponse toMenuListResponse(List<Menu> menus, int totalMenuCount, int orderableMenuCount, int outOfStockTodayCount, int hiddenMenuCount) {
+        List<Long> menuIds = menus.stream().map(Menu::getMenuId).toList();
+        Map<Long, List<MenuImage>> menuImagesMap = menuImageRepository.findByMenu_MenuIdInOrderByMenu_MenuIdAscDisplayOrderAsc(menuIds)
+                .stream()
+                .collect(Collectors.groupingBy(image -> image.getMenu().getMenuId()));
+
         List<MenuInfoDto> menuInfos = menus.stream()
-                .map(m -> MenuInfoDto.of(
-                        m,
-                        menuImageRepository.findByMenu_MenuIdOrderByDisplayOrderAsc(m.getMenuId()
-                )))
+                .map(m -> MenuInfoDto.of(m, menuImagesMap.getOrDefault(m.getMenuId(), Collections.emptyList())))
                 .toList();
 
         return MenuListResponse.builder()
