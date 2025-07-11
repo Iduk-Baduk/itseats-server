@@ -1,10 +1,13 @@
 package com.idukbaduk.itseats.store.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
 import com.idukbaduk.itseats.store.dto.enums.StoreResponse;
 import com.idukbaduk.itseats.store.dto.enums.StoreSortOption;
 import com.idukbaduk.itseats.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/stores")
 public class StoreController {
+
+    private static final Logger log = LoggerFactory.getLogger(StoreController.class);
 
     private final StoreService storeService;
 
@@ -32,10 +37,21 @@ public class StoreController {
             @PathVariable Long storeId,
             @AuthenticationPrincipal UserDetails userDetails
             ) {
-        return BaseResponse.toResponseEntity(
-                StoreResponse.GET_STORE_DETAIL_SUCCESS,
-                storeService.getStoreDetail(userDetails.getUsername(), storeId)
-        );
+        log.info("매장 상세 조회 요청 시작 - storeId: {}, username: {}", storeId, 
+                userDetails != null ? userDetails.getUsername() : "null");
+        
+        try {
+            StoreDetailResponse response = storeService.getStoreDetail(userDetails.getUsername(), storeId);
+            log.info("매장 상세 조회 성공 - storeId: {}, storeName: {}", storeId, response.getName());
+            return BaseResponse.toResponseEntity(
+                    StoreResponse.GET_STORE_DETAIL_SUCCESS,
+                    response
+            );
+        } catch (Exception e) {
+            log.error("매장 상세 조회 실패 - storeId: {}, username: {}, error: {}", 
+                    storeId, userDetails != null ? userDetails.getUsername() : "null", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/list/{storeCategory}")
