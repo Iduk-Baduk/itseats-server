@@ -27,6 +27,7 @@ public class OrderHistoryDto {
     private String deliveryRequest;
     private String menuSummary;
     private String storeImage;
+    private boolean hasReview;
 
     public static OrderHistoryDto of(Order order, StoreImage storeImage) {
         if (order == null)
@@ -52,6 +53,7 @@ public class OrderHistoryDto {
                         "메뉴 정보 없음"
                 )
                 .storeImage(storeImage == null ? null : storeImage.getImageUrl())
+                .hasReview(order.isHasReview())
                 .build();
     }
 }
