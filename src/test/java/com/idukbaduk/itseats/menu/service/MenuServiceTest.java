@@ -31,6 +31,8 @@ class MenuServiceTest {
     @Mock
     private MenuGroupRepository menuGroupRepository;
     @Mock
+    private MenuImageRepository menuImageRepository;
+    @Mock
     private MenuMediaService menuMediaService;
 
     @InjectMocks

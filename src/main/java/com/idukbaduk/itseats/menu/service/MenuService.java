@@ -6,6 +6,7 @@ import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuGroupRepository;
+import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
     private final MenuGroupRepository menuGroupRepository;
+    private final MenuImageRepository menuImageRepository;
     private final MenuMediaService menuMediaService;
 
     public MenuListResponse getMenuList(Long storeId, MenuListRequest request) {
@@ -143,14 +145,10 @@ public class MenuService {
 
     private MenuListResponse toMenuListResponse(List<Menu> menus, int totalMenuCount, int orderableMenuCount, int outOfStockTodayCount, int hiddenMenuCount) {
         List<MenuInfoDto> menuInfos = menus.stream()
-                .map(menu -> MenuInfoDto.builder()
-                        .menuId(menu.getMenuId())
-                        .menuName(menu.getMenuName())
-                        .menuPrice(String.valueOf(menu.getMenuPrice()))
-                        .menuStatus(menu.getMenuStatus().name())
-                        .menuGroupName(menu.getMenuGroup().getMenuGroupName())
-                        .menuPriority(menu.getMenuPriority())
-                        .build())
+                .map(m -> MenuInfoDto.of(
+                        m,
+                        menuImageRepository.findByMenu_MenuIdOrderByDisplayOrderAsc(m.getMenuId()
+                )))
                 .toList();
 
         return MenuListResponse.builder()
