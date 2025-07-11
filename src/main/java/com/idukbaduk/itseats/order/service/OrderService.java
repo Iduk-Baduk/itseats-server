@@ -40,6 +40,7 @@ import com.idukbaduk.itseats.store.error.enums.StoreErrorCode;
 import com.idukbaduk.itseats.store.repository.StoreImageRepository;
 import com.idukbaduk.itseats.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -135,6 +137,8 @@ public class OrderService {
                 .deliveryAddress(address.getMainAddress() + " " + address.getDetailAddress())
                 .destinationLocation(address.getLocation())
                 .storeLocation(store.getLocation())
+                .cookStartTime(LocalDateTime.now()) // 주문 생성 시점을 조리 시작 시간으로 설정
+                .orderReceivedTime(LocalDateTime.now()) // 주문 접수 시간 설정
                 .build();
 
         return orderRepository.save(order);
@@ -189,9 +193,15 @@ public class OrderService {
 
     private String convertMenuOptionToJson(List<MenuOptionDTO> menuOption) {
         try {
+            if (menuOption == null || menuOption.isEmpty()) {
+                return "[]";
+            }
             return objectMapper.writeValueAsString(menuOption);
         } catch (Exception e) {
-            throw new OrderException(OrderErrorCode.MENU_OPTION_SERIALIZATION_FAIL);
+            log.error("메뉴 옵션 JSON 직렬화 실패: {}", e.getMessage(), e);
+            log.error("메뉴 옵션 데이터: {}", menuOption);
+            // 직렬화 실패 시 빈 배열 반환
+            return "[]";
         }
     }
 
