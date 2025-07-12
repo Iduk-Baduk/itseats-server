@@ -47,14 +47,20 @@ public class CouponService {
         List<MemberCoupon> myCoupons = memberCouponRepository.findAllByMember(member);
 
         List<MyCouponDto> couponDtos = myCoupons.stream()
-                .map(mc -> MyCouponDto.builder()
-                        .couponType(mc.getCoupon().getCouponType())
-                        .minPrice(mc.getCoupon().getMinPrice())
-                        .discountValue(mc.getCoupon().getDiscountValue())
-                        .issueDate(mc.getIssueDate())
-                        .validDate(mc.getValidDate())
-                        .canUsed(canUse(mc))
-                        .build())
+                .map(mc -> {
+                    Coupon coupon = mc.getCoupon();
+                    Long storeId = coupon.getStore() != null ? coupon.getStore().getStoreId() : null;
+
+                    return MyCouponDto.builder()
+                            .couponType(coupon.getCouponType())
+                            .minPrice(coupon.getMinPrice())
+                            .discountValue(coupon.getDiscountValue())
+                            .issueDate(mc.getIssueDate())
+                            .validDate(mc.getValidDate())
+                            .canUsed(canUse(mc))
+                            .storeId(storeId)
+                            .build();
+                })
                 .toList();
 
         return MyCouponListResponse.builder().myCouponDtos(couponDtos).build();
