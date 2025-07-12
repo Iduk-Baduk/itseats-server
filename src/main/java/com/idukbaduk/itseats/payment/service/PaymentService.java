@@ -106,8 +106,11 @@ public class PaymentService {
         validateAmount(payment.getTotalCost(), clientResponse.getTotalAmount());
 
         payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
-        payment.getOrder().updateStatus(OrderStatus.WAITING);
         paymentRepository.save(payment);
+
+        Order order = payment.getOrder();
+        order.updateStatus(OrderStatus.WAITING);
+        orderRepository.save(order);
     }
 
     private void validateAmount(Long totalCost, Long tossAmount) {
