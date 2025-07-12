@@ -30,10 +30,14 @@ import com.idukbaduk.itseats.payment.service.client.PaymentClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
+
+    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
     private final PaymentClient paymentClient;
     private final PaymentRepository paymentRepository;
@@ -102,12 +106,19 @@ public class PaymentService {
         Payment payment = paymentRepository.findByPaymentIdAndUsername(username, paymentId)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
-        PaymentClientResponse clientResponse = paymentClient.confirmPayment(paymentConfirmRequest);
-        validateAmount(payment.getTotalCost(), clientResponse.getAmount());
+        log.info("[결제 승인] paymentClient.confirmPayment 호출 전: paymentId={}, username={}", paymentId, username);
+        try {
+            PaymentClientResponse clientResponse = paymentClient.confirmPayment(paymentConfirmRequest);
+            log.info("[결제 승인] paymentClient.confirmPayment 호출 후: clientResponse={}", clientResponse);
+            validateAmount(payment.getTotalCost(), clientResponse.getAmount());
 
-        payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
-        payment.getOrder().updateStatus(OrderStatus.WAITING);
-        paymentRepository.save(payment);
+            payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
+            payment.getOrder().updateStatus(OrderStatus.WAITING);
+            paymentRepository.save(payment);
+        } catch (Exception e) {
+            log.error("[결제 승인] paymentClient.confirmPayment 예외 발생: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     private void validateAmount(Long totalCost, Long tossAmount) {

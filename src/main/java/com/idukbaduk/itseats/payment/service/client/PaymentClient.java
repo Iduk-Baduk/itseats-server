@@ -7,6 +7,7 @@ import com.idukbaduk.itseats.payment.error.PaymentException;
 import com.idukbaduk.itseats.payment.error.enums.PaymentConfirmErrorCode;
 import com.idukbaduk.itseats.payment.error.enums.PaymentErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
@@ -15,6 +16,7 @@ import org.springframework.web.client.RestClient;
 import java.io.IOException;
 import java.util.Objects;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PaymentClient {
@@ -37,28 +39,42 @@ public class PaymentClient {
             validatePaymentStatus(clientResponse.getStatus());
             return clientResponse;
         } catch (ResourceAccessException e) {
+            log.error("[토스 결제 승인 ResourceAccessException] {}", e.getMessage(), e);
             throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
+        } catch (Exception e) {
+            log.error("[토스 결제 승인 전체 예외] {}", e.getMessage(), e);
+            throw e;
         }
     }
 
     private void handlePaymentError(ClientHttpResponse response){
         try {
             byte[] body = response.getBody().readAllBytes();
-            PaymentConfirmErrorCode errorCode = objectMapper.readValue(body, PaymentConfirmErrorCode.class);
-            throw new PaymentException(errorCode);
+            String errorBody = new String(body);
+            try {
+                PaymentConfirmErrorCode errorCode = objectMapper.readValue(body, PaymentConfirmErrorCode.class);
+                log.error("[토스 결제 에러] 응답 바디: {} (매핑된 코드: {})", errorBody, errorCode);
+                throw new PaymentException(errorCode);
+            } catch(Exception mappingEx) {
+                log.error("[토스 결제 에러] 응답 바디(매핑 실패): {}", errorBody, mappingEx);
+                throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
+            }
         } catch(IOException e) {
+            log.error("[토스 결제 에러] 응답 바디 읽기 실패", e);
             throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
         }
     }
 
     private void validatePaymentClientResponse(PaymentClientResponse clientResponse) {
         if (clientResponse == null) {
+            log.error("[토스 결제 validatePaymentClientResponse] clientResponse가 null입니다.");
             throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
         }
     }
 
     private void validatePaymentStatus(String status) {
         if (!PAYMENT_SUCCESS_STATUS.equals(status)) {
+            log.error("[토스 결제 validatePaymentStatus] status가 비정상: {}", status);
             throw new PaymentException(PaymentErrorCode.PAYMENT_FAIL);
         }
     }
