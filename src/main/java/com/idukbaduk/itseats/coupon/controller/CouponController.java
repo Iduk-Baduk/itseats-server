@@ -44,8 +44,11 @@ public class CouponController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<BaseResponse> getAllCoupons() {
-        List<CouponResponseDto> response = couponService.getAllCoupons();
+    public ResponseEntity<BaseResponse> getAllCoupons(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        List<CouponResponseDto> response = couponService.getAllCoupons(userDetails.getUsername());
         return BaseResponse.toResponseEntity(CouponResponse.GET_ALL_COUPONS, response);
     }
+
 }

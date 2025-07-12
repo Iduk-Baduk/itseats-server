@@ -126,12 +126,20 @@ public class CouponService {
     }
 
     @Transactional(readOnly = true)
-    public List<CouponResponseDto> getAllCoupons() {
+    public List<CouponResponseDto> getAllCoupons(String username) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
         List<Coupon> coupons = couponRepository.findAll();
+
         return coupons.stream()
-                .map(CouponResponseDto::of)
+                .map(coupon -> {
+                    boolean isIssued = memberCouponRepository.existsByMemberAndCoupon(member, coupon);
+                    return CouponResponseDto.of(coupon, isIssued);
+                })
                 .toList();
     }
+
 
     private void validateIssuePeriod(Coupon coupon) {
         LocalDateTime now = LocalDateTime.now();

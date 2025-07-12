@@ -16,8 +16,9 @@ public class CouponResponseDto {
     private LocalDateTime issueStartDate;
     private LocalDateTime issueEndDate;
     private LocalDateTime validDate;
+    private boolean isIssued;
 
-    public static CouponResponseDto of(Coupon coupon) {
+    public static CouponResponseDto of(Coupon coupon, boolean isIssued) {
         return CouponResponseDto.builder()
                 .couponId(coupon.getCouponId())
                 .name(coupon.getCouponName())
@@ -26,6 +27,7 @@ public class CouponResponseDto {
                 .issueStartDate(coupon.getIssueStartDate())
                 .issueEndDate(coupon.getIssueEndDate())
                 .validDate(coupon.getValidDate())
+                .isIssued(isIssued)
                 .build();
     }
 }
