@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.coupon.service;
 
+import com.idukbaduk.itseats.coupon.dto.CouponResponseDto;
 import com.idukbaduk.itseats.coupon.dto.MyCouponDto;
 import com.idukbaduk.itseats.coupon.dto.MyCouponListResponse;
 import com.idukbaduk.itseats.coupon.entity.Coupon;
@@ -366,5 +367,52 @@ class CouponServiceTest {
 
         // 인터럽트 발생 시 락 해제 시도하지 않음을 확인
         verify(rLock, never()).unlock();
+    }
+
+    @Test
+    @DisplayName("전체 쿠폰 목록 정상 조회 - 발급 여부 포함")
+    void getAllCoupons_success() {
+        String username = "testuser";
+        Member member = Member.builder().memberId(1L).username(username).build();
+
+        Coupon coupon1 = Coupon.builder()
+                .couponId(1L)
+                .couponName("Coupon1")
+                .discountValue(1000)
+                .minPrice(5000)
+                .issueStartDate(LocalDateTime.now().minusDays(1))
+                .issueEndDate(LocalDateTime.now().plusDays(5))
+                .validDate(LocalDateTime.now().plusDays(30))
+                .build();
+
+        Coupon coupon2 = Coupon.builder()
+                .couponId(2L)
+                .couponName("Coupon2")
+                .discountValue(2000)
+                .minPrice(10000)
+                .issueStartDate(LocalDateTime.now().minusDays(1))
+                .issueEndDate(LocalDateTime.now().plusDays(5))
+                .validDate(LocalDateTime.now().plusDays(30))
+                .build();
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(couponRepository.findAll()).thenReturn(List.of(coupon1, coupon2));
+        when(memberCouponRepository.existsByMemberAndCoupon(member, coupon1)).thenReturn(true);
+        when(memberCouponRepository.existsByMemberAndCoupon(member, coupon2)).thenReturn(false);
+
+        List<CouponResponseDto> result = couponService.getAllCoupons(username);
+
+        assertThat(result).hasSize(2);
+
+        CouponResponseDto dto1 = result.get(0);
+        CouponResponseDto dto2 = result.get(1);
+
+        assertThat(dto1.getCouponId()).isEqualTo(1L);
+        assertThat(dto1.getName()).isEqualTo("Coupon1");
+        assertThat(dto1.isIssued()).isTrue();
+
+        assertThat(dto2.getCouponId()).isEqualTo(2L);
+        assertThat(dto2.getName()).isEqualTo("Coupon2");
+        assertThat(dto2.isIssued()).isFalse();
     }
 }
