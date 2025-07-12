@@ -110,6 +110,7 @@ public class OrderService {
                 .build();
     }
 
+    @Transactional
     public OrderCreateResponse createOrder(String username, OrderCreateRequest request) {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
