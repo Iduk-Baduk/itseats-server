@@ -49,18 +49,24 @@ public class PaymentClient {
 
     private void handlePaymentError(ClientHttpResponse response){
         try {
+            System.out.println("[토스 결제 에러] onStatus 핸들러 진입");
             byte[] body = response.getBody().readAllBytes();
             String errorBody = new String(body);
+            log.error("[토스 결제 에러] 응답 바디 원본: {}", errorBody);
+            System.out.println("[토스 결제 에러] 응답 바디 원본: " + errorBody);
             try {
                 PaymentConfirmErrorCode errorCode = objectMapper.readValue(body, PaymentConfirmErrorCode.class);
-                log.error("[토스 결제 에러] 응답 바디: {} (매핑된 코드: {})", errorBody, errorCode);
+                log.error("[토스 결제 에러] 매핑된 코드: {}", errorCode);
+                System.out.println("[토스 결제 에러] 매핑된 코드: " + errorCode);
                 throw new PaymentException(errorCode);
             } catch(Exception mappingEx) {
                 log.error("[토스 결제 에러] 응답 바디(매핑 실패): {}", errorBody, mappingEx);
+                System.out.println("[토스 결제 에러] 응답 바디(매핑 실패): " + errorBody);
                 throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
             }
         } catch(IOException e) {
             log.error("[토스 결제 에러] 응답 바디 읽기 실패", e);
+            System.out.println("[토스 결제 에러] 응답 바디 읽기 실패: " + e.getMessage());
             throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
         }
     }
