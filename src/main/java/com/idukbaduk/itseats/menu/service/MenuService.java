@@ -6,6 +6,7 @@ import com.idukbaduk.itseats.menu.entity.enums.MenuStatus;
 import com.idukbaduk.itseats.menu.error.MenuErrorCode;
 import com.idukbaduk.itseats.menu.error.MenuException;
 import com.idukbaduk.itseats.menu.repository.MenuGroupRepository;
+import com.idukbaduk.itseats.menu.repository.MenuImageRepository;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -23,6 +25,7 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
     private final MenuGroupRepository menuGroupRepository;
+    private final MenuImageRepository menuImageRepository;
     private final MenuMediaService menuMediaService;
 
     public MenuListResponse getMenuList(Long storeId, MenuListRequest request) {
@@ -142,15 +145,13 @@ public class MenuService {
     }
 
     private MenuListResponse toMenuListResponse(List<Menu> menus, int totalMenuCount, int orderableMenuCount, int outOfStockTodayCount, int hiddenMenuCount) {
+        List<Long> menuIds = menus.stream().map(Menu::getMenuId).toList();
+        Map<Long, List<MenuImage>> menuImagesMap = menuImageRepository.findByMenu_MenuIdInOrderByMenu_MenuIdAscDisplayOrderAsc(menuIds)
+                .stream()
+                .collect(Collectors.groupingBy(image -> image.getMenu().getMenuId()));
+
         List<MenuInfoDto> menuInfos = menus.stream()
-                .map(menu -> MenuInfoDto.builder()
-                        .menuId(menu.getMenuId())
-                        .menuName(menu.getMenuName())
-                        .menuPrice(String.valueOf(menu.getMenuPrice()))
-                        .menuStatus(menu.getMenuStatus().name())
-                        .menuGroupName(menu.getMenuGroup().getMenuGroupName())
-                        .menuPriority(menu.getMenuPriority())
-                        .build())
+                .map(m -> MenuInfoDto.of(m, menuImagesMap.getOrDefault(m.getMenuId(), Collections.emptyList())))
                 .toList();
 
         return MenuListResponse.builder()
