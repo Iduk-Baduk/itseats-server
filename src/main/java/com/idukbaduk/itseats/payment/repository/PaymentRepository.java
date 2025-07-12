@@ -17,6 +17,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("""
         SELECT p
         FROM Payment p
+        JOIN FETCH Order o
         WHERE p.member.username = :username
           AND p.paymentId = :paymentId
     """)

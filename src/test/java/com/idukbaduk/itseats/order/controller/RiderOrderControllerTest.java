@@ -1,7 +1,7 @@
 package com.idukbaduk.itseats.order.controller;
 
 import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
-import com.idukbaduk.itseats.order.dto.OrderDetailsResponse;
+import com.idukbaduk.itseats.order.dto.RiderOrderDetailsResponse;
 import com.idukbaduk.itseats.order.dto.OrderRequestResponse;
 import com.idukbaduk.itseats.order.dto.RiderImageResponse;
 import com.idukbaduk.itseats.order.dto.enums.OrderResponse;
@@ -46,7 +46,7 @@ class RiderOrderControllerTest {
     void getOrderDetails_success() throws Exception {
         // given
         Long orderId = 1L;
-        OrderDetailsResponse response = OrderDetailsResponse.builder()
+        RiderOrderDetailsResponse response = RiderOrderDetailsResponse.builder()
                 .orderId(orderId)
                 .build();
 

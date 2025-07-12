@@ -12,6 +12,7 @@ import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
@@ -105,6 +106,7 @@ public class PaymentService {
         validateAmount(payment.getTotalCost(), clientResponse.getTotalAmount());
 
         payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
+        payment.getOrder().updateStatus(OrderStatus.WAITING);
         paymentRepository.save(payment);
     }
 

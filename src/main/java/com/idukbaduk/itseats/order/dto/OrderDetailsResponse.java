@@ -3,20 +3,15 @@ package com.idukbaduk.itseats.order.dto;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.List;
-
 @Getter
 @Builder
 public class OrderDetailsResponse {
 
-    private Long orderId;
-    private String orderNumber;
-    private String orderStatus;
-    private String orderTime;
-    private int totalPrice;
-    private List<OrderItemDTO> orderItems;
-    private String storePhone;
-    private String memberPhone;
-    private String storeRequest;
-    private String riderRequest;
+    private int defaultTimeMin;
+    private int defaultTimeMax;
+    private int onlyOneTimeMin;
+    private int onlyOneTimeMax;
+    private int defaultDeliveryFee;
+    private int onlyOneDeliveryFee;
+    private int discountValue;
 }
