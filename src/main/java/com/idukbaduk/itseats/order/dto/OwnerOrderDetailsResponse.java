@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @Builder
-public class OrderDetailResponse {
+public class OwnerOrderDetailsResponse {
     private Long orderId;
     private String orderNumber;
     private String memberName;

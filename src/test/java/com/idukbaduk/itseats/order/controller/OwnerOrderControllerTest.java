@@ -61,7 +61,7 @@ class OwnerOrderControllerTest {
                 .options(List.of())
                 .build();
 
-        OrderDetailResponse response = OrderDetailResponse.builder()
+        OwnerOrderDetailsResponse response = OwnerOrderDetailsResponse.builder()
                 .orderId(3L)
                 .orderNumber("GRMT0N")
                 .memberName("구름톤")

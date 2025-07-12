@@ -1,7 +1,7 @@
 package com.idukbaduk.itseats.order.service;
 
 import com.idukbaduk.itseats.order.dto.AddressInfoDTO;
-import com.idukbaduk.itseats.order.dto.OrderDetailsResponse;
+import com.idukbaduk.itseats.order.dto.RiderOrderDetailsResponse;
 import com.idukbaduk.itseats.order.dto.OrderItemDTO;
 import com.idukbaduk.itseats.order.dto.OrderRequestResponse;
 import com.idukbaduk.itseats.order.dto.RiderImageResponse;
@@ -42,7 +42,7 @@ public class RiderOrderService {
     private final RiderService riderService;
 
     @Transactional(readOnly = true)
-    public OrderDetailsResponse getOrderDetails(String username, Long orderId) {
+    public RiderOrderDetailsResponse getOrderDetails(String username, Long orderId) {
         Rider rider = riderRepository.findByUsername(username)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
         Order order = orderRepository.findByRiderAndOrderId(rider, orderId)
@@ -51,10 +51,10 @@ public class RiderOrderService {
         return buildOrderDetails(order);
     }
 
-    private OrderDetailsResponse buildOrderDetails(Order order) {
+    private RiderOrderDetailsResponse buildOrderDetails(Order order) {
         Payment payment = paymentRepository.findByOrder(order)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        return OrderDetailsResponse.builder()
+        return RiderOrderDetailsResponse.builder()
                 .orderId(order.getOrderId())
                 .orderNumber(order.getOrderNumber())
                 .orderStatus(order.getOrderStatus().name())

@@ -24,7 +24,7 @@ public class OwnerOrderController {
     public ResponseEntity<BaseResponse> getOrderDetail(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
-        OrderDetailResponse response = ownerOrderService.getOrderDetail(userDetails.getUsername(), orderId);
+        OwnerOrderDetailsResponse response = ownerOrderService.getOrderDetail(userDetails.getUsername(), orderId);
         return BaseResponse.toResponseEntity(OrderResponse.GET_ORDER_DETAILS_SUCCESS, response);
     }
 
