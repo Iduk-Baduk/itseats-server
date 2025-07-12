@@ -8,4 +8,5 @@ import lombok.Getter;
 public class OrderCreateResponse {
 
     private Long orderId;
+    private String tossOrderId;
 }

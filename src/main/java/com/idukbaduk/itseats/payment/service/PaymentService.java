@@ -103,7 +103,7 @@ public class PaymentService {
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         PaymentClientResponse clientResponse = paymentClient.confirmPayment(paymentConfirmRequest);
-        validateAmount(payment.getTotalCost(), clientResponse.getTotalAmount());
+        validateAmount(payment.getTotalCost(), clientResponse.getAmount());
 
         payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
         payment.getOrder().updateStatus(OrderStatus.WAITING);

@@ -9,6 +9,6 @@ public class PaymentClientResponse {
 
     private String paymentKey;
     private String orderId;
-    private Long totalAmount;
+    private Long amount;
     private String status;
 }

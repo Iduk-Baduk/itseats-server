@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -130,7 +131,7 @@ public class OrderService {
                 .store(store)
                 .orderNumber(getOrderNumber())
                 .orderPrice(getOrderPrice(request.getOrderMenus()))
-                .orderStatus(OrderStatus.PENDING)
+                .orderStatus(OrderStatus.WAITING)
                 .deliveryType(DeliveryType.valueOf(request.getDeliveryType()))
                 .deliveryEta(LocalDateTime.now()
                         .plusMinutes(getAvgDeliveryTime(request.getDeliveryType())))
@@ -138,6 +139,9 @@ public class OrderService {
                 .deliveryAddress(address.getMainAddress() + " " + address.getDetailAddress())
                 .destinationLocation(address.getLocation())
                 .storeLocation(store.getLocation())
+                .orderReceivedTime(LocalDateTime.now())
+                .cookStartTime(LocalDateTime.now())
+                .tossOrderId(generateTossOrderId())
                 .build();
 
         return orderRepository.save(order);
@@ -150,6 +154,11 @@ public class OrderService {
         char lastLetter = LETTER_POOL.charAt(random.nextInt(LETTER_POOL.length()));
 
         return String.format("%c%d%c", firstLetter, timestamp % 10000, lastLetter);
+    }
+
+    private String generateTossOrderId() {
+        // UUID 생성 후 하이픈 제거하여 32자리 문자열 생성
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
     private int getOrderPrice(List<OrderMenuDTO> orderMenuDtos) {
@@ -173,14 +182,14 @@ public class OrderService {
         List<OrderMenuDTO> orderMenuDtos = request.getOrderMenus();
         List<OrderMenu> orderMenus = new ArrayList<>();
         for (OrderMenuDTO orderMenuDTO : orderMenuDtos) {
-            Menu menu = menuRepository.findById(orderMenuDTO.getMenuId())
+            Menu menu = menuRepository.findByMenuIdAndDeletedFalse(orderMenuDTO.getMenuId())
                     .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
             OrderMenu orderMenu = OrderMenu.builder()
                     .menu(menu)
                     .order(order)
                     .quantity(orderMenuDTO.getQuantity())
                     .price(orderMenuDTO.getMenuTotalPrice())
-                    .menuName(orderMenuDTO.getMenuName())
+                    .menuName(menu.getMenuName())
                     .menuOption(convertMenuOptionToJson(orderMenuDTO.getMenuOption()))
                     .build();
 
@@ -201,6 +210,7 @@ public class OrderService {
     private OrderCreateResponse buildOrderCreateResponse(Order order) {
         return OrderCreateResponse.builder()
                 .orderId(order.getOrderId())
+                .tossOrderId(order.getTossOrderId())
                 .build();
     }
 
