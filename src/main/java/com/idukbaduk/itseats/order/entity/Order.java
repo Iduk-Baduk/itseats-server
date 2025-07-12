@@ -97,8 +97,8 @@ public class Order extends BaseEntity {
     @OneToOne(mappedBy = "order")
     private Payment payment;
 
-    public boolean updateHasReview() {
-        return true;
+    public void updateHasReview() {
+        this.hasReview = true;
     }
 
     public void updateOrderStatusAccept(Rider rider, OrderStatus orderStatus) {
