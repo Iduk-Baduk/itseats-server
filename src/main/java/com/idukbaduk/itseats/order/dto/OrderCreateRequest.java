@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @Builder
-public class OrderNewRequest {
+public class OrderCreateRequest {
 
     private Long addrId;
     private Long storeId;
