@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.coupon.service;
 
+import com.idukbaduk.itseats.coupon.dto.CouponResponseDto;
 import com.idukbaduk.itseats.coupon.dto.MyCouponDto;
 import com.idukbaduk.itseats.coupon.dto.MyCouponListResponse;
 import com.idukbaduk.itseats.coupon.entity.MemberCoupon;
@@ -46,14 +47,20 @@ public class CouponService {
         List<MemberCoupon> myCoupons = memberCouponRepository.findAllByMember(member);
 
         List<MyCouponDto> couponDtos = myCoupons.stream()
-                .map(mc -> MyCouponDto.builder()
-                        .couponType(mc.getCoupon().getCouponType())
-                        .minPrice(mc.getCoupon().getMinPrice())
-                        .discountValue(mc.getCoupon().getDiscountValue())
-                        .issueDate(mc.getIssueDate())
-                        .validDate(mc.getValidDate())
-                        .canUsed(canUse(mc))
-                        .build())
+                .map(mc -> {
+                    Coupon coupon = mc.getCoupon();
+                    Long storeId = coupon.getStore() != null ? coupon.getStore().getStoreId() : null;
+
+                    return MyCouponDto.builder()
+                            .couponType(coupon.getCouponType())
+                            .minPrice(coupon.getMinPrice())
+                            .discountValue(coupon.getDiscountValue())
+                            .issueDate(mc.getIssueDate())
+                            .validDate(mc.getValidDate())
+                            .canUsed(canUse(mc))
+                            .storeId(storeId)
+                            .build();
+                })
                 .toList();
 
         return MyCouponListResponse.builder().myCouponDtos(couponDtos).build();
@@ -123,6 +130,22 @@ public class CouponService {
             }
         }
     }
+
+    @Transactional(readOnly = true)
+    public List<CouponResponseDto> getAllCoupons(String username) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        List<Coupon> coupons = couponRepository.findAll();
+
+        return coupons.stream()
+                .map(coupon -> {
+                    boolean isIssued = memberCouponRepository.existsByMemberAndCoupon(member, coupon);
+                    return CouponResponseDto.of(coupon, isIssued);
+                })
+                .toList();
+    }
+
 
     private void validateIssuePeriod(Coupon coupon) {
         LocalDateTime now = LocalDateTime.now();
