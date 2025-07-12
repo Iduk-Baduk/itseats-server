@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.coupon.service;
 
+import com.idukbaduk.itseats.coupon.dto.CouponResponseDto;
 import com.idukbaduk.itseats.coupon.dto.MyCouponDto;
 import com.idukbaduk.itseats.coupon.dto.MyCouponListResponse;
 import com.idukbaduk.itseats.coupon.entity.MemberCoupon;
@@ -122,6 +123,14 @@ public class CouponService {
                 lock.unlock();
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<CouponResponseDto> getAllCoupons() {
+        List<Coupon> coupons = couponRepository.findAll();
+        return coupons.stream()
+                .map(CouponResponseDto::of)
+                .toList();
     }
 
     private void validateIssuePeriod(Coupon coupon) {
