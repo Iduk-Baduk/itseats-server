@@ -13,6 +13,7 @@ import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.memberaddress.entity.MemberAddress;
 import com.idukbaduk.itseats.memberaddress.repository.MemberAddressRepository;
+import com.idukbaduk.itseats.menu.entity.Menu;
 import com.idukbaduk.itseats.menu.repository.MenuRepository;
 import com.idukbaduk.itseats.order.dto.*;
 import com.idukbaduk.itseats.order.entity.Order;
@@ -186,7 +187,6 @@ class OrderServiceTest {
                 .storeId(1L)
                 .deliveryType(DeliveryType.DEFAULT.name())
                 .orderMenus(List.of(orderMenuDTO1, orderMenuDTO2))
-                .memberCouponId(1L)
                 .build();
     }
 
@@ -279,37 +279,55 @@ class OrderServiceTest {
                 .hasMessageContaining(CouponErrorCode.COUPON_EXPIRED.getMessage());
     }
 
-    // TODO: 테스트 코드 수정
+    @Test
+    @DisplayName("주문 정보가 성공적으로 저장")
+    void createOrder_success() {
+        // given
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
+        when(memberAddressRepository.findByMemberAndAddressId(member, 1L)).thenReturn(Optional.of(address));
+        when(storeRepository.findByStoreId(1L)).thenReturn(Optional.ofNullable(store));
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(new Menu()));
+        when(menuRepository.findById(2L)).thenReturn(Optional.of(new Menu()));
+
+        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+
+        // when
+        OrderCreateResponse response = orderService.createOrder(username, orderCreateRequest);
+
+        // then
+        verify(orderMenuRepository).saveAll(anyList());
+    }
+
     @Test
     @DisplayName("ObjectMapper가 null일 때 menuOption 직렬화 실패 예외 발생")
-    void getOrderDetails_serializationException() {
+    void createOrder_serializationException() {
         // given
-//        OrderService exceptionOrderService = new OrderService(
-//                orderRepository,
-//                orderMenuRepository,
-//                menuRepository,
-//                storeRepository,
-//                storeImageRepository,
-//                memberRepository,
-//                memberAddressRepository,
-//                paymentRepository,
-//                null,
-//                memberCouponRepository,
-//                couponPolicyService
-//        );
-//
-//        when(memberRepository.findByUsername(any())).thenReturn(Optional.ofNullable(member));
-//        when(memberAddressRepository.findByMemberAndAddressId(any(), any()))
-//                .thenReturn(Optional.ofNullable(address));
-//        when(storeRepository.findByStoreId(any())).thenReturn(Optional.ofNullable(store));
-//        when(menuRepository.findById(any())).thenReturn(Optional.ofNullable(Menu.builder().build()));
-//        when(orderRepository.findAvgDeliveryTimeByType(any())).thenReturn(30L);
-//        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+        OrderService exceptionOrderService = new OrderService(
+                orderRepository,
+                orderMenuRepository,
+                menuRepository,
+                storeRepository,
+                storeImageRepository,
+                memberRepository,
+                memberAddressRepository,
+                paymentRepository,
+                null,
+                memberCouponRepository,
+                couponPolicyService
+        );
 
-//        // when & then
-//        assertThatThrownBy(() -> exceptionOrderService.getOrderNew(username, orderNewRequest))
-//                .isInstanceOf(OrderException.class)
-//                .hasMessageContaining(OrderErrorCode.MENU_OPTION_SERIALIZATION_FAIL.getMessage());
+        when(memberRepository.findByUsername(any())).thenReturn(Optional.ofNullable(member));
+        when(memberAddressRepository.findByMemberAndAddressId(any(), any()))
+                .thenReturn(Optional.ofNullable(address));
+        when(storeRepository.findByStoreId(any())).thenReturn(Optional.ofNullable(store));
+        when(menuRepository.findById(any())).thenReturn(Optional.ofNullable(Menu.builder().build()));
+        when(orderRepository.findAvgDeliveryTimeByType(any())).thenReturn(30L);
+        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+
+        // when & then
+        assertThatThrownBy(() -> exceptionOrderService.createOrder(username, orderCreateRequest))
+                .isInstanceOf(OrderException.class)
+                .hasMessageContaining(OrderErrorCode.MENU_OPTION_SERIALIZATION_FAIL.getMessage());
     }
 
     @Test

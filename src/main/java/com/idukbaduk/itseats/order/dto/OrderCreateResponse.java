@@ -8,8 +8,4 @@ import lombok.Getter;
 public class OrderCreateResponse {
 
     private Long orderId;
-    private int orderPrice;
-    private int discountValue;
-    private int deliveryFee;
-    private int totalCost;
 }

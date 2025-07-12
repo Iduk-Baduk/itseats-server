@@ -32,6 +32,16 @@ public class OrderController {
         );
     }
 
+    @PostMapping("/new")
+    public ResponseEntity<BaseResponse> createOrder(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody OrderCreateRequest orderCreateRequest) {
+        return BaseResponse.toResponseEntity(
+                OrderResponse.CREATE_ORDER_SUCCESS,
+                orderService.createOrder(userDetails.getUsername(), orderCreateRequest)
+        );
+    }
+
     @GetMapping
     public ResponseEntity<BaseResponse> getOrders(
             @AuthenticationPrincipal UserDetails userDetails,

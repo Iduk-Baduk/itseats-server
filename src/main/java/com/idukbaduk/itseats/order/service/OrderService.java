@@ -110,6 +110,19 @@ public class OrderService {
                 .build();
     }
 
+    public OrderCreateResponse createOrder(String username, OrderCreateRequest request) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        MemberAddress address = memberAddressRepository.findByMemberAndAddressId(member, request.getAddrId())
+                .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
+        Store store = storeRepository.findByStoreId(request.getStoreId())
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
+
+        Order order = saveOrder(member, store, address, request);
+        saveAllOrderMenu(order, request);
+        return buildOrderCreateResponse(order);
+    }
+
     private Order saveOrder(Member member, Store store, MemberAddress address, OrderCreateRequest request) {
         Order order = Order.builder()
                 .member(member)
@@ -155,8 +168,8 @@ public class OrderService {
                 : store.getOnlyOneDeliveryFee();
     }
 
-    private void saveAllOrderMenu(Order order, OrderCreateRequest orderNewRequest) {
-        List<OrderMenuDTO> orderMenuDtos = orderNewRequest.getOrderMenus();
+    private void saveAllOrderMenu(Order order, OrderCreateRequest request) {
+        List<OrderMenuDTO> orderMenuDtos = request.getOrderMenus();
         List<OrderMenu> orderMenus = new ArrayList<>();
         for (OrderMenuDTO orderMenuDTO : orderMenuDtos) {
             Menu menu = menuRepository.findById(orderMenuDTO.getMenuId())
@@ -182,6 +195,12 @@ public class OrderService {
         } catch (Exception e) {
             throw new OrderException(OrderErrorCode.MENU_OPTION_SERIALIZATION_FAIL);
         }
+    }
+
+    private OrderCreateResponse buildOrderCreateResponse(Order order) {
+        return OrderCreateResponse.builder()
+                .orderId(order.getOrderId())
+                .build();
     }
 
     @Transactional

@@ -9,6 +9,7 @@ public enum OrderResponse implements Response {
 
     GET_ORDERS_SUCCESS(HttpStatus.OK, "과거 주문 내역 조회 성공"),
     GET_ORDER_DETAILS_SUCCESS(HttpStatus.OK, "주문 정보 상세 조회 성공"),
+    CREATE_ORDER_SUCCESS(HttpStatus.CREATED, "주문 정보 저장 성공"),
     GET_ORDER_STATUS_SUCCESS(HttpStatus.OK, "주문 현황 조회 성공"),
     GET_STORE_ORDERS_SUCCESS(HttpStatus.OK, "주문 접수 조회 성공"),
     REJECT_ORDER_SUCCESS(HttpStatus.OK, "주문 거절 완료"),
