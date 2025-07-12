@@ -150,6 +150,7 @@ class CouponControllerTest {
 
     @Test
     @DisplayName("전체 쿠폰 목록 조회 API 성공")
+    @WithMockUser(username = "testuser")
     void getAllCoupons_success() throws Exception {
         List<CouponResponseDto> coupons = List.of(
                 CouponResponseDto.builder()
@@ -160,6 +161,7 @@ class CouponControllerTest {
                         .issueStartDate(LocalDateTime.now().minusDays(1))
                         .issueEndDate(LocalDateTime.now().plusDays(5))
                         .validDate(LocalDateTime.now().plusDays(30))
+                        .isIssued(true)
                         .build(),
                 CouponResponseDto.builder()
                         .couponId(2L)
@@ -169,17 +171,20 @@ class CouponControllerTest {
                         .issueStartDate(LocalDateTime.now().minusDays(1))
                         .issueEndDate(LocalDateTime.now().plusDays(5))
                         .validDate(LocalDateTime.now().plusDays(30))
+                        .isIssued(false)
                         .build()
         );
 
-        when(couponService.getAllCoupons()).thenReturn(coupons);
+        when(couponService.getAllCoupons(anyString())).thenReturn(coupons);
 
         mockMvc.perform(get("/api/coupons/all")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].couponId").value(1))
                 .andExpect(jsonPath("$.data[0].name").value("Coupon1"))
+                .andExpect(jsonPath("$.data[0].issued").value(true))
                 .andExpect(jsonPath("$.data[1].couponId").value(2))
-                .andExpect(jsonPath("$.data[1].name").value("Coupon2"));
+                .andExpect(jsonPath("$.data[1].name").value("Coupon2"))
+                .andExpect(jsonPath("$.data[1].issued").value(false));
     }
 }
