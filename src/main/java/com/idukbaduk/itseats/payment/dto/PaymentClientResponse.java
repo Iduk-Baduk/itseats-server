@@ -7,8 +7,8 @@ import lombok.Getter;
 @Builder
 public class PaymentClientResponse {
 
-    private String paymentKey;
-    private String orderId;
+    private String tossPaymentKey;
+    private String tossOrderId;
     private Long totalAmount;
     private String status;
 }
