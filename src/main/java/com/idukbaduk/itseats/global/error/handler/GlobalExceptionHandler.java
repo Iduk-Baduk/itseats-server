@@ -3,6 +3,7 @@ package com.idukbaduk.itseats.global.error.handler;
 import com.idukbaduk.itseats.global.error.core.BaseException;
 import com.idukbaduk.itseats.global.error.core.ErrorCode;
 import com.idukbaduk.itseats.global.error.core.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -32,11 +34,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e) {
+        log.error("RuntimeException 발생: {}", e.getMessage(), e);
         return getErrorResponse(e, GlobalErrorCode.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        log.error("Exception 발생: {}", e.getMessage(), e);
         return getErrorResponse(e, GlobalErrorCode.INTERNAL_SERVER_ERROR);
     }
 
