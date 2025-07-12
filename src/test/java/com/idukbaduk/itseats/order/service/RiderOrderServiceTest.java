@@ -207,7 +207,7 @@ class RiderOrderServiceTest {
                 .build();
 
         when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(order));
 
         // when
         riderOrderService.acceptDelivery(username, 1L);
@@ -228,7 +228,7 @@ class RiderOrderServiceTest {
                 .build();
 
         when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(order));
 
         // when
         assertThatThrownBy(() -> riderOrderService.acceptDelivery(username, 1L))
@@ -247,7 +247,7 @@ class RiderOrderServiceTest {
                 .build();
 
         when(riderRepository.findByUsername(username)).thenReturn(Optional.of(rider));
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(order));
 
         // when
         assertThatThrownBy(() -> riderOrderService.acceptDelivery(username, 1L))

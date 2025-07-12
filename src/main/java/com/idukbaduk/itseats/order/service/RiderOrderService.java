@@ -83,7 +83,7 @@ public class RiderOrderService {
     public void acceptDelivery(String username, Long orderId) {
         Rider rider = riderRepository.findByUsername(username)
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdForUpdate(orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
         order.updateOrderStatusAccept(rider, OrderStatus.RIDER_READY);
