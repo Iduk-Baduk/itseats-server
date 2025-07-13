@@ -30,7 +30,7 @@ public class PaymentClient {
     public PaymentClientResponse confirmPayment(PaymentConfirmRequest confirmRequest) {
         try {
             log.info("[토스 결제 승인 요청] paymentKey={}, orderId={}, amount={}", 
-                confirmRequest.getPaymentKey(), confirmRequest.getOrderId(), confirmRequest.getAmount());
+                confirmRequest.getTossPaymentKey(), confirmRequest.getTossOrderId(), confirmRequest.getAmount());
             log.info("[토스 결제 요청 바디] {}", objectMapper.writeValueAsString(confirmRequest));
             PaymentClientResponse clientResponse =  restClient.post().uri("/confirm")
                     .body(confirmRequest)
