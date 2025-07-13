@@ -9,6 +9,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
+import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -25,6 +26,11 @@ public class ClientConfig {
 
     @Value("${payment.toss.url}")
     private String tossBaseUrl;
+
+    @PostConstruct
+    public void logAuth() {
+        System.out.println("Toss Authorization 헤더: Basic " + getEncodedAuth());
+    }
 
     @Bean
     public RestClient tossRestClient() {

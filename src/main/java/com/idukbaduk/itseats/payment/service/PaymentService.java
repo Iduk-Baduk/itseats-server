@@ -12,6 +12,7 @@ import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
@@ -92,7 +93,7 @@ public class PaymentService {
                 .member(member)
                 .order(order)
                 .discountValue(discountValue)
-                .totalCost(paymentInfoRequest.getTotalCost() - discountValue)
+                .totalCost(paymentInfoRequest.getTotalCost()) // discountValue를 빼지 않고 그대로 저장
                 .paymentMethod(PaymentMethod.valueOf(paymentInfoRequest.getPaymentMethod()))
                 .paymentStatus(PaymentStatus.PENDING)
                 .storeRequest(paymentInfoRequest.getStoreRequest())
@@ -128,16 +129,21 @@ public class PaymentService {
                     .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
             log.info("결제 정보 조회 성공 - payment: {}", payment.getPaymentId());
 
-            log.info("토스페이먼츠 결제 확인 요청 시작");
-            PaymentClientResponse clientResponse = paymentClient.confirmPayment(paymentConfirmRequest);
-            log.info("토스페이먼츠 결제 확인 응답 - response: {}", clientResponse);
+            log.info("[결제 승인] paymentClient.confirmPayment 호출 전: paymentId={}, username={}", paymentId, username);
+            try {
+                PaymentClientResponse clientResponse = paymentClient.confirmPayment(paymentConfirmRequest);
+                log.info("[결제 승인] paymentClient.confirmPayment 호출 후: clientResponse={}", clientResponse);
+                validateAmount(payment.getTotalCost(), clientResponse.getTotalAmount());
 
-            validateAmount(payment.getTotalCost(), clientResponse.getTotalAmount());
-            log.info("결제 금액 검증 성공");
-
-            payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
-            paymentRepository.save(payment);
-            log.info("결제 확인 완료 - paymentId: {}", payment.getPaymentId());
+                payment.confirm(clientResponse.getTossPaymentKey(), clientResponse.getTossOrderId());
+                Order order = payment.getOrder();
+                order.updateStatus(OrderStatus.WAITING);
+                orderRepository.save(order);
+                paymentRepository.save(payment);
+            } catch (Exception e) {
+                log.error("[결제 승인] paymentClient.confirmPayment 예외 발생: {}", e.getMessage(), e);
+                throw e;
+            }
         } catch (Exception e) {
             log.error("결제 확인 중 오류 발생 - username: {}, paymentId: {}, error: {}", 
                     username, paymentId, e.getMessage(), e);
@@ -166,8 +172,8 @@ public class PaymentService {
 
             // 3. 토스페이먼츠 결제 확인
             PaymentConfirmRequest tossRequest = PaymentConfirmRequest.builder()
-                    .paymentKey(request.getPaymentKey())
-                    .orderId(request.getOrderId())
+                    .tossPaymentKey(request.getPaymentKey())
+                    .tossOrderId(request.getOrderId())
                     .amount(request.getAmount())
                     .build();
             

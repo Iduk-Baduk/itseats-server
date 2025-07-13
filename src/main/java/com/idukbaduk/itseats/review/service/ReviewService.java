@@ -105,6 +105,9 @@ public class ReviewService {
 
         reviewRepository.save(review);
 
+        order.updateHasReview();
+        orderRepository.save(order);
+
         updateStoreStarCache(store.getStoreId(), request.getStoreStar());
 
         return ReviewCreateResponse.builder()

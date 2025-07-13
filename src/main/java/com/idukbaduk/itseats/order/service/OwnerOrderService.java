@@ -28,7 +28,7 @@ public class OwnerOrderService {
     private final PaymentRepository paymentRepository;
 
     @Transactional(readOnly = true)
-    public OrderDetailResponse getOrderDetail(String username, Long orderId) {
+    public OwnerOrderDetailsResponse getOrderDetail(String username, Long orderId) {
         Order order = orderRepository.findDetailByStoreUsernameAndId(username, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
 
@@ -46,7 +46,7 @@ public class OwnerOrderService {
                 .mapToInt(om -> om.getPrice() * om.getQuantity())
                 .sum();
 
-        return OrderDetailResponse.builder()
+        return OwnerOrderDetailsResponse.builder()
                 .orderId(order.getOrderId())
                 .orderNumber(order.getOrderNumber())
                 .memberName(order.getMember().getName())

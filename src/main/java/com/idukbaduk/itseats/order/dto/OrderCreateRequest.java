@@ -7,11 +7,10 @@ import java.util.List;
 
 @Getter
 @Builder
-public class OrderNewRequest {
+public class OrderCreateRequest {
 
     private Long addrId;
     private Long storeId;
     private List<OrderMenuDTO> orderMenus;
-    private Long memberCouponId;
     private String deliveryType;
 }

@@ -32,30 +32,23 @@ public class PaymentController {
     public ResponseEntity<BaseResponse> createPayment(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody PaymentInfoRequest paymentInfoRequest) {
-        
-        // userDetails null 체크
         if (userDetails == null) {
-            log.error("결제 생성 실패 - 인증 정보가 없습니다");
+            log.error("결제 생성 실패 - 인증 정보 없음");
             return BaseResponse.toResponseEntity(
                 HttpStatus.UNAUTHORIZED, 
                 "인증 정보가 없습니다. 다시 로그인해주세요."
             );
         }
-        
-        log.info("결제 생성 요청 시작 - username: {}, orderId: {}, paymentMethod: {}", 
-                userDetails.getUsername(), paymentInfoRequest.getOrderId(), paymentInfoRequest.getPaymentMethod());
-        
+        log.info("결제 생성 요청 - username: {}, orderId: {}", userDetails.getUsername(), paymentInfoRequest.getOrderId());
         try {
             PaymentCreateResponse response = paymentService.createPayment(userDetails.getUsername(), paymentInfoRequest);
-            log.info("결제 생성 성공 - username: {}, paymentId: {}", 
-                    userDetails.getUsername(), response.getPaymentId());
+            log.info("결제 생성 성공 - paymentId: {}", response.getPaymentId());
             return BaseResponse.toResponseEntity(
                     PaymentResponse.CREATE_PAYMENT_SUCCESS,
                     response
             );
         } catch (Exception e) {
-            log.error("결제 생성 실패 - username: {}, error: {}", 
-                    userDetails.getUsername(), e.getMessage(), e);
+            log.error("결제 생성 실패 - username: {}, orderId: {}, error: {}", userDetails.getUsername(), paymentInfoRequest.getOrderId(), e.getMessage());
             throw e;
         }
     }
@@ -65,25 +58,20 @@ public class PaymentController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long paymentId,
             @RequestBody PaymentConfirmRequest paymentConfirmRequest) {
-        
-        // userDetails null 체크
         if (userDetails == null) {
-            log.error("결제 확인 실패 - 인증 정보가 없습니다");
+            log.error("결제 확인 실패 - 인증 정보 없음");
             return BaseResponse.toResponseEntity(
                 HttpStatus.UNAUTHORIZED, 
                 "인증 정보가 없습니다. 다시 로그인해주세요."
             );
         }
-        
-        log.info("결제 확인 요청 시작 - username: {}, paymentId: {}", userDetails.getUsername(), paymentId);
-        
+        log.info("결제 확인 요청 - username: {}, paymentId: {}", userDetails.getUsername(), paymentId);
         try {
             paymentService.confirmPayment(userDetails.getUsername(), paymentId, paymentConfirmRequest);
-            log.info("결제 확인 성공 - username: {}, paymentId: {}", userDetails.getUsername(), paymentId);
+            log.info("결제 확인 성공 - paymentId: {}", paymentId);
             return BaseResponse.toResponseEntity(PaymentResponse.CONFIRM_PAYMENT_SUCCESS);
         } catch (Exception e) {
-            log.error("결제 확인 실패 - username: {}, paymentId: {}, error: {}", 
-                    userDetails.getUsername(), paymentId, e.getMessage(), e);
+            log.error("결제 확인 실패 - username: {}, paymentId: {}, error: {}", userDetails.getUsername(), paymentId, e.getMessage());
             throw e;
         }
     }
@@ -95,27 +83,20 @@ public class PaymentController {
     public ResponseEntity<BaseResponse> confirmTossPayment(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody TossPaymentConfirmRequest request) {
-        
-        // userDetails null 체크
         if (userDetails == null) {
-            log.error("토스페이먼츠 결제 확인 실패 - 인증 정보가 없습니다");
+            log.error("토스 결제 확인 실패 - 인증 정보 없음");
             return BaseResponse.toResponseEntity(
                 HttpStatus.UNAUTHORIZED, 
                 "인증 정보가 없습니다. 다시 로그인해주세요."
             );
         }
-        
-        log.info("토스페이먼츠 결제 확인 요청 시작 - username: {}, orderId: {}", 
-                userDetails.getUsername(), request.getOrderId());
-        
+        log.info("토스 결제 확인 요청 - username: {}, orderId: {}", userDetails.getUsername(), request.getOrderId());
         try {
             paymentService.confirmTossPayment(userDetails.getUsername(), request);
-            log.info("토스페이먼츠 결제 확인 성공 - username: {}, orderId: {}", 
-                    userDetails.getUsername(), request.getOrderId());
+            log.info("토스 결제 확인 성공 - orderId: {}", request.getOrderId());
             return BaseResponse.toResponseEntity(PaymentResponse.TOSS_PAYMENT_CONFIRM_SUCCESS);
         } catch (Exception e) {
-            log.error("토스페이먼츠 결제 확인 실패 - username: {}, orderId: {}, error: {}", 
-                    userDetails.getUsername(), request.getOrderId(), e.getMessage(), e);
+            log.error("토스 결제 확인 실패 - username: {}, orderId: {}, error: {}", userDetails.getUsername(), request.getOrderId(), e.getMessage());
             throw e;
         }
     }
