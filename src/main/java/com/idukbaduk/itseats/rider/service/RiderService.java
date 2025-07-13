@@ -1,5 +1,9 @@
 package com.idukbaduk.itseats.rider.service;
 
+import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.dto.NearbyOrderDTO;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
@@ -21,12 +25,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RiderService {
 
+    private final MemberRepository memberRepository;
     private final RiderRepository riderRepository;
     private final RiderAssignmentRepository riderAssignmentRepository;
     private final OrderRepository orderRepository;
 
     private static final int DEFAULT_SEARCH_RADIUS_KM = 10;
 
+    @Transactional
+    public void createRider(String username, RiderInfoRequest request) {
+        Member member = memberRepository.findByUsername(username).orElseThrow(
+                () -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND)
+        );
+
+        riderRepository.save(request.toRider(member));
+    }
 
     @Transactional
     public WorkingInfoResponse modifyWorking(String username, ModifyWorkingRequest modifyWorkingRequest) {
