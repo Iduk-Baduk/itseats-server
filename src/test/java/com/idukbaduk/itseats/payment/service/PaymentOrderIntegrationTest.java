@@ -112,8 +112,8 @@ class PaymentOrderIntegrationTest {
                 .build();
 
         paymentConfirmRequest = PaymentConfirmRequest.builder()
-                .paymentKey("test_payment_key_123")
-                .orderId("test_order_123")
+                .tossPaymentKey("test_payment_key_123")
+                .tossOrderId("test_order_123")
                 .amount(10000L)
                 .build();
 
@@ -184,8 +184,8 @@ class PaymentOrderIntegrationTest {
                 .thenReturn(Optional.of(payment));
         when(paymentClient.confirmPayment(paymentConfirmRequest))
                 .thenReturn(com.idukbaduk.itseats.payment.dto.PaymentClientResponse.builder()
-                        .paymentKey("test_payment_key_123")
-                        .orderId("test_order_123")
+                        .tossPaymentKey("test_payment_key_123")
+                        .tossOrderId("test_order_123")
                         .totalAmount(10000L)
                         .build());
         when(paymentRepository.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
@@ -263,8 +263,8 @@ class PaymentOrderIntegrationTest {
                 .build();
 
         PaymentConfirmRequest invalidRequest = PaymentConfirmRequest.builder()
-                .paymentKey("test_payment_key_123")
-                .orderId("test_order_123")
+                .tossPaymentKey("test_payment_key_123")
+                .tossOrderId("test_order_123")
                 .amount(9000L) // 실제 결제 금액과 다름
                 .build();
 
@@ -272,8 +272,8 @@ class PaymentOrderIntegrationTest {
                 .thenReturn(Optional.of(payment));
         when(paymentClient.confirmPayment(invalidRequest))
                 .thenReturn(com.idukbaduk.itseats.payment.dto.PaymentClientResponse.builder()
-                        .paymentKey("test_payment_key_123")
-                        .orderId("test_order_123")
+                        .tossPaymentKey("test_payment_key_123")
+                        .tossOrderId("test_order_123")
                         .totalAmount(9000L)
                         .build());
 
