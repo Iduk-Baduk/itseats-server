@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class MyReviewDto {
+    private Long reviewId;
     private String storeName;
     private int rating;
     private String content;
@@ -20,6 +21,7 @@ public class MyReviewDto {
                 .rating(review.getStoreStar())
                 .content(review.getContent())
                 .createdAt(review.getCreatedAt())
+                .reviewId(review.getReviewId())
                 .build();
     }
 }
