@@ -1,8 +1,10 @@
 package com.idukbaduk.itseats.coupon.controller;
 
+import com.idukbaduk.itseats.coupon.dto.CouponResponseDto;
 import com.idukbaduk.itseats.coupon.dto.MyCouponListResponse;
 import com.idukbaduk.itseats.coupon.dto.CouponIssueResponse;
 import com.idukbaduk.itseats.coupon.dto.enums.CouponResponse;
+import com.idukbaduk.itseats.coupon.entity.Coupon;
 import com.idukbaduk.itseats.coupon.service.CouponService;
 import com.idukbaduk.itseats.global.response.BaseResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,4 +42,13 @@ public class CouponController {
         CouponIssueResponse response = couponService.issueCoupon(couponId, userDetails.getUsername());
         return BaseResponse.toResponseEntity(CouponResponse.ISSUE_COUPON_SUCCESS, response);
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<BaseResponse> getAllCoupons(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        List<CouponResponseDto> response = couponService.getAllCoupons(userDetails.getUsername());
+        return BaseResponse.toResponseEntity(CouponResponse.GET_ALL_COUPONS, response);
+    }
+
 }

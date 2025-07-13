@@ -72,8 +72,6 @@ public class PaymentService {
             discountValue = couponPolicyService.applyCouponDiscount(memberCoupon, member, order.getOrderPrice());
         }
 
-        // customerKey 생성: username + timestamp
-        // (customerKey 관련 코드 제거)
         Payment payment = Payment.builder()
                 .member(member)
                 .order(order)
@@ -112,9 +110,9 @@ public class PaymentService {
         try {
             PaymentClientResponse clientResponse = paymentClient.confirmPayment(paymentConfirmRequest);
             log.info("[결제 승인] paymentClient.confirmPayment 호출 후: clientResponse={}", clientResponse);
-            validateAmount(payment.getTotalCost(), clientResponse.getAmount());
+            validateAmount(payment.getTotalCost(), clientResponse.getTotalAmount());
 
-            payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
+            payment.confirm(clientResponse.getTossPaymentKey(), clientResponse.getTossOrderId());
             Order order = payment.getOrder();
             order.updateStatus(OrderStatus.WAITING);
             orderRepository.save(order);

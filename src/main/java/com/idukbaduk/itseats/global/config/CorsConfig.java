@@ -18,7 +18,11 @@ public class CorsConfig {
                 "http://localhost:5173",
                 "http://localhost:5174",
                 "http://itseats.shop",
-                "https://itseats.shop"
+                "https://itseats.shop",
+                "http://owner.itseats.shop",
+                "https://owner.itseats.shop",
+                "http://rider.itseats.shop",
+                "https://rider.itseats.shop"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

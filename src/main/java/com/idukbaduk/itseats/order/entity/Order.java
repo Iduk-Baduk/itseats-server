@@ -91,11 +91,18 @@ public class Order extends BaseEntity {
     @Column(name = "toss_order_id", length = 64)
     private String tossOrderId;
 
+    @Column(name = "has_review", nullable = false)
+    private boolean hasReview = false;
+
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
     private List<OrderMenu> orderMenus;
 
     @OneToOne(mappedBy = "order")
     private Payment payment;
+
+    public void updateHasReview() {
+        this.hasReview = true;
+    }
 
     public void updateOrderStatusAccept(Rider rider, OrderStatus orderStatus) {
         if (this.rider != null) {
