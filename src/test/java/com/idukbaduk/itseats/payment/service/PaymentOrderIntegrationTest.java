@@ -72,6 +72,7 @@ class PaymentOrderIntegrationTest {
     private Member member;
     private Store store;
     private Order order;
+    private Order orderPending;
     private PaymentInfoRequest paymentInfoRequest;
     private PaymentConfirmRequest paymentConfirmRequest;
     private MemberCoupon memberCoupon;
@@ -98,6 +99,15 @@ class PaymentOrderIntegrationTest {
                 .orderNumber("A1234B")
                 .orderPrice(8000)
                 .orderStatus(OrderStatus.WAITING)
+                .member(member)
+                .store(store)
+                .build();
+
+        orderPending = Order.builder()
+                .orderId(1L)
+                .orderNumber("A1234B")
+                .orderPrice(8000)
+                .orderStatus(OrderStatus.PENDING)
                 .member(member)
                 .store(store)
                 .build();
@@ -175,7 +185,7 @@ class PaymentOrderIntegrationTest {
         Payment payment = Payment.builder()
                 .paymentId(1L)
                 .member(member)
-                .order(order)
+                .order(orderPending)
                 .totalCost(10000L)
                 .paymentStatus(PaymentStatus.PENDING)
                 .build();

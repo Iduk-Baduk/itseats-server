@@ -93,7 +93,7 @@ public class PaymentService {
                 .member(member)
                 .order(order)
                 .discountValue(discountValue)
-                .totalCost(paymentInfoRequest.getTotalCost()) // discountValue를 빼지 않고 그대로 저장
+                .totalCost(paymentInfoRequest.getTotalCost() - discountValue)
                 .paymentMethod(PaymentMethod.valueOf(paymentInfoRequest.getPaymentMethod()))
                 .paymentStatus(PaymentStatus.PENDING)
                 .storeRequest(paymentInfoRequest.getStoreRequest())
