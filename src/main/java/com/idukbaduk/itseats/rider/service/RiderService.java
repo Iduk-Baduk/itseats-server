@@ -39,6 +39,10 @@ public class RiderService {
                 () -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND)
         );
 
+        if (riderRepository.findByMember(member).isPresent()) {
+            throw new RiderException(RiderErrorCode.RIDER_ALREADY_EXISTS);
+        }
+
         riderRepository.save(request.toRider(member));
     }
 

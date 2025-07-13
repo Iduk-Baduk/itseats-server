@@ -44,7 +44,7 @@ public class RiderController {
     }
 
     @PostMapping("/location")
-    public ResponseEntity<BaseResponse> getNearbyOrders(
+    public ResponseEntity<BaseResponse> updateRiderLocation(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody LocationRequest request
     ) {
