@@ -30,7 +30,7 @@ public class PaymentClient {
     public PaymentClientResponse confirmPayment(PaymentConfirmRequest confirmRequest) {
         try {
             log.info("[토스 결제 승인 요청] paymentKey={}, orderId={}, amount={}", 
-                confirmRequest.getTossPaymentKey(), confirmRequest.getTossOrderId(), confirmRequest.getAmount());
+                maskSensitiveInfo(confirmRequest.getTossPaymentKey()), confirmRequest.getTossOrderId(), confirmRequest.getAmount());
             log.info("[토스 결제 요청 바디] {}", objectMapper.writeValueAsString(confirmRequest));
             PaymentClientResponse clientResponse =  restClient.post().uri("/confirm")
                     .body(confirmRequest)
@@ -65,21 +65,17 @@ public class PaymentClient {
             String errorBody = new String(body);
             log.error("[토스 결제 에러] status: {}, headers: {}, body: {}", statusCode, headers, errorBody);
             log.info("[토스 결제 에러 원본 바디] {}", errorBody); // info 레벨로도 남김
-            System.out.println("[토스 결제 에러] status: " + statusCode + ", headers: " + headers + ", body: " + errorBody);
             try {
                 PaymentConfirmErrorCode errorCode = objectMapper.readValue(body, PaymentConfirmErrorCode.class);
                 log.error("[토스 결제 에러] 매핑된 코드: {}", errorCode);
-                System.out.println("[토스 결제 에러] 매핑된 코드: " + errorCode);
                 throw new PaymentException(errorCode);
             } catch(Exception mappingEx) {
                 log.error("[토스 결제 에러] 응답 바디(매핑 실패): {}", errorBody, mappingEx);
                 log.info("[토스 결제 에러 원본 바디] {}", errorBody); // info 레벨로도 남김
-                System.out.println("[토스 결제 에러] 응답 바디(매핑 실패): " + errorBody);
                 throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
             }
         } catch(IOException e) {
             log.error("[토스 결제 에러] 응답 바디 읽기 실패", e);
-            System.out.println("[토스 결제 에러] 응답 바디 읽기 실패: " + e.getMessage());
             throw new PaymentException(PaymentErrorCode.TOSS_PAYMENT_SERVER_ERROR);
         }
     }
@@ -96,5 +92,12 @@ public class PaymentClient {
             log.error("[토스 결제 validatePaymentStatus] status가 비정상: {}", status);
             throw new PaymentException(PaymentErrorCode.PAYMENT_FAIL);
         }
+    }
+
+    private String maskSensitiveInfo(String sensitiveData) {
+        if (sensitiveData == null || sensitiveData.length() < 8) {
+            return "***";
+        }
+        return sensitiveData.substring(0, 4) + "***" + sensitiveData.substring(sensitiveData.length() - 4);
     }
 }
