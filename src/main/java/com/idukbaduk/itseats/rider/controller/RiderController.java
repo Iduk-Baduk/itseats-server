@@ -2,8 +2,9 @@ package com.idukbaduk.itseats.rider.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
-import com.idukbaduk.itseats.rider.dto.NearByOrderRequest;
+import com.idukbaduk.itseats.rider.dto.LocationRequest;
 import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
+import com.idukbaduk.itseats.rider.dto.RiderInfoRequest;
 import com.idukbaduk.itseats.rider.dto.enums.RiderResponse;
 import com.idukbaduk.itseats.rider.service.RiderService;
 import jakarta.validation.Valid;
@@ -23,6 +24,15 @@ public class RiderController {
 
     private final RiderService riderService;
 
+    @PostMapping("/regist")
+    public ResponseEntity<BaseResponse> createRider(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody RiderInfoRequest request
+    ) {
+        riderService.createRider(userDetails.getUsername(), request);
+        return BaseResponse.toResponseEntity(RiderResponse.CREATE_RIDER_SUCCESS);
+    }
+
     @PostMapping("/working")
     public ResponseEntity<BaseResponse> modifyWorking(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -31,6 +41,15 @@ public class RiderController {
                 RiderResponse.MODIFY_IS_WORKING_SUCCESS,
                 riderService.modifyWorking(userDetails.getUsername(), modifyWorkingRequest)
         );
+    }
+
+    @PostMapping("/location")
+    public ResponseEntity<BaseResponse> getNearbyOrders(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody LocationRequest request
+    ) {
+        riderService.updateLocation(userDetails.getUsername(), request);
+        return BaseResponse.toResponseEntity(RiderResponse.UPDATE_LOCATION_SUCCESS);
     }
 
     @PutMapping("/{orderId}/reject")
@@ -57,7 +76,7 @@ public class RiderController {
             Double longitude
     ) {
 
-        NearByOrderRequest request = new NearByOrderRequest(latitude, longitude);
+        LocationRequest request = new LocationRequest(latitude, longitude);
 
         return BaseResponse.toResponseEntity(
                 RiderResponse.GET_NEARBY_ORDERS_SUCCESS,

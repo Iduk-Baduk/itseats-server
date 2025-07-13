@@ -43,4 +43,8 @@ public class Rider extends BaseEntity {
     public void modifyIsWorking(Boolean isWorking) {
         this.isWorking = isWorking;
     }
+
+    public void updateLocation(Point location) {
+        this.location = location;
+    }
 }

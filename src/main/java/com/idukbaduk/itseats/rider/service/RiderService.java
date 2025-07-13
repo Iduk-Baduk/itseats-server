@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.rider.service;
 
+import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
 import com.idukbaduk.itseats.member.error.MemberException;
 import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
@@ -53,6 +54,18 @@ public class RiderService {
                 .build();
     }
 
+    @Transactional
+    public void updateLocation(String username, LocationRequest request) {
+        Member member = memberRepository.findByUsername(username).orElseThrow(
+                () -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND)
+        );
+
+        Rider rider = riderRepository.findByMember(member).orElseThrow(
+                () -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND)
+        );
+        rider.updateLocation(GeoUtil.toPoint(request.getLongitude(), request.getLatitude()));
+    }
+
     public void createRiderAssignment(Rider rider, Order order) {
         riderAssignmentRepository.save(buildRiderAssignment(rider, order));
     }
@@ -89,7 +102,7 @@ public class RiderService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReadyOrderResponse> findNearbyOrders(NearByOrderRequest request) {
+    public List<ReadyOrderResponse> findNearbyOrders(LocationRequest request) {
         final int searchRadiusMeters = DEFAULT_SEARCH_RADIUS_KM * 1000; // 10km
 
         List<NearbyOrderDTO> nearbyOrders = orderRepository.findNearbyOrders(
