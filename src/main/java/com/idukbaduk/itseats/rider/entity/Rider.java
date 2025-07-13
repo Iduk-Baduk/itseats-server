@@ -34,7 +34,7 @@ public class Rider extends BaseEntity {
     @Column(name = "is_working", nullable = false)
     private Boolean isWorking;
 
-    @Column(name = "location", columnDefinition = "POINT")
+    @Column(name = "location", columnDefinition = "POINT SRID 4326")
     private Point location;
 
     @Column(name = "preferred_area", nullable = false)
