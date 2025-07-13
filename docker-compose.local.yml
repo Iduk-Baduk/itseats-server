@@ -23,23 +23,26 @@ services:
     networks:
       - local-bridge
 
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
+  grafana:
+    image: grafana/grafana
     ports:
-      - "9090:9090"
+      - "3000:3000"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ${PWD}/grafana-dashboard:/dashboard
+      - ${PWD}/grafana-provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
     networks:
       - local-bridge
 
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
+  prometheus:
+    image: prom/prometheus
     ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - "9090:9090"
+    command:
+      - --web.enable-remote-write-receiver
+      - --enable-feature=native-histograms
+      - --config.file=/etc/prometheus/prometheus.yml
     networks:
       - local-bridge
 
@@ -50,12 +53,13 @@ services:
     tty: true
     volumes:
       - ./scripts:/scripts
-    entrypoint: ["sh", "-c"]
-    command:
-      - |
-        echo "⏳ Waiting for Prometheus..."; \
-        sleep 5; \
-        k6 run --out experimental-prometheus-rw=remoteWriteUrl=http://prometheus:9090/api/v1/write /scripts/healthcheck.js
+    command: [ "run", "/scripts/healthcheck.js" ]
+    environment:
+      - K6_OUT=experimental-prometheus-rw
+      - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+      - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - prometheus
     networks:
