@@ -15,5 +15,6 @@ public class MenuDetailResponse {
     private String menuStatus;
     private Float menuRating;
     private String menuGroupName;
+    private Integer menuPriority;
     private List<MenuOptionGroupDto> optionGroups;
 }
