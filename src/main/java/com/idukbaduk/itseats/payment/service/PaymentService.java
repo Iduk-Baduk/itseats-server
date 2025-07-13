@@ -29,7 +29,6 @@ import com.idukbaduk.itseats.payment.repository.PaymentRepository;
 import com.idukbaduk.itseats.payment.service.client.PaymentClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -105,9 +104,12 @@ public class PaymentService {
         PaymentClientResponse clientResponse = paymentClient.confirmPayment(paymentConfirmRequest);
         validateAmount(payment.getTotalCost(), clientResponse.getTotalAmount());
 
-        payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
-        payment.getOrder().updateStatus(OrderStatus.WAITING);
+        payment.confirm(clientResponse.getTossPaymentKey(), clientResponse.getTossOrderId());
         paymentRepository.save(payment);
+
+        Order order = payment.getOrder();
+        order.updateStatus(OrderStatus.WAITING);
+        orderRepository.save(order);
     }
 
     private void validateAmount(Long totalCost, Long tossAmount) {

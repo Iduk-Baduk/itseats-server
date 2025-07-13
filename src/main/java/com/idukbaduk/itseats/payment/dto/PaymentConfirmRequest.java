@@ -14,10 +14,10 @@ import lombok.NoArgsConstructor;
 public class PaymentConfirmRequest {
 
     @NotNull(message = "토스 결제 키는 필수값입니다.")
-    private String paymentKey;
+    private String tossPaymentKey;
 
     @NotNull(message = "토스 주문 아이디는 필수값입니다.")
-    private String orderId;
+    private String tossOrderId;
 
     @NotNull(message = "총 금액은 필수값입니다.")
     @Positive(message = "총 금액은 양수값이어야 합니다.")
