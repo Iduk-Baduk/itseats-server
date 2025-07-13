@@ -72,11 +72,13 @@ public class PaymentService {
             discountValue = couponPolicyService.applyCouponDiscount(memberCoupon, member, order.getOrderPrice());
         }
 
+        // customerKey 생성: username + timestamp
+        // (customerKey 관련 코드 제거)
         Payment payment = Payment.builder()
                 .member(member)
                 .order(order)
                 .discountValue(discountValue)
-                .totalCost(paymentInfoRequest.getTotalCost() - discountValue)
+                .totalCost(paymentInfoRequest.getTotalCost()) // discountValue를 빼지 않고 그대로 저장
                 .paymentMethod(PaymentMethod.valueOf(paymentInfoRequest.getPaymentMethod()))
                 .paymentStatus(PaymentStatus.PENDING)
                 .storeRequest(paymentInfoRequest.getStoreRequest())
@@ -113,7 +115,9 @@ public class PaymentService {
             validateAmount(payment.getTotalCost(), clientResponse.getAmount());
 
             payment.confirm(clientResponse.getPaymentKey(), clientResponse.getOrderId());
-            payment.getOrder().updateStatus(OrderStatus.WAITING);
+            Order order = payment.getOrder();
+            order.updateStatus(OrderStatus.WAITING);
+            orderRepository.save(order);
             paymentRepository.save(payment);
         } catch (Exception e) {
             log.error("[결제 승인] paymentClient.confirmPayment 예외 발생: {}", e.getMessage(), e);

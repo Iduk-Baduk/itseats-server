@@ -3,6 +3,7 @@ package com.idukbaduk.itseats.global.error.handler;
 import com.idukbaduk.itseats.global.error.core.BaseException;
 import com.idukbaduk.itseats.global.error.core.ErrorCode;
 import com.idukbaduk.itseats.global.error.core.ErrorResponse;
+import com.idukbaduk.itseats.payment.error.PaymentException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -27,6 +28,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(BaseException e) {
+        // PaymentException이면 originalErrorBody 포함해서 내려줌
+        if (e instanceof PaymentException) {
+            PaymentException pe = (PaymentException) e;
+            return ResponseEntity
+                .status(pe.getErrorCode().getStatus())
+                .body(ErrorResponse.of(pe.getErrorCode(), e.getMessage(), pe.getOriginalErrorBody()));
+        }
         return getErrorResponse(e, e.getErrorCode());
     }
 
