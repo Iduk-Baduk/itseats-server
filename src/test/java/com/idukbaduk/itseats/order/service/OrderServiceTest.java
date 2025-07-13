@@ -286,8 +286,8 @@ class OrderServiceTest {
         when(memberRepository.findByUsername(username)).thenReturn(Optional.ofNullable(member));
         when(memberAddressRepository.findByMemberAndAddressId(member, 1L)).thenReturn(Optional.of(address));
         when(storeRepository.findByStoreId(1L)).thenReturn(Optional.ofNullable(store));
-        when(menuRepository.findById(1L)).thenReturn(Optional.of(new Menu()));
-        when(menuRepository.findById(2L)).thenReturn(Optional.of(new Menu()));
+        when(menuRepository.findByMenuIdAndDeletedFalse(1L)).thenReturn(Optional.of(new Menu()));
+        when(menuRepository.findByMenuIdAndDeletedFalse(2L)).thenReturn(Optional.of(new Menu()));
 
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -320,7 +320,7 @@ class OrderServiceTest {
         when(memberAddressRepository.findByMemberAndAddressId(any(), any()))
                 .thenReturn(Optional.ofNullable(address));
         when(storeRepository.findByStoreId(any())).thenReturn(Optional.ofNullable(store));
-        when(menuRepository.findById(any())).thenReturn(Optional.ofNullable(Menu.builder().build()));
+        when(menuRepository.findByMenuIdAndDeletedFalse(any())).thenReturn(Optional.ofNullable(Menu.builder().build()));
         when(orderRepository.findAvgDeliveryTimeByType(any())).thenReturn(30L);
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
 

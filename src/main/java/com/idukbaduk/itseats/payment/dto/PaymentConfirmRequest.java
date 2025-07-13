@@ -1,5 +1,6 @@
 package com.idukbaduk.itseats.payment.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -14,9 +15,11 @@ import lombok.NoArgsConstructor;
 public class PaymentConfirmRequest {
 
     @NotNull(message = "토스 결제 키는 필수값입니다.")
+    @JsonProperty("paymentKey")
     private String tossPaymentKey;
 
     @NotNull(message = "토스 주문 아이디는 필수값입니다.")
+    @JsonProperty("orderId")
     private String tossOrderId;
 
     @NotNull(message = "총 금액은 필수값입니다.")
