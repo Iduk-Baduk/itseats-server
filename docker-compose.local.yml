@@ -2,16 +2,16 @@ version: "3.8"
 
 services:
   mysql:
-    image: mysql:latest
+    image: mysql:9.3.0
     container_name: mysql
     ports:
       - 3307:3306
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-    env_file:
-      - .env
+      MYSQL_DATABASE: itseats
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_USER: idukbaduk
+      MYSQL_PASSWORD: 1234
+      TZ: Asia/Seoul
     networks:
       - local-bridge
 
