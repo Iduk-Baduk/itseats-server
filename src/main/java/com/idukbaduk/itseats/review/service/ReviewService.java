@@ -9,10 +9,7 @@ import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.error.OrderException;
 import com.idukbaduk.itseats.order.error.enums.OrderErrorCode;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
-import com.idukbaduk.itseats.review.dto.ReviewCreateRequest;
-import com.idukbaduk.itseats.review.dto.ReviewCreateResponse;
-import com.idukbaduk.itseats.review.dto.StoreReviewDto;
-import com.idukbaduk.itseats.review.dto.StoreReviewResponse;
+import com.idukbaduk.itseats.review.dto.*;
 import com.idukbaduk.itseats.review.entity.Review;
 import com.idukbaduk.itseats.review.entity.ReviewImage;
 import com.idukbaduk.itseats.review.error.ReviewErrorCode;
@@ -117,6 +114,18 @@ public class ReviewService {
                 .content(review.getContent())
                 .createdAt(review.getCreatedAt())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MyReviewDto> getMyReviews(String username) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        List<Review> reviews = reviewRepository.findAllByMember(member);
+
+        return reviews.stream()
+                .map(r -> MyReviewDto.of(r))
+                .toList();
     }
 
     private void updateStoreStarCache(Long storeId, int storeStar) {

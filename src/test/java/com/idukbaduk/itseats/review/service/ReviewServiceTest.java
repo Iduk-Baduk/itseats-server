@@ -4,10 +4,7 @@ import com.idukbaduk.itseats.global.BaseEntity;
 import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
-import com.idukbaduk.itseats.review.dto.ReviewCreateRequest;
-import com.idukbaduk.itseats.review.dto.ReviewCreateResponse;
-import com.idukbaduk.itseats.review.dto.StoreReviewDto;
-import com.idukbaduk.itseats.review.dto.StoreReviewResponse;
+import com.idukbaduk.itseats.review.dto.*;
 import com.idukbaduk.itseats.review.entity.Review;
 import com.idukbaduk.itseats.review.entity.ReviewImage;
 import com.idukbaduk.itseats.member.entity.Member;
@@ -200,5 +197,58 @@ class ReviewServiceTest {
         assertThat(capturedReview.getMenuLiked()).isEqualTo(MenuLiked.GOOD);
         assertThat(capturedReview.getContent()).isEqualTo("맛있어요");
         assertThat(capturedReview.getStoreReply()).isEqualTo("");
+    }
+
+    @DisplayName("내 리뷰 목록 조회 성공")
+    @Test
+    void getMyReviews_success() throws Exception {
+        // given
+        String username = "user1";
+        Member member = Member.builder()
+                .username(username)
+                .nickname("사용자1")
+                .build();
+
+        Store store1 = Store.builder().storeName("맛집1").build();
+        Store store2 = Store.builder().storeName("맛집2").build();
+
+        Review review1 = Review.builder()
+                .reviewId(1L)
+                .member(member)
+                .store(store1)
+                .storeStar(5)
+                .content("최고예요")
+                .build();
+
+        Review review2 = Review.builder()
+                .reviewId(2L)
+                .member(member)
+                .store(store2)
+                .storeStar(4)
+                .content("좋아요")
+                .build();
+
+        Field field = BaseEntity.class.getDeclaredField("createdAt");
+        field.setAccessible(true);
+        field.set(review1, LocalDateTime.of(2025, 7, 12, 12, 0, 0));
+        field.set(review2, LocalDateTime.of(2025, 7, 11, 12, 0, 0));
+
+        when(memberRepository.findByUsername(username)).thenReturn(Optional.of(member));
+        when(reviewRepository.findAllByMember(member)).thenReturn(List.of(review1, review2));
+
+        // when
+        List<MyReviewDto> result = reviewService.getMyReviews(username);
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getStoreName()).isEqualTo("맛집1");
+        assertThat(result.get(0).getRating()).isEqualTo(5);
+        assertThat(result.get(0).getContent()).isEqualTo("최고예요");
+        assertThat(result.get(0).getCreatedAt()).isEqualTo(LocalDateTime.of(2025, 7, 12, 12, 0, 0));
+
+        assertThat(result.get(1).getStoreName()).isEqualTo("맛집2");
+        assertThat(result.get(1).getRating()).isEqualTo(4);
+        assertThat(result.get(1).getContent()).isEqualTo("좋아요");
+        assertThat(result.get(1).getCreatedAt()).isEqualTo(LocalDateTime.of(2025, 7, 11, 12, 0, 0));
     }
 }

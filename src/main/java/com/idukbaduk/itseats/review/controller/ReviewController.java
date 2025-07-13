@@ -1,6 +1,9 @@
 package com.idukbaduk.itseats.review.controller;
 
+import com.idukbaduk.itseats.coupon.dto.CouponResponseDto;
+import com.idukbaduk.itseats.coupon.dto.enums.CouponResponse;
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import com.idukbaduk.itseats.review.dto.MyReviewDto;
 import com.idukbaduk.itseats.review.dto.ReviewCreateRequest;
 import com.idukbaduk.itseats.review.dto.ReviewCreateResponse;
 import com.idukbaduk.itseats.review.dto.StoreReviewResponse;
@@ -13,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,5 +40,13 @@ public class ReviewController {
     ) {
         ReviewCreateResponse response = reviewService.createReview(orderId, userDetails.getUsername(), request);
         return BaseResponse.toResponseEntity(ReviewResponse.CREATE_REVIEW_SUCCESS, response);
+    }
+
+    @GetMapping
+    public ResponseEntity<BaseResponse> getMyReviews(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        List<MyReviewDto> response = reviewService.getMyReviews(userDetails.getUsername());
+        return BaseResponse.toResponseEntity(ReviewResponse.GET_MY_REVIEW_SUCCESS, response);
     }
 }

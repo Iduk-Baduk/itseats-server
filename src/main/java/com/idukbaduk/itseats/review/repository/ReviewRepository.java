@@ -28,4 +28,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findByStore_StoreIdAndCreatedAtBetween(Long storeId, LocalDateTime start, LocalDateTime end);
 
     int countByMember(Member member);
+
+    List<Review> findAllByMember(Member member);
 }
