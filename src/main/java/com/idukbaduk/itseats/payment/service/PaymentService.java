@@ -208,8 +208,8 @@ public class PaymentService {
             log.info("쿠폰 할인 적용 완료 - discountValue: {}", discountValue);
         }
 
-        // 결제 금액 검증
-        Long expectedAmount = order.getOrderPrice() - discountValue;
+        // 결제 금액 검증 (주문금액 – 할인 + 배송비)
+        Long expectedAmount = order.getOrderPrice() - discountValue + order.getDeliveryFee();
         if (!expectedAmount.equals(request.getAmount())) {
             log.error("결제 금액 불일치 - expected: {}, actual: {}", expectedAmount, request.getAmount());
             throw new PaymentException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
