@@ -131,7 +131,7 @@ public class OrderService {
                 .store(store)
                 .orderNumber(getOrderNumber())
                 .orderPrice(getOrderPrice(request.getOrderMenus()))
-                .orderStatus(OrderStatus.WAITING)
+                .orderStatus(OrderStatus.PENDING)
                 .deliveryType(DeliveryType.valueOf(request.getDeliveryType()))
                 .deliveryEta(LocalDateTime.now()
                         .plusMinutes(getAvgDeliveryTime(request.getDeliveryType())))
