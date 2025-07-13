@@ -1,5 +1,10 @@
 package com.idukbaduk.itseats.rider.service;
 
+import com.idukbaduk.itseats.global.util.GeoUtil;
+import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.dto.NearbyOrderDTO;
 import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
@@ -21,12 +26,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RiderService {
 
+    private final MemberRepository memberRepository;
     private final RiderRepository riderRepository;
     private final RiderAssignmentRepository riderAssignmentRepository;
     private final OrderRepository orderRepository;
 
     private static final int DEFAULT_SEARCH_RADIUS_KM = 10;
 
+    @Transactional
+    public void createRider(String username, RiderInfoRequest request) {
+        Member member = memberRepository.findByUsername(username).orElseThrow(
+                () -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND)
+        );
+
+        if (riderRepository.findByMember(member).isPresent()) {
+            throw new RiderException(RiderErrorCode.RIDER_ALREADY_EXISTS);
+        }
+
+        riderRepository.save(request.toRider(member));
+    }
 
     @Transactional
     public WorkingInfoResponse modifyWorking(String username, ModifyWorkingRequest modifyWorkingRequest) {
@@ -38,6 +56,18 @@ public class RiderService {
         return WorkingInfoResponse.builder()
                 .isWorking(rider.getIsWorking())
                 .build();
+    }
+
+    @Transactional
+    public void updateLocation(String username, LocationRequest request) {
+        Member member = memberRepository.findByUsername(username).orElseThrow(
+                () -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND)
+        );
+
+        Rider rider = riderRepository.findByMember(member).orElseThrow(
+                () -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND)
+        );
+        rider.updateLocation(GeoUtil.toPoint(request.getLongitude(), request.getLatitude()));
     }
 
     public void createRiderAssignment(Rider rider, Order order) {
@@ -76,7 +106,7 @@ public class RiderService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReadyOrderResponse> findNearbyOrders(NearByOrderRequest request) {
+    public List<ReadyOrderResponse> findNearbyOrders(LocationRequest request) {
         final int searchRadiusMeters = DEFAULT_SEARCH_RADIUS_KM * 1000; // 10km
 
         List<NearbyOrderDTO> nearbyOrders = orderRepository.findNearbyOrders(

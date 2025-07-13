@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class NearByOrderRequest {
+public class LocationRequest {
     private Double latitude;
     private Double longitude;
 }
