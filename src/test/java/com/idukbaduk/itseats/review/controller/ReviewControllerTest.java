@@ -101,7 +101,7 @@ public class ReviewControllerTest {
         given(reviewService.getMyReviews("user1")).willReturn(myReviews);
 
         // when & then
-        mockMvc.perform(get("/api/reviews")
+        mockMvc.perform(get("/api/reviews/my")
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.httpStatus").value(200))
@@ -114,5 +114,32 @@ public class ReviewControllerTest {
                 .andExpect(jsonPath("$.data[1].rating").value(4))
                 .andExpect(jsonPath("$.data[1].content").value("좋아요"))
                 .andExpect(jsonPath("$.data[1].createdAt").value("2025-07-11T12:00:00"));
+    }
+
+    @Test
+    @DisplayName("내 단일 리뷰 조회 성공")
+    @WithMockUser(username = "user1")
+    void getMyReview_success() throws Exception {
+        // given
+        Long reviewId = 1L;
+        MyReviewDto response = MyReviewDto.builder()
+                .storeName("맛집1")
+                .rating(5)
+                .content("정말 맛있어요!")
+                .createdAt(LocalDateTime.of(2025, 7, 12, 12, 0, 0))
+                .build();
+
+        given(reviewService.getMyReview(any(), any())).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/reviews/my/{reviewId}", reviewId)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.httpStatus").value(200))
+                .andExpect(jsonPath("$.message").value("내 리뷰 조회 성공"))
+                .andExpect(jsonPath("$.data.storeName").value("맛집1"))
+                .andExpect(jsonPath("$.data.rating").value(5))
+                .andExpect(jsonPath("$.data.content").value("정말 맛있어요!"))
+                .andExpect(jsonPath("$.data.createdAt").value("2025-07-12T12:00:00"));
     }
 }

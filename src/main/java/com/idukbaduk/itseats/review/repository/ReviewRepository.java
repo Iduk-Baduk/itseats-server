@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("SELECT r.store.storeId, AVG(r.storeStar), COUNT(r) " +
@@ -30,4 +31,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     int countByMember(Member member);
 
     List<Review> findAllByMember(Member member);
+
+    Optional<Review> findByReviewIdAndMember(Long reviewId, Member member);
 }

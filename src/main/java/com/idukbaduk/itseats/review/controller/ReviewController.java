@@ -42,11 +42,20 @@ public class ReviewController {
         return BaseResponse.toResponseEntity(ReviewResponse.CREATE_REVIEW_SUCCESS, response);
     }
 
-    @GetMapping
+    @GetMapping("/my")
     public ResponseEntity<BaseResponse> getMyReviews(
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         List<MyReviewDto> response = reviewService.getMyReviews(userDetails.getUsername());
+        return BaseResponse.toResponseEntity(ReviewResponse.GET_MY_REVIEW_SUCCESS, response);
+    }
+
+    @GetMapping("/my/{reviewId}")
+    public ResponseEntity<BaseResponse> getMyReview(
+            @PathVariable("reviewId") Long reviewId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        MyReviewDto response = reviewService.getMyReview(userDetails.getUsername(), reviewId);
         return BaseResponse.toResponseEntity(ReviewResponse.GET_MY_REVIEW_SUCCESS, response);
     }
 }

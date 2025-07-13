@@ -128,6 +128,17 @@ public class ReviewService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public MyReviewDto getMyReview(String username, Long reviewId) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Review review = reviewRepository.findByReviewIdAndMember(reviewId, member)
+                .orElseThrow(() -> new ReviewException(ReviewErrorCode.REVIEW_NOT_FOUND));
+
+        return MyReviewDto.of(review);
+    }
+
     private void updateStoreStarCache(Long storeId, int storeStar) {
         try {
             String key = "store:" + storeId + ":review:stats";
