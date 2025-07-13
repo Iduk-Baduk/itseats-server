@@ -122,6 +122,7 @@ public class OwnerReviewService {
                     }
                     String reviewer = review.getMember().getNickname();
                     return ReviewDto.builder()
+                            .reviewId(review.getReviewId())
                             .reviewer(reviewer)
                             .menuName(menuName)
                             .orderNumber(orderNumber)
