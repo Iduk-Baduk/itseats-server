@@ -122,7 +122,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         WHERE o.order_status = "COOKED"
         ORDER BY ST_Distance_Sphere(
             s.location,
-            ST_GeomFromText(CONCAT('POINT(', :riderLng, ' ', :riderLat, ')'))
+            ST_GeomFromText(CONCAT('POINT(', :riderLng, ' ', :riderLat, ')'), 4326)
         ), o.order_id
         LIMIT 1
     """, nativeQuery = true)
