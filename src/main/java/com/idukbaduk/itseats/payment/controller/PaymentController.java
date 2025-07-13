@@ -42,8 +42,8 @@ public class PaymentController {
             );
         }
         
-        log.info("결제 생성 요청 시작 - username: {}, request: {}", 
-                userDetails.getUsername(), paymentInfoRequest);
+        log.info("결제 생성 요청 시작 - username: {}, orderId: {}, paymentMethod: {}", 
+                userDetails.getUsername(), paymentInfoRequest.getOrderId(), paymentInfoRequest.getPaymentMethod());
         
         try {
             PaymentCreateResponse response = paymentService.createPayment(userDetails.getUsername(), paymentInfoRequest);
