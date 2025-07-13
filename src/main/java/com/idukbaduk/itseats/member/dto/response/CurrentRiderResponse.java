@@ -33,7 +33,7 @@ public class CurrentRiderResponse {
                 .memberType(member.getMemberType().name())
                 .deliveryMethod(rider.getDeliveryMethod().name())
                 .isWorking(rider.getIsWorking())
-                .location(new PointDto(rider.getLocation()))
+                .location(rider.getLocation() == null ? null : new PointDto(rider.getLocation()))
                 .preferredArea(rider.getPreferredArea())
                 .build();
     }
