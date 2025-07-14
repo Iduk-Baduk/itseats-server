@@ -73,15 +73,4 @@ public class Coupon extends BaseEntity {
 
     @Column(name = "issued_count", nullable = false)
     private int issuedCount = 0;
-
-    public boolean canIssue() {
-        return issuedCount < quantity;
-    }
-
-    public void increaseIssuedCount() {
-        if (!canIssue()) {
-            throw new CouponException(CouponErrorCode.QUANTITY_EXCEEDED);
-        }
-        this.issuedCount++;
-    }
 }
