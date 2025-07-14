@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -48,6 +49,33 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
         ORDER BY ST_Distance_Sphere(location, ST_GeomFromText(:myLocation, 4326))
     """, nativeQuery = true)
     Slice<Store> findNearByStoresByCategory(Long storeCategoryId, String myLocation, Pageable pageable);
+
+    /*
+     * 카테고리별 가게 목록 조회 (사각형 인덱스 사용)
+     */
+    @Query(value = """
+        SELECT *, 
+            ST_Distance_Sphere(location, ST_GeomFromText(:point, 4326)) AS distance
+        FROM store
+        WHERE 
+            MBRContains(
+                ST_SRID(
+                    ST_GeomFromText(:polygon), 4326
+                ),
+                location
+            )
+            AND store_category_id = :categoryId
+            AND is_deleted = false
+        HAVING distance < :maxDistance
+        ORDER BY location <=> ST_GeomFromText(:point, 4326)
+        """, nativeQuery = true)
+    Slice<Store> findNearByStoresByCategoryUsingPolygon(
+            @Param("point") String pointWkt,
+            @Param("polygon") String polygonWkt,
+            @Param("categoryId") Long categoryId,
+            @Param("maxDistance") Double maxDistance,
+            Pageable pageable
+    );
 
     @Query(value = """
         SELECT s.* FROM store s
