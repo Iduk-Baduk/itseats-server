@@ -47,36 +47,10 @@ public class RiderOrderService {
                 .orElseThrow(() -> new RiderException(RiderErrorCode.RIDER_NOT_FOUND));
         Order order = orderRepository.findByRiderAndOrderId(rider, orderId)
                 .orElseThrow(() -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND));
-
-        return buildOrderDetails(order);
-    }
-
-    private RiderOrderDetailsResponse buildOrderDetails(Order order) {
         Payment payment = paymentRepository.findByOrder(order)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-        return RiderOrderDetailsResponse.builder()
-                .orderId(order.getOrderId())
-                .orderNumber(order.getOrderNumber())
-                .orderStatus(order.getOrderStatus().name())
-                .orderTime(order.getCreatedAt().toString())
-                .totalPrice(order.getOrderPrice())
-                .orderItems(buildOrderItems(order))
-                .storePhone(order.getStore().getStorePhone())
-                .memberPhone(order.getMember().getPhone())
-                .storeRequest(payment.getStoreRequest())
-                .riderRequest(payment.getRiderRequest())
-                .build();
-    }
 
-    private List<OrderItemDTO> buildOrderItems(Order order) {
-        return order.getOrderMenus().stream()
-                .map(orderMenu -> OrderItemDTO.builder()
-                        .menuName(orderMenu.getMenuName())
-                        .quantity(orderMenu.getQuantity())
-                        .menuPrice(orderMenu.getPrice())
-                        .options(orderMenu.getMenuOption())
-                        .build())
-                .toList();
+        return RiderOrderDetailsResponse.of(order, payment);
     }
 
     @Transactional

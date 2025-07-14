@@ -121,6 +121,7 @@ class RiderOrderServiceTest {
                 .orderPrice(45000)
                 .orderStatus(OrderStatus.COOKING)
                 .orderMenus(List.of(menu1, menu2))
+                .destinationLocation(GeoUtil.toPoint(127.0000, 37.7600))
                 .build();
 
         setCreatedAt();
