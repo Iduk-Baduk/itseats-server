@@ -84,6 +84,13 @@ public class StoreService {
                 Member member = memberRepository.findByUsername(username).orElse(null);
                 Point myLocation = getMyLocation(addressId, member); // 존재하지 않을시 기본 값: 서울시청
                 yield storeRepository.findNearByStoresByCategory(categoryId, GeoUtil.toString(myLocation), pageRequest);
+//                yield storeRepository.findNearByStoresByCategoryUsingPolygon(
+//                        GeoUtil.toString(myLocation),
+//                        GeoUtil.createBoundingPolygonWkt(myLocation, 2500),
+//                        categoryId,
+//                        5000.0,
+//                        pageRequest
+//                );
             }
             case RATING -> storeRepository.findStoresOrderByRating(categoryId, pageRequest);
             case ORDER_COUNT -> storeRepository.findStoresOrderByOrderCount(categoryId, pageRequest);
