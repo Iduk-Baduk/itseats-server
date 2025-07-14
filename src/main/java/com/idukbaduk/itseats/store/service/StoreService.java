@@ -233,7 +233,7 @@ public class StoreService {
                 .map(StoreImage::getImageUrl)
                 .toList();
 
-        StoreDetailResponse response = StoreDetailResponse.builder()
+        return StoreDetailResponse.builder()
                 .name(store.getStoreName())
                 .isLiked(isLiked)
                 .review(reviewStats.avg())
@@ -248,7 +248,5 @@ public class StoreService {
                 .orderable(store.getOrderable())
                 .location(new PointDto(store.getLocation()))
                 .build();
-
-        return response;
     }
 }
