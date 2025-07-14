@@ -124,7 +124,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         WHERE o.order_status = "COOKED"
         ORDER BY ST_Distance_Sphere(
             s.location,
-            ST_GeomFromText(CONCAT('POINT(', :riderLng, ' ', :riderLat, ')'), 4326)
+            ST_GeomFromText(CONCAT('POINT(', :riderLat, ' ', :riderLng, ')'), 4326)
         ), o.order_id
         LIMIT 1
     """, nativeQuery = true)
@@ -153,6 +153,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from Order o where o.orderId = :orderId")
     Optional<Order> findByIdForUpdate(@Param("orderId") Long orderId);
+
     @Query(value = """
             SELECT  order_id,
                     store_name,
@@ -167,7 +168,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                         o.delivery_address,
                         o.delivery_type,
                         ST_DISTANCE_SPHERE(
-                            ST_PointFromTEXT(CONCAT('POINT(', :lon, ' ', :lat, ')'), 4326),
+                            ST_PointFromTEXT(CONCAT('POINT(', :lat, ' ', :lon, ')'), 4326),
                             s.location
                         ) AS distance
                 FROM orders o
