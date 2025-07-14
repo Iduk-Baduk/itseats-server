@@ -30,7 +30,6 @@ public class RiderService {
     private final RiderRepository riderRepository;
     private final RiderAssignmentRepository riderAssignmentRepository;
     private final OrderRepository orderRepository;
-
     private static final int DEFAULT_SEARCH_RADIUS_KM = 10;
 
     @Transactional
