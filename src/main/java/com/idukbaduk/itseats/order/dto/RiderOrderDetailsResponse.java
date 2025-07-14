@@ -40,7 +40,7 @@ public class RiderOrderDetailsResponse {
                 .storePhone(order.getStore().getStorePhone())
                 .memberPhone(order.getMember().getPhone())
                 .address(order.getDeliveryAddress())
-                .destination(new PointDto(order.getDestinationLocation()))
+                .destination(order.getDestinationLocation() == null ? null : new PointDto(order.getDestinationLocation()))
                 .storeRequest(payment.getStoreRequest())
                 .riderRequest(payment.getRiderRequest())
                 .build();
