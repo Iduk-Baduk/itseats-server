@@ -212,56 +212,43 @@ public class StoreService {
 
     @Transactional(readOnly = true)
     public StoreDetailResponse getStoreDetail(String username, Long storeId) {
-        log.info("매장 상세 조회 서비스 시작 - username: {}, storeId: {}", username, storeId);
 
-        try {
-            // 1. 회원 정보 조회
-            Member member = memberRepository.findByUsername(username)
-                    .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-            log.info("회원 정보 조회 성공 - memberId: {}", member.getMemberId());
+        // 1. 회원 정보 조회
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-            // 2. 매장 정보 조회 (삭제되지 않은 매장만)
-            Store store = storeRepository.findByStoreIdAndDeletedFalse(storeId)
-                    .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
-            log.info("매장 정보 조회 성공 - storeId: {}, storeName: {}", store.getStoreId(), store.getStoreName());
+        // 2. 매장 정보 조회 (삭제되지 않은 매장만)
+        Store store = storeRepository.findByStoreIdAndDeletedFalse(storeId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
 
-            // 3. 좋아요 여부 확인
-            boolean isLiked = favoriteRepository.existsByMemberAndStore(member, store);
-            log.info("좋아요 여부 확인 완료 - isLiked: {}", isLiked);
+        // 3. 좋아요 여부 확인
+        boolean isLiked = favoriteRepository.existsByMemberAndStore(member, store);
 
-            // 4. 리뷰 통계 조회
-            StoreReviewStats reviewStats = reviewStatsService.getReviewStats(storeId);
-            log.info("리뷰 통계 조회 완료 - avgRating: {}, reviewCount: {}", reviewStats.avg(), reviewStats.count());
+        // 4. 리뷰 통계 조회
+        StoreReviewStats reviewStats = reviewStatsService.getReviewStats(storeId);
 
-            // 5. 매장 이미지 조회
-            List<String> images = storeImageRepository.findAllByStoreIdOrderByDisplayOrderAsc(storeId)
-                    .stream()
-                    .map(StoreImage::getImageUrl)
-                    .toList();
-            log.info("매장 이미지 조회 완료 - imageCount: {}", images.size());
+        // 5. 매장 이미지 조회
+        List<String> images = storeImageRepository.findAllByStoreIdOrderByDisplayOrderAsc(storeId)
+                .stream()
+                .map(StoreImage::getImageUrl)
+                .toList();
 
-            StoreDetailResponse response = StoreDetailResponse.builder()
-                    .name(store.getStoreName())
-                    .isLiked(isLiked)
-                    .review(reviewStats.avg())
-                    .reviewCount(reviewStats.count())
-                    .images(images)
-                    .description(store.getDescription() != null ? store.getDescription() : "")
-                    .address(store.getStoreAddress())
-                    .phone(store.getStorePhone())
-                    .defaultDeliveryFee(store.getDefaultDeliveryFee())
-                    .onlyOneDeliveryFee(store.getOnlyOneDeliveryFee())
-                    .isOpen(store.getBusinessStatus() == BusinessStatus.OPEN)
-                    .orderable(store.getOrderable())
-                    .location(new PointDto(store.getLocation()))
-                    .build();
+        StoreDetailResponse response = StoreDetailResponse.builder()
+                .name(store.getStoreName())
+                .isLiked(isLiked)
+                .review(reviewStats.avg())
+                .reviewCount(reviewStats.count())
+                .images(images)
+                .description(store.getDescription() != null ? store.getDescription() : "")
+                .address(store.getStoreAddress())
+                .phone(store.getStorePhone())
+                .defaultDeliveryFee(store.getDefaultDeliveryFee())
+                .onlyOneDeliveryFee(store.getOnlyOneDeliveryFee())
+                .isOpen(store.getBusinessStatus() == BusinessStatus.OPEN)
+                .orderable(store.getOrderable())
+                .location(new PointDto(store.getLocation()))
+                .build();
 
-            log.info("매장 상세 조회 완료 - storeId: {}, storeName: {}", storeId, store.getStoreName());
-            return response;
-        } catch (Exception e) {
-            log.error("매장 상세 조회 중 오류 발생 - username: {}, storeId: {}, error: {}", 
-                    username, storeId, e.getMessage(), e);
-            throw e;
-        }
+        return response;
     }
 }
