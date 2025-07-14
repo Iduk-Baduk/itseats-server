@@ -138,7 +138,7 @@ class CouponServiceTest {
     @DisplayName("쿠폰 발급 성공")
     void issueCoupon_success() {
         // given
-        Long couponId = 10L;
+        Long couponId = 99L;
         String username = "user1";
         Member member = Member.builder().memberId(1L).username(username).build();
         Coupon coupon = Coupon.builder()
@@ -146,7 +146,8 @@ class CouponServiceTest {
                 .couponName("3,000원 할인")
                 .discountValue(3000)
                 .minPrice(15000)
-                .quantity(100)
+                .quantity(300)
+                .issuedCount(99)
                 .issueStartDate(LocalDateTime.now().minusDays(1))
                 .issueEndDate(LocalDateTime.now().plusDays(7))
                 .validDate(LocalDateTime.now().plusDays(30))
@@ -155,13 +156,14 @@ class CouponServiceTest {
         given(memberRepository.findByUsername(username)).willReturn(Optional.of(member));
         given(couponRepository.findById(couponId)).willReturn(Optional.of(coupon));
         given(memberCouponRepository.existsByMemberAndCoupon(member, coupon)).willReturn(false);
-        given(memberCouponRepository.countByCoupon(coupon)).willReturn(10L);
+        given(memberCouponRepository.countByCoupon(coupon)).willReturn(99L);
+        given(couponRepository.increaseIssuedCountIfNotExceeded(couponId)).willReturn(1);
 
         given(memberCouponRepository.save(any(MemberCoupon.class)))
                 .willAnswer(invocation -> {
                     MemberCoupon mc = invocation.getArgument(0);
                     return MemberCoupon.builder()
-                            .memberCouponId(101L)
+                            .memberCouponId(121L)
                             .member(mc.getMember())
                             .coupon(mc.getCoupon())
                             .isUsed(false)
@@ -175,8 +177,8 @@ class CouponServiceTest {
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.getMemberCouponId()).isEqualTo(101L);
-        assertThat(response.getCouponId()).isEqualTo(10L);
+        assertThat(response.getMemberCouponId()).isEqualTo(121L);
+        assertThat(response.getCouponId()).isEqualTo(99L);
         assertThat(response.getName()).isEqualTo("3,000원 할인");
         assertThat(response.getDiscountValue()).isEqualTo(3000);
         assertThat(response.getMinPrice()).isEqualTo(15000);

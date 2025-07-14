@@ -1,7 +1,10 @@
 package com.idukbaduk.itseats.rider.service;
 
 import com.idukbaduk.itseats.member.entity.Member;
+import com.idukbaduk.itseats.member.repository.MemberRepository;
 import com.idukbaduk.itseats.order.entity.Order;
+import com.idukbaduk.itseats.order.repository.OrderRepository;
+import com.idukbaduk.itseats.order.service.RiderOrderService;
 import com.idukbaduk.itseats.rider.dto.ModifyWorkingRequest;
 import com.idukbaduk.itseats.rider.dto.RejectDeliveryResponse;
 import com.idukbaduk.itseats.rider.dto.RejectReasonRequest;
@@ -37,7 +40,6 @@ class RiderServiceTest {
     private RiderRepository riderRepository;
     @Mock
     private RiderAssignmentRepository riderAssignmentRepository;
-
     @InjectMocks
     private RiderService riderService;
 
@@ -219,4 +221,5 @@ class RiderServiceTest {
         // then
         assertThat(assignment.getAssignmentStatus()).isEqualTo(AssignmentStatus.ACCEPTED);
     }
+
 }
