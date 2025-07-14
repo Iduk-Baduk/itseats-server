@@ -11,6 +11,7 @@ export const options = {
 const BASE_URL = 'http://host.docker.internal:8080';
 const headers = { 'Content-Type': 'application/json' };
 
+// 발급 성공/초과 카운터
 const successCount = new Counter('coupon_success_201');
 const exceededCount = new Counter('coupon_exceeded_409');
 
@@ -87,12 +88,12 @@ export function handleSummary(data) {
     return {
         stdout: `
         선착순 쿠폰 발급 테스트 요약
-        ────────────────────────────────────
-        201 Created         : ${success}
-        409 Exceeded        : ${exceeded}
-        총 발급 요청 수     : ${total}
-        기대치 충족 여부    : ${success === 100 && exceeded === 400 ? '성공' : '실패'}
-        ────────────────────────────────────
+        ────────────────────────────────────────────
+        201 Created (발급 성공)     : ${success}
+        409 Exceeded (수량 초과)    : ${exceeded}
+        총 발급 요청 수             : ${total}
+        기대치 (quantity=100) 충족  : ${success === 100 && exceeded === (total - 100) ? '성공' : '실패'}
+        ────────────────────────────────────────────
         `,
     };
 }

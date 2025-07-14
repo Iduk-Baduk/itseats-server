@@ -59,6 +59,7 @@ public class CouponService {
                             .validDate(mc.getValidDate())
                             .canUsed(canUse(mc))
                             .storeId(storeId)
+                            .couponId(coupon.getCouponId())
                             .build();
                 })
                 .toList();
@@ -95,10 +96,10 @@ public class CouponService {
                 throw new CouponException(CouponErrorCode.ALREADY_ISSUED);
             }
 
-            if (!coupon.canIssue()) {
+            int updatedRows = couponRepository.increaseIssuedCountIfNotExceeded(couponId);
+            if (updatedRows == 0) {
                 throw new CouponException(CouponErrorCode.QUANTITY_EXCEEDED);
             }
-            coupon.increaseIssuedCount();
 
             MemberCoupon memberCoupon = MemberCoupon.builder()
                     .member(member)

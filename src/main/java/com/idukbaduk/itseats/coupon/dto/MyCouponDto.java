@@ -16,4 +16,5 @@ public class MyCouponDto {
     private LocalDateTime validDate;
     private boolean canUsed;
     private Long storeId;
+    private Long couponId;
 }
