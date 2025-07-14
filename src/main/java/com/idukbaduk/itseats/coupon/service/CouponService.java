@@ -59,6 +59,7 @@ public class CouponService {
                             .validDate(mc.getValidDate())
                             .canUsed(canUse(mc))
                             .storeId(storeId)
+                            .couponId(coupon.getCouponId())
                             .build();
                 })
                 .toList();
