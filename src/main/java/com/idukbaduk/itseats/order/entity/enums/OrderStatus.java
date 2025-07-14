@@ -13,8 +13,10 @@ public enum OrderStatus {
 
     // 주문 취소
     CANCELED(null),
+    // 주문 결제 전
+    PENDING(null),
     // 주문 접수 중
-    WAITING(null),
+    WAITING(PENDING),
     // 주문 수락
     ACCEPTED(WAITING),
     // 주문 거절

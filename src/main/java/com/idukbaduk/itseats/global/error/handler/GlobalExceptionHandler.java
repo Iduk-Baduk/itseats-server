@@ -3,6 +3,8 @@ package com.idukbaduk.itseats.global.error.handler;
 import com.idukbaduk.itseats.global.error.core.BaseException;
 import com.idukbaduk.itseats.global.error.core.ErrorCode;
 import com.idukbaduk.itseats.global.error.core.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
+import com.idukbaduk.itseats.payment.error.PaymentException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -27,16 +30,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(BaseException e) {
+        // PaymentException이면 originalErrorBody 포함해서 내려줌
+        if (e instanceof PaymentException) {
+            PaymentException pe = (PaymentException) e;
+            return ResponseEntity
+                .status(pe.getErrorCode().getStatus())
+                .body(ErrorResponse.of(pe.getErrorCode(), e.getMessage(), pe.getOriginalErrorBody()));
+        }
         return getErrorResponse(e, e.getErrorCode());
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e) {
+        log.error("RuntimeException 발생: {}", e.getMessage(), e);
         return getErrorResponse(e, GlobalErrorCode.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        log.error("Exception 발생: {}", e.getMessage(), e);
         return getErrorResponse(e, GlobalErrorCode.INTERNAL_SERVER_ERROR);
     }
 

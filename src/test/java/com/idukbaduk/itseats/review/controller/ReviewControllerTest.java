@@ -1,6 +1,7 @@
 package com.idukbaduk.itseats.review.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.idukbaduk.itseats.review.dto.MyReviewDto;
 import com.idukbaduk.itseats.review.dto.ReviewCreateRequest;
 import com.idukbaduk.itseats.review.dto.ReviewCreateResponse;
 import com.idukbaduk.itseats.review.entity.enums.MenuLiked;
@@ -16,11 +17,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -73,5 +76,70 @@ public class ReviewControllerTest {
                 .andExpect(jsonPath("$.data.menuLiked").value("GOOD"))
                 .andExpect(jsonPath("$.data.content").value("맛있어요"))
                 .andExpect(jsonPath("$.data.createdAt").value("2025-06-11T06:55:00"));
+    }
+
+    @Test
+    @DisplayName("내 리뷰 목록 조회 성공")
+    @WithMockUser(username = "user1")
+    void getMyReviews_success() throws Exception {
+        // given
+        List<MyReviewDto> myReviews = List.of(
+                MyReviewDto.builder()
+                        .storeName("맛집1")
+                        .rating(5)
+                        .content("최고예요")
+                        .createdAt(LocalDateTime.of(2025, 7, 12, 12, 0, 0))
+                        .build(),
+                MyReviewDto.builder()
+                        .storeName("맛집2")
+                        .rating(4)
+                        .content("좋아요")
+                        .createdAt(LocalDateTime.of(2025, 7, 11, 12, 0, 0))
+                        .build()
+        );
+
+        given(reviewService.getMyReviews("user1")).willReturn(myReviews);
+
+        // when & then
+        mockMvc.perform(get("/api/reviews/my")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.httpStatus").value(200))
+                .andExpect(jsonPath("$.message").value("내 리뷰 조회 성공"))
+                .andExpect(jsonPath("$.data[0].storeName").value("맛집1"))
+                .andExpect(jsonPath("$.data[0].rating").value(5))
+                .andExpect(jsonPath("$.data[0].content").value("최고예요"))
+                .andExpect(jsonPath("$.data[0].createdAt").value("2025-07-12T12:00:00"))
+                .andExpect(jsonPath("$.data[1].storeName").value("맛집2"))
+                .andExpect(jsonPath("$.data[1].rating").value(4))
+                .andExpect(jsonPath("$.data[1].content").value("좋아요"))
+                .andExpect(jsonPath("$.data[1].createdAt").value("2025-07-11T12:00:00"));
+    }
+
+    @Test
+    @DisplayName("내 단일 리뷰 조회 성공")
+    @WithMockUser(username = "user1")
+    void getMyReview_success() throws Exception {
+        // given
+        Long reviewId = 1L;
+        MyReviewDto response = MyReviewDto.builder()
+                .storeName("맛집1")
+                .rating(5)
+                .content("정말 맛있어요!")
+                .createdAt(LocalDateTime.of(2025, 7, 12, 12, 0, 0))
+                .build();
+
+        given(reviewService.getMyReview(any(), any())).willReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/api/reviews/my/{reviewId}", reviewId)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.httpStatus").value(200))
+                .andExpect(jsonPath("$.message").value("내 리뷰 조회 성공"))
+                .andExpect(jsonPath("$.data.storeName").value("맛집1"))
+                .andExpect(jsonPath("$.data.rating").value(5))
+                .andExpect(jsonPath("$.data.content").value("정말 맛있어요!"))
+                .andExpect(jsonPath("$.data.createdAt").value("2025-07-12T12:00:00"));
     }
 }

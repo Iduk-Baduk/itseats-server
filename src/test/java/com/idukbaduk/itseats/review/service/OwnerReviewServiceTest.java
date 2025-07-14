@@ -13,6 +13,7 @@ import com.idukbaduk.itseats.order.entity.OrderMenu;
 import com.idukbaduk.itseats.review.entity.Review;
 import com.idukbaduk.itseats.review.entity.ReviewImage;
 import com.idukbaduk.itseats.review.repository.ReviewImageRepository;
+import com.idukbaduk.itseats.review.repository.ReviewReportRepository;
 import com.idukbaduk.itseats.review.repository.ReviewRepository;
 import com.idukbaduk.itseats.store.entity.Store;
 import com.idukbaduk.itseats.store.error.StoreException;
@@ -41,6 +42,8 @@ class OwnerReviewServiceTest {
     private StoreRepository storeRepository;
     @Mock
     private MemberRepository memberRepository;
+    @Mock
+    private ReviewReportRepository reviewReportRepository;
 
     @InjectMocks
     private OwnerReviewService ownerReviewService;
@@ -86,6 +89,7 @@ class OwnerReviewServiceTest {
                 .willReturn(List.of(review));
         given(reviewImageRepository.findByReview_ReviewIdIn(List.of(100L)))
                 .willReturn(List.of(reviewImage));
+        given(reviewReportRepository.existsByReview_ReviewId(100L)).willReturn(false);
 
         // when
         ReviewListResponse response = ownerReviewService.getReviewsByStoreAndPeriod(storeId, startDate, endDate, username);

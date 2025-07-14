@@ -121,7 +121,11 @@ public class OwnerReviewService {
                         orderNumber = review.getOrder().getOrderNumber();
                     }
                     String reviewer = review.getMember().getNickname();
+
+                    boolean isReported = reviewReportRepository.existsByReview_ReviewId(review.getReviewId());
+
                     return ReviewDto.builder()
+                            .reviewId(review.getReviewId())
                             .reviewer(reviewer)
                             .menuName(menuName)
                             .orderNumber(orderNumber)
@@ -129,6 +133,7 @@ public class OwnerReviewService {
                             .rating(review.getStoreStar())
                             .content(review.getContent())
                             .createdAt(review.getCreatedAt())
+                            .reported(isReported)
                             .build();
                 })
                 .toList();

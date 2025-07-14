@@ -41,8 +41,8 @@ public class OwnerMemberService {
         }
 
         String encryptedPassword = passwordEncoder.encode(ownerDto.getPassword());
-        Member newCustomer = memberRepository.save(ownerDto.toEntity(encryptedPassword));
-        return MemberCreateResponse.of(newCustomer.getMemberId());
+        Member newOwner = memberRepository.save(ownerDto.toEntity(encryptedPassword));
+        return MemberCreateResponse.of(newOwner.getMemberId());
     }
 
     public CurrentOwnerResponse getCurrentOwner(String username) {

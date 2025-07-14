@@ -8,7 +8,7 @@ import com.idukbaduk.itseats.order.entity.Order;
 import com.idukbaduk.itseats.order.entity.enums.DeliveryType;
 import com.idukbaduk.itseats.order.entity.enums.OrderStatus;
 import com.idukbaduk.itseats.order.repository.OrderRepository;
-import com.idukbaduk.itseats.rider.dto.NearByOrderRequest;
+import com.idukbaduk.itseats.rider.dto.LocationRequest;
 import com.idukbaduk.itseats.rider.dto.ReadyOrderResponse;
 import com.idukbaduk.itseats.rider.error.RiderException;
 import com.idukbaduk.itseats.store.entity.Store;
@@ -155,7 +155,7 @@ class FindNearbyOrdersServiceTest {
         );
 
         // when
-        NearByOrderRequest request = new NearByOrderRequest(riderLat, riderLng);
+        LocationRequest request = new LocationRequest(riderLat, riderLng);
         List<ReadyOrderResponse> nearbyOrders = riderService.findNearbyOrders(request);
 
         // then
@@ -194,7 +194,7 @@ class FindNearbyOrdersServiceTest {
         );
 
         // when
-        NearByOrderRequest request = new NearByOrderRequest(riderLat, riderLng);
+        LocationRequest request = new LocationRequest(riderLat, riderLng);
 
         // then
         assertThatThrownBy(() -> riderService.findNearbyOrders(request))
@@ -231,7 +231,7 @@ class FindNearbyOrdersServiceTest {
         );
 
         //  when
-        NearByOrderRequest request = new NearByOrderRequest(riderLat, riderLng);
+        LocationRequest request = new LocationRequest(riderLat, riderLng);
         List<ReadyOrderResponse> nearbyOrders = riderService.findNearbyOrders(request);
 
         // then

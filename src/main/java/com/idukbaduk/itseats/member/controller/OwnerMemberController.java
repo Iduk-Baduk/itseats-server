@@ -3,6 +3,8 @@ package com.idukbaduk.itseats.member.controller;
 import com.idukbaduk.itseats.global.response.BaseResponse;
 import com.idukbaduk.itseats.member.dto.enums.MemberResponse;
 import com.idukbaduk.itseats.member.dto.request.OwnerCreateRequest;
+import com.idukbaduk.itseats.member.error.MemberException;
+import com.idukbaduk.itseats.member.error.enums.MemberErrorCode;
 import com.idukbaduk.itseats.member.service.OwnerMemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +33,7 @@ public class OwnerMemberController {
     @GetMapping("/me")
     public ResponseEntity<BaseResponse> getCurrentMember(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
-            throw new RuntimeException("인증되지 않은 사용자입니다.");
+            throw new MemberException(MemberErrorCode.UNAUTHORIZED_USER);
         }
         return BaseResponse.toResponseEntity(
                 MemberResponse.GET_CURRENT_MEMBER_SUCCESS,

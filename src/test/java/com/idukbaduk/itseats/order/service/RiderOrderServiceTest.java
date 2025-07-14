@@ -2,7 +2,7 @@ package com.idukbaduk.itseats.order.service;
 
 import com.idukbaduk.itseats.global.util.GeoUtil;
 import com.idukbaduk.itseats.member.entity.Member;
-import com.idukbaduk.itseats.order.dto.OrderDetailsResponse;
+import com.idukbaduk.itseats.order.dto.RiderOrderDetailsResponse;
 import com.idukbaduk.itseats.order.dto.OrderItemDTO;
 import com.idukbaduk.itseats.order.dto.OrderRequestResponse;
 import com.idukbaduk.itseats.order.dto.RiderImageResponse;
@@ -151,7 +151,7 @@ class RiderOrderServiceTest {
         when(paymentRepository.findByOrder(order)).thenReturn(Optional.of(payment));
 
         // when
-        OrderDetailsResponse response = riderOrderService.getOrderDetails(username, 1L);
+        RiderOrderDetailsResponse response = riderOrderService.getOrderDetails(username, 1L);
 
         // then
         assertThat(response.getOrderId()).isEqualTo(order.getOrderId());

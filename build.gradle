@@ -89,6 +89,14 @@ dependencies {
      * Redis 분산 락 관련 의존성
      */
     implementation 'org.redisson:redisson-spring-boot-starter:3.50.0'
+
+    /*
+    * 성능 테스트 관련 의존성
+    * - Actuator
+    * - Prometheus
+    */
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 

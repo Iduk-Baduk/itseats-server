@@ -19,4 +19,6 @@ public class ReviewDto {
     private int rating;
     private String content;
     private LocalDateTime createdAt;
+    private Long reviewId;
+    private boolean reported;
 }

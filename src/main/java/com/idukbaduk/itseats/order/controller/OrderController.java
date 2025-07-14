@@ -1,9 +1,10 @@
 package com.idukbaduk.itseats.order.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
-import com.idukbaduk.itseats.order.dto.OrderNewRequest;
+import com.idukbaduk.itseats.order.dto.OrderCreateRequest;
 import com.idukbaduk.itseats.order.dto.enums.OrderResponse;
 import com.idukbaduk.itseats.order.service.OrderService;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -19,13 +20,25 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("/new")
-    public ResponseEntity<BaseResponse> getOrderNew(
+    @GetMapping("/{storeId}/details")
+    public ResponseEntity<BaseResponse> getOrderDetails(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody OrderNewRequest orderNewRequest) {
+            @PathVariable("storeId") Long storeId,
+            @RequestParam("coupon") @Nullable Long couponId,
+            @RequestParam("orderPrice") @Nullable Integer orderPrice) {
         return BaseResponse.toResponseEntity(
                 OrderResponse.GET_ORDER_DETAILS_SUCCESS,
-                orderService.getOrderNew(userDetails.getUsername(), orderNewRequest)
+                orderService.getOrderDetails(userDetails.getUsername(), storeId, couponId, orderPrice)
+        );
+    }
+
+    @PostMapping("/new")
+    public ResponseEntity<BaseResponse> createOrder(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody OrderCreateRequest orderCreateRequest) {
+        return BaseResponse.toResponseEntity(
+                OrderResponse.CREATE_ORDER_SUCCESS,
+                orderService.createOrder(userDetails.getUsername(), orderCreateRequest)
         );
     }
 

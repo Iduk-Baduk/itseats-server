@@ -88,6 +88,9 @@ public class Order extends BaseEntity {
     @Column(name = "reject_reason")
     private String rejectReason;
 
+    @Column(name = "toss_order_id", length = 64)
+    private String tossOrderId;
+
     @Column(name = "has_review", nullable = false)
     private boolean hasReview = false;
 

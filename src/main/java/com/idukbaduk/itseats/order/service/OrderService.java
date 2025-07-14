@@ -1,9 +1,7 @@
 package com.idukbaduk.itseats.order.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.idukbaduk.itseats.coupon.entity.Coupon;
 import com.idukbaduk.itseats.coupon.entity.MemberCoupon;
-import com.idukbaduk.itseats.coupon.entity.enums.CouponType;
 import com.idukbaduk.itseats.coupon.error.CouponException;
 import com.idukbaduk.itseats.coupon.error.enums.CouponErrorCode;
 import com.idukbaduk.itseats.coupon.repository.MemberCouponRepository;
@@ -50,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -71,33 +70,25 @@ public class OrderService {
     private final CouponPolicyService couponPolicyService;
 
     @Transactional
-    public OrderNewResponse getOrderNew(String username, OrderNewRequest orderNewRequest) {
+    public OrderDetailsResponse getOrderDetails(String username, Long storeId, Long couponId, Integer orderPrice) {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-        MemberAddress address = memberAddressRepository.findByMemberAndAddressId(member, orderNewRequest.getAddrId())
-                .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
-
-        Store store = storeRepository.findByStoreId(orderNewRequest.getStoreId())
+        Store store = storeRepository.findByStoreId(storeId)
                 .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
 
-        Order order = saveOrder(member, store, address, orderNewRequest);
-        saveAllOrderMenu(order, orderNewRequest);
-
-        int orderPrice = getOrderPrice(orderNewRequest.getOrderMenus());
-        int deliveryFee = getDeliveryFee(store, orderNewRequest.getDeliveryType());
-
         int discountValue = 0;
-        if (orderNewRequest.getMemberCouponId() != null) {
-            MemberCoupon memberCoupon = memberCouponRepository.findById(orderNewRequest.getMemberCouponId())
+        if (couponId != null) {
+            MemberCoupon memberCoupon = memberCouponRepository.findById(couponId)
                     .orElseThrow(() -> new CouponException(CouponErrorCode.COUPON_NOT_FOUND));
 
             discountValue = couponPolicyService.applyCouponDiscount(memberCoupon, member, orderPrice);
         }
 
-        int totalCost = orderPrice - discountValue + deliveryFee;
+        return buildOrderDetailsResponse(store.getDefaultDeliveryFee(), store.getOnlyOneDeliveryFee(), discountValue);
+    }
 
-        return OrderNewResponse.builder()
-                .orderId(order.getOrderId())
+    private OrderDetailsResponse buildOrderDetailsResponse(int defaultDeliveryFee, int onlyOneDeliveryFee, int discountValue) {
+        return OrderDetailsResponse.builder()
                 .defaultTimeMin(
                         Optional.ofNullable(orderRepository.findMinDeliveryTimeByType(DeliveryType.DEFAULT.name()))
                                 .orElse(30)
@@ -114,27 +105,43 @@ public class OrderService {
                         Optional.ofNullable(orderRepository.findMaxDeliveryTimeByType(DeliveryType.ONLY_ONE.name()))
                                 .orElse(30)
                 )
-                .orderPrice(orderPrice)
-                .deliveryFee(deliveryFee)
+                .defaultDeliveryFee(defaultDeliveryFee)
+                .onlyOneDeliveryFee(onlyOneDeliveryFee)
                 .discountValue(discountValue)
-                .totalCost(totalCost)
                 .build();
     }
 
-    private Order saveOrder(Member member, Store store, MemberAddress address, OrderNewRequest orderNewRequest) {
+    @Transactional
+    public OrderCreateResponse createOrder(String username, OrderCreateRequest request) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        MemberAddress address = memberAddressRepository.findByMemberAndAddressId(member, request.getAddrId())
+                .orElseThrow(() -> new MemberAddressException(MemberAddressErrorCode.MEMBER_ADDRESS_NOT_FOUND));
+        Store store = storeRepository.findByStoreId(request.getStoreId())
+                .orElseThrow(() -> new StoreException(StoreErrorCode.STORE_NOT_FOUND));
+
+        Order order = saveOrder(member, store, address, request);
+        saveAllOrderMenu(order, request);
+        return buildOrderCreateResponse(order);
+    }
+
+    private Order saveOrder(Member member, Store store, MemberAddress address, OrderCreateRequest request) {
         Order order = Order.builder()
                 .member(member)
                 .store(store)
                 .orderNumber(getOrderNumber())
-                .orderPrice(getOrderPrice(orderNewRequest.getOrderMenus()))
-                .orderStatus(OrderStatus.WAITING)
-                .deliveryType(DeliveryType.valueOf(orderNewRequest.getDeliveryType()))
+                .orderPrice(getOrderPrice(request.getOrderMenus()))
+                .orderStatus(OrderStatus.PENDING)
+                .deliveryType(DeliveryType.valueOf(request.getDeliveryType()))
                 .deliveryEta(LocalDateTime.now()
-                        .plusMinutes(getAvgDeliveryTime(orderNewRequest.getDeliveryType())))
-                .deliveryFee(getDeliveryFee(store, orderNewRequest.getDeliveryType()))
+                        .plusMinutes(getAvgDeliveryTime(request.getDeliveryType())))
+                .deliveryFee(getDeliveryFee(store, request.getDeliveryType()))
                 .deliveryAddress(address.getMainAddress() + " " + address.getDetailAddress())
                 .destinationLocation(address.getLocation())
                 .storeLocation(store.getLocation())
+                .orderReceivedTime(LocalDateTime.now())
+                .cookStartTime(LocalDateTime.now())
+                .tossOrderId(generateTossOrderId())
                 .build();
 
         return orderRepository.save(order);
@@ -147,6 +154,11 @@ public class OrderService {
         char lastLetter = LETTER_POOL.charAt(random.nextInt(LETTER_POOL.length()));
 
         return String.format("%c%d%c", firstLetter, timestamp % 10000, lastLetter);
+    }
+
+    private String generateTossOrderId() {
+        // UUID 생성 후 하이픈 제거하여 32자리 문자열 생성
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
     private int getOrderPrice(List<OrderMenuDTO> orderMenuDtos) {
@@ -166,18 +178,18 @@ public class OrderService {
                 : store.getOnlyOneDeliveryFee();
     }
 
-    private void saveAllOrderMenu(Order order, OrderNewRequest orderNewRequest) {
-        List<OrderMenuDTO> orderMenuDtos = orderNewRequest.getOrderMenus();
+    private void saveAllOrderMenu(Order order, OrderCreateRequest request) {
+        List<OrderMenuDTO> orderMenuDtos = request.getOrderMenus();
         List<OrderMenu> orderMenus = new ArrayList<>();
         for (OrderMenuDTO orderMenuDTO : orderMenuDtos) {
-            Menu menu = menuRepository.findById(orderMenuDTO.getMenuId())
+            Menu menu = menuRepository.findByMenuIdAndDeletedFalse(orderMenuDTO.getMenuId())
                     .orElseThrow(() -> new MenuException(MenuErrorCode.MENU_NOT_FOUND));
             OrderMenu orderMenu = OrderMenu.builder()
                     .menu(menu)
                     .order(order)
                     .quantity(orderMenuDTO.getQuantity())
                     .price(orderMenuDTO.getMenuTotalPrice())
-                    .menuName(orderMenuDTO.getMenuName())
+                    .menuName(menu.getMenuName())
                     .menuOption(convertMenuOptionToJson(orderMenuDTO.getMenuOption()))
                     .build();
 
@@ -193,6 +205,13 @@ public class OrderService {
         } catch (Exception e) {
             throw new OrderException(OrderErrorCode.MENU_OPTION_SERIALIZATION_FAIL);
         }
+    }
+
+    private OrderCreateResponse buildOrderCreateResponse(Order order) {
+        return OrderCreateResponse.builder()
+                .orderId(order.getOrderId())
+                .tossOrderId(order.getTossOrderId())
+                .build();
     }
 
     @Transactional

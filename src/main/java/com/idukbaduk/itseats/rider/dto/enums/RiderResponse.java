@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum RiderResponse implements Response {
 
+    CREATE_RIDER_SUCCESS(HttpStatus.CREATED, "라이더 회원가입 성공"),
     MODIFY_IS_WORKING_SUCCESS(HttpStatus.OK, "출/퇴근 상태전환 성공"),
+    UPDATE_LOCATION_SUCCESS(HttpStatus.OK, "라이더 위치 갱신 성공"),
     UPDATE_STATUS_ACCEPT_SUCCESS(HttpStatus.OK, "배달 수락 완료"),
     UPDATE_STATUS_ARRIVED_SUCCESS(HttpStatus.OK, "매장 도착 완료"),
     UPDATE_STATUS_PICKUP_SUCCESS(HttpStatus.OK, "픽업 완료"),

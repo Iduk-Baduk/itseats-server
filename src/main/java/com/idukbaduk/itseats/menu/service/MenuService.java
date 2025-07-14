@@ -64,6 +64,7 @@ public class MenuService {
                 .menuStatus(menu.getMenuStatus().name())
                 .menuRating(menu.getMenuRating())
                 .menuGroupName(menu.getMenuGroup().getMenuGroupName())
+                .menuPriority(menu.getMenuPriority())
                 .optionGroups(optionGroupsToDto(menu.getMenuOptionGroups()))
                 .build();
     }

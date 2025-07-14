@@ -1,10 +1,13 @@
 package com.idukbaduk.itseats.store.controller;
 
 import com.idukbaduk.itseats.global.response.BaseResponse;
+import com.idukbaduk.itseats.store.dto.StoreDetailResponse;
 import com.idukbaduk.itseats.store.dto.enums.StoreResponse;
 import com.idukbaduk.itseats.store.dto.enums.StoreSortOption;
 import com.idukbaduk.itseats.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/stores")
 public class StoreController {
+
+    private static final Logger log = LoggerFactory.getLogger(StoreController.class);
 
     private final StoreService storeService;
 
@@ -31,10 +36,11 @@ public class StoreController {
     public ResponseEntity<BaseResponse> getStoreDetail(
             @PathVariable Long storeId,
             @AuthenticationPrincipal UserDetails userDetails
-            ) {
+    ) {
+        StoreDetailResponse response = storeService.getStoreDetail(userDetails.getUsername(), storeId);
         return BaseResponse.toResponseEntity(
                 StoreResponse.GET_STORE_DETAIL_SUCCESS,
-                storeService.getStoreDetail(userDetails.getUsername(), storeId)
+                response
         );
     }
 
