@@ -36,22 +36,12 @@ public class StoreController {
     public ResponseEntity<BaseResponse> getStoreDetail(
             @PathVariable Long storeId,
             @AuthenticationPrincipal UserDetails userDetails
-            ) {
-        log.info("매장 상세 조회 요청 시작 - storeId: {}, username: {}", storeId, 
-                userDetails != null ? userDetails.getUsername() : "null");
-        
-        try {
-            StoreDetailResponse response = storeService.getStoreDetail(userDetails.getUsername(), storeId);
-            log.info("매장 상세 조회 성공 - storeId: {}, storeName: {}", storeId, response.getName());
-            return BaseResponse.toResponseEntity(
-                    StoreResponse.GET_STORE_DETAIL_SUCCESS,
-                    response
-            );
-        } catch (Exception e) {
-            log.error("매장 상세 조회 실패 - storeId: {}, username: {}, error: {}", 
-                    storeId, userDetails != null ? userDetails.getUsername() : "null", e.getMessage(), e);
-            throw e;
-        }
+    ) {
+        StoreDetailResponse response = storeService.getStoreDetail(userDetails.getUsername(), storeId);
+        return BaseResponse.toResponseEntity(
+                StoreResponse.GET_STORE_DETAIL_SUCCESS,
+                response
+        );
     }
 
     @GetMapping("/list/{storeCategory}")
