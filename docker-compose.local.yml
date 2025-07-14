@@ -55,7 +55,7 @@ services:
     tty: true
     volumes:
       - ./scripts:/scripts
-    command: [ "run", "/scripts/healthcheck.js" ]
+    command: [ "run", "/scripts/coupon-issuetest.js" ]
     environment:
       - K6_OUT=experimental-prometheus-rw
       - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
