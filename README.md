@@ -40,6 +40,31 @@
 
 <img width="1588" height="1013" alt="시스템 구조도" src="https://github.com/user-attachments/assets/4751a9eb-eb89-48d6-9b7b-aedd77aefcb3" />
 
+# 기술 스택
+
+- **Backend**: Java 17, Spring Boot, Spring Data JPA
+- **Authentication** : JWT, Spring Security
+- **Database & Cache**: MySQL, Redis
+- **Monitoring & Load Test**: K6, Prometheus, Grafana
+- **CI/CD**: Github Actions
+- **Infra & Deployment**: AWS Fargate, Docker
+
+# 프로젝트 구조
+
+```
+src/main/java/com/idukbaduk/itseats/
+├── external/
+├── global/
+├── member/
+│   ├─── controller/
+│   ├─── dto/
+│   ├─── entity/
+│   ├─── repository/
+│   └─── service/
+├── ...
+└─── ItseatsServerApplication
+```
+
 # 링크
 ### 고객용 프론트엔드
 [itseats-web-customer](https://github.com/Iduk-Baduk/itseats-web-customer)
@@ -54,3 +79,14 @@
 
 # 팀원
 
+송준경 [@chk-jk](https://github.com/chk-jk)
+
+김세은 [@sseen2](https://github.com/sseen2)
+
+이우창 [@changi1122](https://github.com/changi1122)
+
+정재환 [@jaehwannnnnn](https://github.com/jaehwannnnnn)
+
+한상희 [@sanghee00](https://github.com/sanghee00)
+
+박근석 [@parkrootseok](https://github.com/parkrootseok)
