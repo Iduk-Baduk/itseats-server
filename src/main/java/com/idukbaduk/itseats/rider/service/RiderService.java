@@ -109,8 +109,8 @@ public class RiderService {
         final int searchRadiusMeters = DEFAULT_SEARCH_RADIUS_KM * 1000; // 10km
 
         List<NearbyOrderDTO> nearbyOrders = orderRepository.findNearbyOrders(
-                request.getLongitude(),
                 request.getLatitude(),
+                request.getLongitude(),
                 searchRadiusMeters
         );
 
