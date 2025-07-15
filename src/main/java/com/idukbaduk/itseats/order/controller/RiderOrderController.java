@@ -76,6 +76,7 @@ public class RiderOrderController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable("orderId") Long orderId) {
         riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.DELIVERED);
+        riderOrderService.updateOrderStatus(userDetails.getUsername(), orderId, OrderStatus.COMPLETED);
         return BaseResponse.toResponseEntity(RiderResponse.UPDATE_STATUS_DELIVERED_SUCCESS);
     }
 
