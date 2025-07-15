@@ -17,11 +17,13 @@ import com.idukbaduk.itseats.rider.error.enums.RiderErrorCode;
 import com.idukbaduk.itseats.rider.repository.RiderAssignmentRepository;
 import com.idukbaduk.itseats.rider.repository.RiderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RiderService {
@@ -69,8 +71,10 @@ public class RiderService {
         rider.updateLocation(GeoUtil.toPoint(request.getLongitude(), request.getLatitude()));
     }
 
+    @Transactional
     public void createRiderAssignment(Rider rider, Order order) {
-        riderAssignmentRepository.save(buildRiderAssignment(rider, order));
+        if (!riderAssignmentRepository.existsByRiderAndOrder(rider, order))
+            riderAssignmentRepository.save(buildRiderAssignment(rider, order));
     }
 
     private RiderAssignment buildRiderAssignment(Rider rider, Order order) {

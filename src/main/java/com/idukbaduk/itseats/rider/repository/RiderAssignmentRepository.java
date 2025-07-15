@@ -25,4 +25,6 @@ public interface RiderAssignmentRepository extends JpaRepository<RiderAssignment
     );
 
     Optional<RiderAssignment> findByRiderAndOrder(Rider rider, Order order);
+
+    Boolean existsByRiderAndOrder(Rider rider, Order order);
 }
